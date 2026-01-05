@@ -1,20 +1,29 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Button, Modal, Image } from 'react-native';
+import { useState } from 'react';
+import { CustomButton } from './components/CustomButton'
+import { Header } from './components/ui/header/header';
+import { Main } from './components/ui/main/main';
+import { NoConnection } from './components/ui/status/no_connection';
+import { ButtonIcon } from './components/ui/elements/buttons/ButtonIcon';
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+  const [state, setState] = useState(false) 
+  function openModal() { setState(true); }  
+  function closeModal() { setState(false) } 
+
+  return (
+    <>
+      <Header />
+      <Main>
+        <NoConnection />
+        <ButtonIcon 
+          title='connect'
+          onPress={openModal}
+          icon={require('./assets/icons/connect_button.png')}
+        />
+      </Main>
+    </>
+  );
+};
