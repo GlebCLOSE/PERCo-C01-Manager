@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#0375BB',
-    paddingVertical: 19,
+    paddingVertical: 15,
     paddingHorizontal: 35,
     borderRadius: 50,
     flexDirection: 'row',
