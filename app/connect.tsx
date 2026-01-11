@@ -128,6 +128,7 @@ const handleConnect = async () => {
         value={ip}
         onChangeText={setIp}
         error={errors.ip}
+        keyboardType="numeric"
       />
 
       <InputField

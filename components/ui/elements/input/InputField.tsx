@@ -10,6 +10,7 @@ interface InputFieldProps {
   secureTextEntry?: boolean;
   multiline?: boolean;
   numberOfLines?: number;
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'url' | 'number-pad' | 'decimal-pad'; // Доступные типы клавиатуры
 }
 
 export default function InputField({
@@ -20,7 +21,8 @@ export default function InputField({
   placeholder = '',
   secureTextEntry = false,
   multiline = false,
-  numberOfLines = 1
+  numberOfLines = 1,
+  keyboardType = 'default'
 }: InputFieldProps) {
   return (
     <View style={styles.container}>
@@ -33,6 +35,7 @@ export default function InputField({
         secureTextEntry={secureTextEntry}
         multiline={multiline}
         numberOfLines={numberOfLines}
+        keyboardType={keyboardType}
         style={[
           styles.input,
           error && styles.inputError
@@ -45,7 +48,6 @@ export default function InputField({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
     alignSelf: 'stretch'
   },
   label: {
