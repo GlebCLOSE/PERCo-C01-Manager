@@ -29,7 +29,7 @@ export default function InputField({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextStyle={styles.placeholder}
+        placeholderTextColor="#010f5e3d"
         secureTextEntry={secureTextEntry}
         multiline={multiline}
         numberOfLines={numberOfLines}

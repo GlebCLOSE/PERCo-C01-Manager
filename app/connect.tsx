@@ -2,6 +2,7 @@ import { TextInput, Button, View, Text, Image } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
+import InputField from '../components/ui/elements/input/InputField';
 import ErrorModal from '../components/ui/status/ErrorModal';
 
 export default function ConnectForm() {
@@ -121,59 +122,30 @@ const handleConnect = async () => {
         <Text style={styles.title}>Подключение к контроллеру</Text>
       </View>
       {/* Поле IP‑адреса */}
-      <View style={styles.block}>
-        <Text style={styles.label}>IP-адрес</Text>
-        <TextInput
-            placeholder="IP‑адрес"
-            placeholderTextColor="#010f5e3d"
-            value={ip}
-            onChangeText={setIp}
-            style={[
-            styles.input,
-            errors.ip && styles.inputError
-            ]}
-        />
-        {errors.ip && (
-            <Text style={styles.errorText}>{errors.ip}</Text>
-        )}
-      </View>
+      <InputField
+        label="IP‑адрес"
+        placeholder="192.168.1.1"
+        value={ip}
+        onChangeText={setIp}
+        error={errors.ip}
+      />
 
-      {/* Поле пароля */}
-      <View style={styles.block}>
-        <Text style={styles.label}>Пароль (если установлен)</Text>
-            <TextInput
-                placeholder="Пароль"
-                placeholderTextColor="#010f5e3d"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                style={[
-                styles.input,
-                errors.password && styles.inputError
-                ]}
-            />
-            {errors.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
-            )}
-      </View>
+      <InputField
+        label="Пароль (если требуется)"
+        placeholder="Введите пароль"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        error={errors.password}
+      />
 
-      {/* Поле имени контроллера */}
-      <View style={styles.block}>
-        <Text style={styles.label}>Имя устройства</Text>
-        <TextInput
-            placeholder="Имя устройства"
-            placeholderTextColor="#010f5e3d"
-            value={deviceName}
-            onChangeText={setDeviceName}
-            style={[
-            styles.input,
-            errors.deviceName && styles.inputError
-            ]}
-        />
-        {errors.deviceName && (
-            <Text style={styles.errorText}>{errors.deviceName}</Text>
-        )}
-      </View>
+      <InputField
+        label="Имя контроллера"
+        placeholder="MyController"
+        value={deviceName}
+        onChangeText={setDeviceName}
+        error={errors.deviceName}
+      />
 
       <Button title="Подключиться" onPress={handleConnect} />
       <ErrorModal
