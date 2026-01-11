@@ -2,12 +2,15 @@ import { TextInput, Button, View, Text, Image } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
+import ErrorModal from '../components/ui/status/ErrorModal';
 
 export default function ConnectForm() {
   const [ip, setIp] = useState('');
   const [password, setPassword] = useState('');
   const [deviceName, setDeviceName] = useState('');
   const [errors, setErrors] = useState({});
+  const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter()
 
   // Функция валидации IP‑адреса
@@ -72,15 +75,43 @@ export default function ConnectForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleConnect = () => {
-    // Сначала валидируем форму
+// Имитация функции подключения
+const attemptConnection = async (ip, password, deviceName) => {
+    // Здесь должна быть реальная логика подключения через WebSocket/API
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Для демонстрации возвращаем ошибку
+        resolve({
+          success: false,
+          message: 'Не удалось установить соединение с устройством. Проверьте IP-адрес и доступность сети.'
+        });
+      }, 1000);
+    });
+  };
+
+const handleConnect = async () => {
     if (!validateForm()) {
-      return; // Останавливаем выполнение, если есть ошибки
+      return;
     }
 
-    // Если валидация пройдена, выполняем подключение
-    console.log('Данные для подключения:', { ip, password, deviceName });
-    router.push('/controller');
+    try {
+      // Имитация подключения к C01
+      const connectionResult = await attemptConnection(ip, password, deviceName);
+
+      if (!connectionResult.success) {
+        // Показываем модальное окно с ошибкой
+        setErrorMessage(connectionResult.message || 'Не удалось подключиться к контроллеру C01');
+        setIsErrorModalVisible(true);
+        return;
+      }
+
+      // Успешное подключение — переход на экран управления
+      router.push('/controller');
+    } catch (error) {
+      // Обработка сетевых ошибок и других исключений
+      setErrorMessage('Произошла непредвиденная ошибка при подключении');
+      setIsErrorModalVisible(true);
+    }
   };
 
   return (
@@ -145,6 +176,11 @@ export default function ConnectForm() {
       </View>
 
       <Button title="Подключиться" onPress={handleConnect} />
+      <ErrorModal
+        visible={isErrorModalVisible}
+        message={errorMessage}
+        onClose={() => setIsErrorModalVisible(false)}
+      />
     </View>
   );
 }
