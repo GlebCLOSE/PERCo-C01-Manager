@@ -1,4 +1,5 @@
-import { TextInput, Button, View, Text, Image } from 'react-native';
+import { TextInput, View, Text, Image } from 'react-native';
+import { Button } from '../components/ui/elements/buttons/Button';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
@@ -148,7 +149,11 @@ const handleConnect = async () => {
         error={errors.deviceName}
       />
 
-      <Button title="Подключиться" onPress={handleConnect} />
+      <Button
+        title="Подключиться"
+        onPress={handleConnect}
+        size={'M'}
+      />
       <ErrorModal
         visible={isErrorModalVisible}
         message={errorMessage}
