@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import InputField from '../components/ui/elements/input/InputField';
 import ErrorModal from '../components/ui/status/ErrorModal';
+import md5 from 'md5';
 
 export default function ConnectForm() {
   const [ip, setIp] = useState('');
@@ -77,28 +78,80 @@ export default function ConnectForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-// Имитация функции подключения
-const attemptConnection = async (ip, password, deviceName) => {
-    // Здесь должна быть реальная логика подключения через WebSocket/API
+  const attemptConnection = (ip, password) => {
     return new Promise((resolve) => {
-      setTimeout(() => {
-        // Для демонстрации возвращаем ошибку
-        resolve({
-          success: false,
-          message: 'Не удалось установить соединение с устройством. Проверьте IP-адрес и доступность сети.'
-        });
-      }, 1000);
+      // Используем порт 80 (стандарт для HTTP/WS), если в документации не указан иной
+      const wsUrl = `ws://${ip}`; 
+      let ws = null;
+
+      const timeout = setTimeout(() => {
+        if (ws) ws.close();
+        resolve({ success: false, message: 'Контроллер не ответил вовремя' });
+      }, 7000);
+
+      try {
+        ws = new WebSocket(wsUrl);
+
+        ws.onmessage = (e) => {
+          try {
+            const data = JSON.parse(e.data);
+
+            // ШАГ 1: Получение соли от контроллера
+            if (data.event === 'need_auth') {
+              const salt = data.need_auth.salt;
+              const hash = md5(salt + password); // Конкатенация соли и пароля + MD5
+
+              const authPayload = {
+                set: "auth",
+                auth: { hash: hash }
+              };
+              ws.send(JSON.stringify(authPayload));
+            }
+
+            // ШАГ 2: Проверка ответа авторизации
+            if (data.answer && data.answer.auth) {
+              clearTimeout(timeout);
+              
+              if (data.answer.auth === 'ok') {
+                resolve({ success: true, socket: ws });
+              } else {
+                ws.close();
+                resolve({ success: false, message: 'Неверный пароль доступа' });
+              }
+            }
+          } catch (err) {
+            console.error("Ошибка парсинга JSON:", err);
+          }
+        };
+
+        ws.onerror = (e) => {
+          clearTimeout(timeout);
+          resolve({ success: false, message: 'Ошибка сети или порт закрыт' });
+        };
+
+        ws.onclose = () => {
+          console.log('Соединение с C01 разорвано');
+        };
+
+      } catch (error) {
+        clearTimeout(timeout);
+        resolve({ success: false, message: 'Критическая ошибка при создании сокета' });
+      }
     });
   };
 
-const handleConnect = async () => {
+  const handleConnect = async () => {
     if (!validateForm()) {
       return;
     }
 
     try {
       // Имитация подключения к C01
-      const connectionResult = await attemptConnection(ip, password, deviceName);
+      const connectionResult = await attemptConnection(ip, password);
+
+      if(connectionResult.success) {
+        setGlobalSocket(connectionResult.socket)
+      }
 
       if (!connectionResult.success) {
         // Показываем модальное окно с ошибкой
