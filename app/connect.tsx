@@ -81,7 +81,7 @@ export default function ConnectForm() {
   const attemptConnection = (ip, password) => {
     return new Promise((resolve) => {
       // Используем порт 80 (стандарт для HTTP/WS), если в документации не указан иной
-      const wsUrl = `ws://${ip}`; 
+      const wsUrl = `ws://${ip}:80`; 
       let ws = null;
 
       const timeout = setTimeout(() => {
@@ -125,6 +125,7 @@ export default function ConnectForm() {
         };
 
         ws.onerror = (e) => {
+          console.log(e)
           clearTimeout(timeout);
           resolve({ success: false, message: 'Ошибка сети или порт закрыт' });
         };
