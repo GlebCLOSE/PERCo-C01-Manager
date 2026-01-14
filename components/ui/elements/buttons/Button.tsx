@@ -4,7 +4,8 @@ import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 enum Size {
   S = 'S',
   M = 'M',
-  L = 'L'
+  L = 'L',
+  Long = 'Long'
 }
 
 enum BorderRadiusStyle {
@@ -19,6 +20,7 @@ interface CustomButtonProps {
   size: Size;
   borderRadiusStyle?: BorderRadiusStyle; // Новый пропс для стиля скругления
   customStyles?: object;                // Дополнительный пропс для кастомных стилей
+  customTextStyles?: object;            // Пропс для кастомных стилей текста кнопки
 }
 
 export const Button: React.FC<CustomButtonProps> = ({
@@ -26,7 +28,8 @@ export const Button: React.FC<CustomButtonProps> = ({
   onPress,
   size,
   borderRadiusStyle = BorderRadiusStyle.ROUNDED,
-  customStyles = {}
+  customStyles = {},
+  customTextStyles = {}
 }) => {
   // Коэффициенты скругления: [размер][стиль]
   const radiusCoefficients = {
@@ -44,14 +47,20 @@ export const Button: React.FC<CustomButtonProps> = ({
       [BorderRadiusStyle.SHARP]: 0.5,
       [BorderRadiusStyle.ROUNDED]: 0.8,
       [BorderRadiusStyle.CIRCLE]: 1.2
-    }
+    },
+    [Size.Long]: {
+      [BorderRadiusStyle.SHARP]: 0.5,
+      [BorderRadiusStyle.ROUNDED]: 0.8,
+      [BorderRadiusStyle.CIRCLE]: 1.2
+    },
   };
 
   // Базовые стили для размеров
   const sizeStyles = {
     [Size.S]: styles.buttonSmall,
     [Size.M]: styles.buttonMedium,
-    [Size.L]: styles.buttonLarge
+    [Size.L]: styles.buttonLarge,
+    [Size.Long]: styles.buttonLarge
   };
 
   const baseStyle = sizeStyles[size];
@@ -93,14 +102,15 @@ const styles = StyleSheet.create({
     fontSize: 24
   },
   buttonLarge: {
-    paddingVertical: 20,
-    paddingHorizontal: 50,
+    paddingVertical: 19,
+    paddingHorizontal: 35,
     fontSize: 32
   },
   buttonLong: {
     width: '100%',
     paddingVertical: 18,
     paddingHorizontal: 25,
+    fontSize: 24,
   },
   buttonText: {
     color: '#FFFFFF',
