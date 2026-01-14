@@ -4,6 +4,7 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 interface ControllerContextType {
   socket: WebSocket | null;
   isConnected: boolean;
+  ipAddress: string | null;
   setGlobalSocket: (ws: WebSocket) => void;
   disconnect: () => void;
 }
@@ -18,6 +19,7 @@ interface Props {
 export const ControllerProvider: React.FC<Props> = ({ children }) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [ipAddress, setIpAddress] = useState<string | null>(null);
 
   // Очистка при размонтировании
   useEffect(() => {
@@ -37,6 +39,13 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
   };
 
   const setGlobalSocket = (ws: WebSocket) => {
+
+    try {
+      const host = new URL(ws.url).hostname;
+      setIpAddress(host);
+    } catch (e) {
+      console.error("Invalid WS URL", e);
+    }
     // Типизируем обработчики событий сокета
     ws.onclose = () => {
       setIsConnected(false);
@@ -53,7 +62,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     setIsConnected(true);
   };
 
-  const value = { socket, isConnected, setGlobalSocket, disconnect };
+  const value = { socket, isConnected, ipAddress, setGlobalSocket, disconnect };
 
   return (
     <ControllerContext value={value}>
