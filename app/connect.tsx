@@ -5,7 +5,12 @@ import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import InputField from '../components/ui/elements/input/InputField';
 import ErrorModal from '../components/ui/status/ErrorModal';
-import md5 from 'md5';
+import { attemptConnection } from '../utils/attemptConnection';
+import { useController } from '../providers/ControllerContext';
+
+import { validateIP } from '../utils/validation/validateIP';
+import { validateDeviceName } from '../utils/validation/validateDeviceName'
+import { validatePassword } from '../utils/validation/validatePassword';
 
 export default function ConnectForm() {
   const [ip, setIp] = useState('');
@@ -15,51 +20,8 @@ export default function ConnectForm() {
   const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter()
+  const { setGlobalSocket, isConnected } = useController();
 
-  // Функция валидации IP‑адреса
-  const validateIP = (ipAddress) => {
-    if (!ipAddress.trim()) {
-      return 'IP‑адрес обязателен';
-    }
-
-    const parts = ipAddress.trim().split('.');
-    if (parts.length !== 4) {
-      return 'IP‑адрес должен содержать 4 части, разделённые точками';
-    }
-
-    for (const part of parts) {
-      if (!/^\d+$/.test(part)) {
-        return 'Каждая часть IP‑адреса должна содержать только цифры';
-      }
-      const num = parseInt(part, 10);
-      if (num < 0 || num > 255) {
-        return 'Каждая часть IP‑адреса должна быть от 0 до 255';
-      }
-    }
-    return null;
-  };
-
-  // Функция валидации имени контроллера
-  const validateDeviceName = (name) => {
-    if (!name.trim()) {
-      return 'Имя контроллера обязательно';
-    }
-    if (name.length > 20) {
-      return 'Имя контроллера не должно превышать 20 символов';
-    }
-    if (!/^[a-zA-Z0-9]+$/.test(name)) {
-      return 'Имя контроллера может содержать только буквы и цифры';
-    }
-    return null;
-  };
-
-  // Функция валидации пароля
-  const validatePassword = (pass) => {
-    if (pass.length > 10) {
-      return 'Пароль не должен превышать 10 символов';
-    }
-    return null;
-  };
 
   // Общая функция валидации формы
   const validateForm = () => {
@@ -78,76 +40,13 @@ export default function ConnectForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const attemptConnection = (ip, password) => {
-    return new Promise((resolve) => {
-      // Используем порт 80 (стандарт для HTTP/WS), если в документации не указан иной
-      const wsUrl = `ws://${ip}:80`; 
-      let ws = null;
-
-      const timeout = setTimeout(() => {
-        if (ws) ws.close();
-        resolve({ success: false, message: 'Контроллер не ответил вовремя' });
-      }, 7000);
-
-      try {
-        ws = new WebSocket(wsUrl);
-
-        ws.onmessage = (e) => {
-          try {
-            const data = JSON.parse(e.data);
-
-            // ШАГ 1: Получение соли от контроллера
-            if (data.event === 'need_auth') {
-              const salt = data.need_auth.salt;
-              const hash = md5(salt + password); // Конкатенация соли и пароля + MD5
-
-              const authPayload = {
-                set: "auth",
-                auth: { hash: hash }
-              };
-              ws.send(JSON.stringify(authPayload));
-            }
-
-            // ШАГ 2: Проверка ответа авторизации
-            if (data.answer && data.answer.auth) {
-              clearTimeout(timeout);
-              
-              if (data.answer.auth === 'ok') {
-                resolve({ success: true, socket: ws });
-              } else {
-                ws.close();
-                resolve({ success: false, message: 'Неверный пароль доступа' });
-              }
-            }
-          } catch (err) {
-            console.error("Ошибка парсинга JSON:", err);
-          }
-        };
-
-        ws.onerror = (e) => {
-          console.log(e)
-          clearTimeout(timeout);
-          resolve({ success: false, message: 'Ошибка сети или порт закрыт' });
-        };
-
-        ws.onclose = () => {
-          console.log('Соединение с C01 разорвано');
-        };
-
-      } catch (error) {
-        clearTimeout(timeout);
-        resolve({ success: false, message: 'Критическая ошибка при создании сокета' });
-      }
-    });
-  };
-
   const handleConnect = async () => {
     if (!validateForm()) {
       return;
     }
 
     try {
-      // Имитация подключения к C01
+      
       const connectionResult = await attemptConnection(ip, password);
 
       if(connectionResult.success) {

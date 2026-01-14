@@ -53,10 +53,12 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     setIsConnected(true);
   };
 
+  const value = { socket, isConnected, setGlobalSocket, disconnect };
+
   return (
-    <ControllerContext.Provider value={{ socket, isConnected, setGlobalSocket, disconnect }}>
+    <ControllerContext value={value}>
       {children}
-    </ControllerContext.Provider>
+    </ControllerContext>
   );
 };
 

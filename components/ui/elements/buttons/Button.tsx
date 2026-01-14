@@ -97,6 +97,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 50,
     fontSize: 32
   },
+  buttonLong: {
+    width: '100%',
+    paddingVertical: 18,
+    paddingHorizontal: 25,
+  },
   buttonText: {
     color: '#FFFFFF',
     fontWeight: 'normal',
