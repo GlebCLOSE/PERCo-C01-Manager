@@ -8,10 +8,10 @@ export default function ControllerScreen() {
 
   return (
     <>
-      <Button title="Команды" onPress={() => router.push('/commands')} size='Long' />
-      <Button title="События" onPress={() => router.push('/events')} size='Long' />
-      <Button title="Конфигурация" onPress={() => router.push('/config')} size='Long'/>
-      <Button title="Сетевые настройки" onPress={() => router.push('/network')} size='Long'/>
+      <Button title="Команды" onPress={() => router.push('/controller/commands')} size='Long' />
+      <Button title="События" onPress={() => router.push('/controller/events')} size='Long' />
+      <Button title="Конфигурация" onPress={() => router.push('/controller/config')} size='Long'/>
+      <Button title="Сетевые настройки" onPress={() => router.push('/controller/network')} size='Long'/>
     </>
   );
 }

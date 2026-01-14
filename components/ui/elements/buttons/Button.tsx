@@ -78,7 +78,10 @@ export const Button: React.FC<CustomButtonProps> = ({
       ]}
       onPress={onPress}
     >
-      <Text style={styles.buttonText}>{title}</Text>
+      <Text style={[
+        styles.buttonText,
+        customTextStyles
+        ]}>{title}</Text>
     </TouchableOpacity>
   );
 };
