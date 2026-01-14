@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff33',
     borderRadius: 15,
     borderColor: '#000670d0',
-    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.1)'
+    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.1)',
+    padding: 15,
   },
 });
