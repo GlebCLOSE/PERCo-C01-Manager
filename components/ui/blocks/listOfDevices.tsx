@@ -1,14 +1,17 @@
 import { View, Text, StyleSheet } from "react-native"
 import { RememberedDevice, RememberedDeviceProps } from "./rememberedDevice"
 import { Button } from "../elements/buttons/Button"
+import { useRouter } from "expo-router"
 
 export const ListOfDevices = () => {
     
+    const router = useRouter();
+
     const d = {
         name: 'Device',
         ip: '172.17.2.10',
         password: ''
-    }
+    };
 
     return (
         <View style={styles.window}>
@@ -16,15 +19,14 @@ export const ListOfDevices = () => {
                 <Text style={styles.headerText}>Запомненные устройства</Text>
             </View>
             <View style={styles.list}>
-                <RememberedDevice name={d.name} ip={d.ip} password={d.password}/>
+                <RememberedDevice name={d.name} ip={d.ip} password={d.password} small={true}/>
                                 <Button
                   title='Список устройств ->'
-                  onPress={() => router.push('/controller/state')}
+                  onPress={() => router.push('/remembered')}
                   size='S'
                   borderRadiusStyle='sharp'
                   customStyles={{ backgroundColor: '#ffffffe0', borderWidth: 1, borderColor: '#1A2253', width: '100%'}}
                   customTextStyles={{color: '#1A2253'}}
-                  small={true}
                 />
             </View>
         </View>

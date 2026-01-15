@@ -95,9 +95,9 @@ const styles = StyleSheet.create({
     gap: 20
   },
   buttonSmall: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    fontSize: 14
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    fontSize: 11
   },
   buttonMedium: {
     paddingVertical: 15,
