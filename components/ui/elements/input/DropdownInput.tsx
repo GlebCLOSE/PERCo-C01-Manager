@@ -40,8 +40,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '400',
     color: '#1a225381',
   },
 });
@@ -49,26 +49,26 @@ const styles = StyleSheet.create({
 // Стилизация самого выпадающего списка
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
-    fontSize: 16,
+    fontSize: 20,
     paddingVertical: 12,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#1a225381',
     borderRadius: 8,
     color: 'black',
     paddingRight: 30, // место для иконки
-    backgroundColor: '#96ced43d',
+    backgroundColor: '#96ced41e',
   },
   inputAndroid: {
-    fontSize: 16,
-    paddingHorizontal: 10,
+    fontSize: 20,
+    paddingHorizontal: 15,
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#1a225381',
     borderRadius: 8,
     color: 'black',
     paddingRight: 30,
-    backgroundColor: '#c3dde0d2',
+    backgroundColor: '#c3dde03d',
   },
 });
 
