@@ -7,6 +7,7 @@ import { Main } from '../components/ui/main/main';
 import { NoConnection } from '../components/ui/status/no_connection';
 import { ButtonIcon } from '../components/ui/elements/buttons/ButtonIcon';
 import { useRouter } from 'expo-router';
+import { ListOfDevices } from '../components/ui/blocks/listOfDevices';
 
 export default function App() {
 
@@ -14,6 +15,7 @@ export default function App() {
 
   return (
     <>
+        <ListOfDevices/>
         <NoConnection />
         <ButtonIcon 
             title='connect'
