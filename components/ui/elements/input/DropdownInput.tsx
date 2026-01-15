@@ -36,12 +36,11 @@ const DropdownInput: React.FC<Props> = ({ label, items, placeholder, onChange, v
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    gap: 5,
     width: '100%',
   },
   label: {
     fontSize: 16,
-    marginBottom: 8,
     fontWeight: '600',
     color: '#1a225381',
   },
@@ -58,7 +57,7 @@ const pickerSelectStyles = StyleSheet.create({
     borderRadius: 8,
     color: 'black',
     paddingRight: 30, // место для иконки
-    backgroundColor: '#ffe6e6',
+    backgroundColor: '#96ced43d',
   },
   inputAndroid: {
     fontSize: 16,
@@ -69,7 +68,7 @@ const pickerSelectStyles = StyleSheet.create({
     borderRadius: 8,
     color: 'black',
     paddingRight: 30,
-    backgroundColor: '#ffe6e6',
+    backgroundColor: '#c3dde0d2',
   },
 });
 
