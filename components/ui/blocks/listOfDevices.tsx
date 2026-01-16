@@ -40,7 +40,8 @@ const styles = StyleSheet.create({
         borderColor: '#00067033',
         backgroundColor: '#e8f8ff73',
         borderRadius: 10,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.1)',
     },
     header: { 
         backgroundColor: '#0A3A99',
