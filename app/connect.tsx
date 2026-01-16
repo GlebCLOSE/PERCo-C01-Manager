@@ -11,6 +11,7 @@ import { useController } from '../providers/ControllerContext';
 import { validateIP } from '../utils/validation/validateIP';
 import { validateDeviceName } from '../utils/validation/validateDeviceName'
 import { validatePassword } from '../utils/validation/validatePassword';
+import Checkbox from 'expo-checkbox'
 
 export default function ConnectForm() {
   const [ip, setIp] = useState('');
@@ -19,6 +20,7 @@ export default function ConnectForm() {
   const [errors, setErrors] = useState({});
   const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isChecked, setChecked] = useState(false);
   const router = useRouter()
   const { setGlobalSocket, isConnected } = useController();
 
@@ -102,6 +104,15 @@ export default function ConnectForm() {
         error={errors.deviceName}
       />
 
+      <View style={styles.checkbox}>
+        <Checkbox
+          value={isChecked}
+          onValueChange={setChecked}
+          color={isChecked ? '#4630EB' : undefined}
+        />
+        <Text style={styles.text}>Запомнить устройство</Text>
+      </View>
+
       <Button
         title="Подключиться"
         onPress={handleConnect}
@@ -164,5 +175,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 12,
     alignSelf: 'stretch'
+  },
+  checkbox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    gap: 10
+  },
+  text: {
+    fontSize: 20,
+    fontFamily: 'inter',
+    fontWeight: '400',
+    color: '#1a225381',
   }
 });
