@@ -21,11 +21,11 @@ export const ListOfDevices = () => {
             <View style={styles.list}>
                 <RememberedDevice name={d.name} ip={d.ip} password={d.password} small={true}/>
                                 <Button
-                  title='Список устройств ->'
+                  title='Список устройств →'
                   onPress={() => router.push('/remembered')}
                   size='S'
                   borderRadiusStyle='sharp'
-                  customStyles={{ backgroundColor: '#ffffffe0', borderWidth: 1, borderColor: '#1A2253', width: '100%'}}
+                  customStyles={{ backgroundColor: '#ffffffe0', borderWidth: 1, borderColor: '#1A2253', borderRadius: 5, width: '100%'}}
                   customTextStyles={{color: '#1A2253'}}
                 />
             </View>

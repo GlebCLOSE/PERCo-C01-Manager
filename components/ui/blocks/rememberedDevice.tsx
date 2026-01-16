@@ -79,7 +79,9 @@ const styles = StyleSheet.create({
     padding: 7,
     backgroundColor: '#adc4ff31',
     borderWidth: 1,
-    borderColor: '#00067057' 
+    borderColor: '#00067057',
+    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.1)',
+    borderRadius: 5
   },
   block: {
     gap: 5,
