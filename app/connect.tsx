@@ -7,6 +7,7 @@ import InputField from '../components/ui/elements/input/InputField';
 import ErrorModal from '../components/ui/status/ErrorModal';
 import { attemptConnection } from '../utils/attemptConnection';
 import { useController } from '../providers/ControllerContext';
+import { saveDevice } from '../storage/deviceStorage';
 
 import { validateIP } from '../utils/validation/validateIP';
 import { validateDeviceName } from '../utils/validation/validateDeviceName'
@@ -46,6 +47,13 @@ export default function ConnectForm() {
     if (!validateForm()) {
       return;
     }
+
+      
+    // Если чекбокс "Запомнить устройство" отмечен - сохранить устройство
+    if(isChecked){
+      saveDevice(deviceName, ip, password)
+    }
+
 
     try {
       

@@ -1,14 +1,40 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, FlatList } from "react-native";
+import { useState, useEffect } from "react";
 import { Button } from "../components/ui/elements/buttons/Button";
 import { RememberedDevice } from "../components/ui/blocks/rememberedDevice";
+import { Device } from "../types/device";
+import { getDevices, saveDevice } from "../storage/deviceStorage";
 
 export default function RememberedScreen() {
+
+    const [devices, setDevices] = useState<Device[]>([]);
+
+    useEffect(() => {
+        loadDevices();
+    }, []);
+
+    // тестовая функция добавления 
+    const handleAddDevice = async () => {
+        const success = await saveDevice('Новый сервер', '192.168.1.100', 'secret');
+        if (success) {
+        await loadDevices(); // Обновляем список
+        }
+    };
+
+    const loadDevices = async () => {
+        const loadedDevices = await getDevices();
+        setDevices(loadedDevices);
+    };
 
     const d = {
         name: 'Device',
         ip: '172.17.2.10',
         password: ''
     };
+
+    const renderItem = ({ item }: { item: Device }) => (
+        <RememberedDevice name={item.name} ip={item.ip} password={item.password}/>
+  );
 
     return (
         <View style={styles.window}>
@@ -17,8 +43,12 @@ export default function RememberedScreen() {
             </View>
             <View style={styles.list}>
                 <RememberedDevice name={d.name} ip={d.ip} password={d.password} small={true}/>
-                <RememberedDevice name={d.name} ip={d.ip} password={d.password} small={true}/>
-                <RememberedDevice name={d.name} ip={d.ip} password={d.password} small={true}/>
+                <FlatList
+                    data={devices}
+                    renderItem={renderItem}
+                    keyExtractor={item => item.id}
+                    ListEmptyComponent={<Text>Нет устройств</Text>}
+                />
             </View>
         </View>
     )
