@@ -3,15 +3,39 @@ import { useState, useEffect } from "react";
 import { Button } from "../components/ui/elements/buttons/Button";
 import { RememberedDevice } from "../components/ui/blocks/rememberedDevice";
 import { Device } from "../types/device";
-import { getDevices, saveDevice } from "../storage/deviceStorage";
+import { getDevices, saveDevice, removeDevice } from "../storage/deviceStorage";
 
 export default function RememberedScreen() {
 
     const [devices, setDevices] = useState<Device[]>([]);
 
+
     useEffect(() => {
-        loadDevices();
+    const loadDevices = async () => {
+        const loadedDevices = await getDevices();
+        setDevices(loadedDevices);
+    };
+    loadDevices();
     }, []);
+
+    // Функция удаления устройства из списка
+    const handleRemove = async (name: string, ip: string) => {
+
+        const result = await removeDevice({ip: ip, name: name})
+
+        try {
+            if (result.success) {
+                alert('Устройство удалено из списка')
+                const updatedDevices = await getDevices();
+                setDevices(updatedDevices);
+            } else {
+                alert(result.message)
+            }
+        } catch(error) {
+            console.log(error)
+        }
+
+    }
 
     // тестовая функция добавления 
     const handleAddDevice = async () => {
@@ -33,7 +57,7 @@ export default function RememberedScreen() {
     };
 
     const renderItem = ({ item }: { item: Device }) => (
-        <RememberedDevice name={item.name} ip={item.ip} password={item.password}/>
+        <RememberedDevice name={item.name} ip={item.ip} password={item.password} onDelete={() => handleRemove(item.name, item.ip)}/>
   );
 
     return (

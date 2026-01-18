@@ -18,13 +18,25 @@ export const saveDevice = async (
     // 1. Загружаем текущий список
     const currentDevices = await getDevices();
 
-    // 2. Проверяем дубликат по IP
-    const isDuplicate = currentDevices.some(device => device.ip === ip);
-    if (isDuplicate) {
-      return { success: false, message: `Устройство с IP ${ip} уже сохранено` };
+        // 2. Проверяем уникальность имени
+    const existingByName = currentDevices.find(device => device.name === name);
+    if (existingByName) {
+      return {
+        success: false,
+        message: `Устройство с именем "${name}" уже существует`
+      };
     }
 
-    // 3. Создаём новое устройство
+    // 3. Проверяем уникальность IP
+    const existingByIp = currentDevices.find(device => device.ip === ip);
+    if (existingByIp) {
+      return {
+        success: false,
+        message: `Устройство с IP ${ip} уже существует`
+      };
+    }
+
+    // 4. Создаём новое устройство
     const newDevice: Device = {
       id: Date.now().toString(),
       name,
@@ -74,18 +86,39 @@ export const getDevices = async (): Promise<Device[]> => {
 };
 
 
-export const removeDevice = async (deviceId: string): Promise<boolean> => {
+interface RemoveCriteria {
+  ip?: string;
+  name?: string;
+}
+
+export const removeDevice = async (criteria: RemoveCriteria): Promise<{ success: boolean; message?: string }> => {
   try {
     const currentDevices = await getDevices();
-    const filteredDevices = currentDevices.filter(device => device.id !== deviceId);
+    let found = false;
     
-    await SecureStore.setItemAsync(
-      'saved_devices',
-      JSON.stringify(filteredDevices)
-    );
-    return true;
+    const updatedDevices = currentDevices.filter(device => {
+      if (criteria.ip && device.ip === criteria.ip) {
+        found = true;
+        return false; // исключаем из массива
+      }
+      if (criteria.name && device.name === criteria.name) {
+        found = true;
+        return false;
+      }
+      return true; // оставляем остальные
+    });
+    
+    if (!found) {
+      return {
+        success: false,
+        message: 'Устройство не найдено по заданным критериям'
+      };
+    }
+    
+    await SecureStore.setItemAsync('saved_devices', JSON.stringify(updatedDevices));
+    return { success: true };
   } catch (error) {
     console.error('Ошибка удаления устройства:', error);
-    return false;
+    return { success: false, message: 'Внутренняя ошибка' };
   }
 };

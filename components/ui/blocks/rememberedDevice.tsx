@@ -6,30 +6,23 @@ import { Button } from "../elements/buttons/Button"
 import { attemptConnection } from "../../../utils/attemptConnection"
 import { useController } from "../../../providers/ControllerContext"
 import ErrorModal from "../status/ErrorModal"
+import { removeDevice } from "../../../storage/deviceStorage"
 
 export interface RememberedDeviceProps {
   name: string,
   ip: string,
   password: string,
-  small?: boolean
+  small?: boolean,
+  onDelete?: () => Promise<void>
 }
 
-export const RememberedDevice: React.FC<RememberedDeviceProps> = ({name, ip, password, small}) => {
+export const RememberedDevice: React.FC<RememberedDeviceProps> = ({name, ip, password, small, onDelete}) => {
 
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const router = useRouter()
     const { setGlobalSocket, isConnected } = useController();
     
-    const handleRemove = async () => {
-
-      try {
-        //вызвать функцию удаления устройства, с таким именем и IP или получить ID device, и удалить по нему
-      } catch(error) {
-
-      }
-
-    }
 
     const handleConnect = async () => {
 
@@ -68,7 +61,7 @@ export const RememberedDevice: React.FC<RememberedDeviceProps> = ({name, ip, pas
             </View>
           </View>
           <View style={styles.block}>
-            {!small && <Button title='Удалить' onPress={()=>{}} size='S'/>}
+            {!small && <Button title='X' onPress={onDelete} size='S' customStyles={{backgroundColor: '#f82828'}}/>}
             <Button title='Подключить' onPress={handleConnect} size='S'/>
             </View>
         </View>
@@ -83,6 +76,7 @@ export const RememberedDevice: React.FC<RememberedDeviceProps> = ({name, ip, pas
 
 const styles = StyleSheet.create({
   container: {
+    width: '100%',
     flexDirection: 'row',
     alignSelf: 'stretch',
     justifyContent: 'space-between',
