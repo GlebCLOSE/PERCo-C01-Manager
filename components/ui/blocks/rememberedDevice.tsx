@@ -20,6 +20,16 @@ export const RememberedDevice: React.FC<RememberedDeviceProps> = ({name, ip, pas
     const [errorMessage, setErrorMessage] = useState('');
     const router = useRouter()
     const { setGlobalSocket, isConnected } = useController();
+    
+    const handleRemove = async () => {
+
+      try {
+        //вызвать функцию удаления устройства, с таким именем и IP или получить ID device, и удалить по нему
+      } catch(error) {
+
+      }
+
+    }
 
     const handleConnect = async () => {
 
@@ -86,6 +96,7 @@ const styles = StyleSheet.create({
   block: {
     gap: 5,
     flexDirection: 'row',
+    alignItems: 'center'
   },
   nameIp: {
     flexDirection: 'column',
@@ -93,7 +104,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#00067057',
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'light',
   },
 });

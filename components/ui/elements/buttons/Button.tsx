@@ -63,6 +63,15 @@ export const Button: React.FC<CustomButtonProps> = ({
     [Size.Long]: styles.buttonLarge
   };
 
+  // Базовые стили для текста внутри кнопки
+  const textSizeStyles = {
+    [Size.S]: styles.textSmall,
+    [Size.M]: styles.textMedium,
+    [Size.L]: styles.textLarge,
+    [Size.Long]: styles.textLarge
+  }
+
+  const baseTextStyle = textSizeStyles[size]
   const baseStyle = sizeStyles[size];
   const halfHeight = baseStyle.paddingVertical; // Половина высоты кнопки
   const coefficient = radiusCoefficients[size][borderRadiusStyle];
@@ -80,6 +89,7 @@ export const Button: React.FC<CustomButtonProps> = ({
     >
       <Text style={[
         styles.buttonText,
+        baseTextStyle,
         customTextStyles
         ]}>{title}</Text>
     </TouchableOpacity>
@@ -119,5 +129,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'normal',
     textAlign: 'center'
+  },
+  textSmall: {
+    fontSize: 10
+  },
+  textMedium: {
+    fontSize: 16
+  },
+  textLarge: {
+    fontSize: 20
   }
 });
