@@ -21,14 +21,28 @@ export default function CommandsScreen() {
         {label: 'Запрет прохода', value: 'access'}
     ]
 
+
     //функция исполнения команды
     const executeComand = () => {
+
+        //тип команды зависит от типа selectedValue(при разных типах)
+        if(selectedValue==='acm'){
+
+        }
+        if(selectedValue==='exdev'){
+
+        }
+        if(selectedValue==='access'){
+            
+        }
+
+        // отправка команды и получение ответа(вывод можно в alert сделать)
         return ;
     }
 
     return (
         <>
-            <Text style={styles}>Команды</Text>
+            <Text style={styles.text}>Команды</Text>
             <DropdownInput 
                 label='Тип команды'
                 items={commandTypeList}
