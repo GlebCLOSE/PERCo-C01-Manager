@@ -15,30 +15,29 @@ export const saveDevice = async (
   password: string | null = null
 ): Promise<{ success: boolean; message?: string }> => {
   try {
+    // 1. Загружаем текущий список
+    const currentDevices = await getDevices();
 
-    const existingDevices = await getDevices(); // Загружаем текущий список
-
-    const isDuplicate = existingDevices.some(device => device.ip === ip);
-
+    // 2. Проверяем дубликат по IP
+    const isDuplicate = currentDevices.some(device => device.ip === ip);
     if (isDuplicate) {
-        console.log('Устройство с IP ${ip} уже сохранено')
-      return {
-        success: false,
-        message: `Устройство с IP ${ip} уже сохранено`
-      };
+      return { success: false, message: `Устройство с IP ${ip} уже сохранено` };
     }
-    const deviceId = Date.now().toString();
 
-    const device: Device = {
-      id: deviceId,
+    // 3. Создаём новое устройство
+    const newDevice: Device = {
+      id: Date.now().toString(),
       name,
       ip,
       password: password ?? null,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     };
 
-    const deviceString = JSON.stringify(device);
-    await SecureStore.setItemAsync(`device_${deviceId}`, deviceString);
+    // 4. Добавляем в список
+    const updatedDevices = [...currentDevices, newDevice];
+
+    // 5. Сохраняем весь массив в один ключ
+    await SecureStore.setItemAsync('saved_devices', JSON.stringify(updatedDevices));
 
     return { success: true };
   } catch (error) {
