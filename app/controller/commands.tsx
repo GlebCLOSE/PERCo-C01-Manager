@@ -27,13 +27,13 @@ export default function CommandsScreen() {
 
         //тип команды зависит от типа selectedValue(при разных типах)
         if(selectedValue==='acm'){
-
+            
         }
         if(selectedValue==='exdev'){
 
         }
         if(selectedValue==='access'){
-            
+
         }
 
         // отправка команды и получение ответа(вывод можно в alert сделать)

@@ -6,6 +6,7 @@ type Direction = 0 | 1;    // Направление ИУ
 type AccessMode = 'open' | 'control'; // Режим контроля доступа
 type ExdevAction = 'open' | 'close'; // Действие над ИУ
 
+
 export const useControllerCommands = () => {
   const { socket, isConnected } = useController();
 
@@ -56,6 +57,20 @@ export const useControllerCommands = () => {
       // Можно добавить open_type при необходимости
     });
   };
+
+  /* 4.3. Команда запрета прохода
+   * Установка: сервер → контроллер: {"control": "exdev", "exdev": {...}}
+   */
+  const declineAccessAction = (
+    deviceNumber: DeviceNumber = 0,
+    direction: Direction = 0
+  ) => {
+    sendControlCommand('access', {
+      number: deviceNumber,
+      direction: direction
+    })
+  }
+
 
   /**
    * 3. Запрос слова состояния
