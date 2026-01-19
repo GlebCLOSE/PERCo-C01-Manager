@@ -89,6 +89,7 @@ export const useControllerCommands = () => {
     setAccessMode,
     toggleExdevAction,
     requestDeviceState,
+    declineAccessAction,
     isConnected 
   };
 };

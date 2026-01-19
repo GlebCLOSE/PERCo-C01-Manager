@@ -1,18 +1,23 @@
-import { Text, StyleSheet } from "react-native";
+import { Text, StyleSheet, ScrollView } from "react-native";
 import { useState } from "react";
 import InputField from "../../components/ui/elements/input/InputField";
 import DropdownInput from "../../components/ui/elements/input/DropdownInput";
 import { Button } from "../../components/ui/elements/buttons/Button";
+import { useControllerCommands } from "../../hooks/useControllerCommands";
+import ErrorModal from '../../components/ui/status/ErrorModal'
 
 export default function CommandsScreen() {
 
+    const { setAccessMode, toggleExdevAction, requestDeviceState, declineAccessAction, isConnected } = useControllerCommands()
     const [exdev, setExdev] = useState()
-    const [selectedValue, setSelectedValue] = useState('');
-    const [acmValue, setAcmValue] = useState('');
-    const [exdevCommandValue, setExdevCommandValue] = useState('');
+    const [selectedValue, setSelectedValue] = useState('acm');
+    const [accessModeValue, setAccessModeValue] = useState('open');
+    const [exdevActionValue, setExdevActionValue] = useState('open');
     const [exdevNumber, setExdevNumber] = useState('0')
     const [exdevDirNumber, setExdevDirNumber] = useState('0')
     const [exdevUnlockTime, setExdevUnlockTime] = useState('1000')
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
 
     const commandTypeList = [
@@ -23,49 +28,57 @@ export default function CommandsScreen() {
 
 
     //функция исполнения команды
-    const executeComand = () => {
-
+    const executeCommand = () => {
+        if(!isConnected){
+            setErrorMessage('Команда не может быть отправлена, так как контроллер не подключен')
+            setIsErrorModalVisible(true)
+            return ;
+        }
         //тип команды зависит от типа selectedValue(при разных типах)
         if(selectedValue==='acm'){
-            
+            setAccessMode(accessModeValue, exdevNumber, exdevDirNumber)
         }
         if(selectedValue==='exdev'){
-
+            toggleExdevAction(exdevActionValue, exdevNumber, exdevDirNumber, exdevUnlockTime)
         }
         if(selectedValue==='access'){
-
+            declineAccessAction(exdevNumber, exdevDirNumber)
         }
+        setErrorMessage('Команда отправлена')
+        setIsErrorModalVisible(true)
 
         // отправка команды и получение ответа(вывод можно в alert сделать)
         return ;
     }
 
     return (
-        <>
-            <Text style={styles.text}>Команды</Text>
+        <ScrollView style={{ flex: 1, gap: 10 }}>
+            <Text style={styles.text}>Меню команд</Text>
             <DropdownInput 
                 label='Тип команды'
                 items={commandTypeList}
-                onChange={(itemValue) => setSelectedValue(itemValue)}
+                value={selectedValue}
+                onChange={setSelectedValue}
             />
             <InputField 
                 label='Номер ИУ'
-                value='0'
+                value={exdevNumber}
                 placeholder="От 0 до 1"
-                onChangeText={(value)=>{setExdevNumber(value)}}
+                onChangeText={setExdevNumber}
             />
             <InputField 
                 label='Номер направления'
-                value=''
+                value={exdevDirNumber}
                 placeholder="От 0 до 1"
-                onChangeText={(value)=>{setExdevDirNumber(value)}}
+                onChangeText={setExdevDirNumber}
                 
             />
             {selectedValue==='acm' && (
                 <DropdownInput 
                     label='Выбор РКД'
                     items={[{label: 'РКД Открыто', value: 'open'}, {label: 'РКД Контроль', value: 'control'}]}
-                    onChange={(itemValue) => setAcmValue(itemValue)}
+                    value={accessModeValue}
+                    onChange={setAccessModeValue}
                 />
             )}
             {selectedValue==='exdev' && (
@@ -73,25 +86,32 @@ export default function CommandsScreen() {
                     <DropdownInput 
                         label='Тип команды'
                         items={[{label: 'Открыть ИУ', value: 'open'}, {label: 'Заблокировать ИУ', value: 'close'}]}
-                        onChange={(itemValue) => setExdevCommandValue(itemValue)}
+                        value={exdevActionValue}
+                        onChange={setExdevActionValue}
                     />
                     <InputField 
                         label='Время разблокировки'
-                        value=''
+                        value={exdevUnlockTime}
                         placeholder="В миллисекундах"
-                        onChangeText={(value)=>{setExdevUnlockTime(value)}}
+                        onChangeText={setExdevUnlockTime}
                     />
                 </>
             )}
-            <Button title='Отправить' onPress={()=>{}} size='M'/>
-        </>
+            <Button title='Отправить' onPress={executeCommand} size='M'/>
+            <ErrorModal
+                visible={isErrorModalVisible}
+                message={errorMessage}
+                onClose={() => setIsErrorModalVisible(false)}
+            />
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     text: {
         fontFamily: 'inter',
-        fontSize: 20,
-        
+        fontSize: 24,
+        fontWeight: '400',
+        color: '#1A2253'
     }
 })

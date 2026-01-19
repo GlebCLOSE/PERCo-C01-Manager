@@ -12,7 +12,7 @@ interface DropdownItem {
 interface Props {
   label?: string;
   items: DropdownItem[];
-  placeholder?: string;
+  placeholder?: string | object;
   onChange: (value: any) => void;
   value?: any;
 }
