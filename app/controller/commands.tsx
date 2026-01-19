@@ -9,13 +9,13 @@ import ErrorModal from '../../components/ui/status/ErrorModal'
 export default function CommandsScreen() {
 
     const { setAccessMode, toggleExdevAction, requestDeviceState, declineAccessAction, isConnected } = useControllerCommands()
-    const [exdev, setExdev] = useState()
     const [selectedValue, setSelectedValue] = useState('acm');
     const [accessModeValue, setAccessModeValue] = useState('open');
     const [exdevActionValue, setExdevActionValue] = useState('open');
     const [exdevNumber, setExdevNumber] = useState('0')
     const [exdevDirNumber, setExdevDirNumber] = useState('0')
     const [exdevUnlockTime, setExdevUnlockTime] = useState('1000')
+    const [openType, setOpenType] = useState('open once')
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
@@ -39,7 +39,7 @@ export default function CommandsScreen() {
             setAccessMode(accessModeValue, exdevNumber, exdevDirNumber)
         }
         if(selectedValue==='exdev'){
-            toggleExdevAction(exdevActionValue, exdevNumber, exdevDirNumber, exdevUnlockTime)
+            toggleExdevAction(exdevActionValue, exdevNumber, exdevDirNumber, exdevUnlockTime, openType)
         }
         if(selectedValue==='access'){
             declineAccessAction(exdevNumber, exdevDirNumber)
@@ -52,7 +52,7 @@ export default function CommandsScreen() {
     }
 
     return (
-        <ScrollView style={{ flex: 1, gap: 10 }}>
+        <ScrollView contentContainerStyle={{ flex: 1, gap: 10 }}>
             <Text style={styles.text}>Меню команд</Text>
             <DropdownInput 
                 label='Тип команды'
@@ -94,6 +94,12 @@ export default function CommandsScreen() {
                         value={exdevUnlockTime}
                         placeholder="В миллисекундах"
                         onChangeText={setExdevUnlockTime}
+                    />
+                    <DropdownInput 
+                        label='Тип разблокировки'
+                        items={[{label: 'Однократный проход', value: 'open once'}, {label: 'Однокр, бесконечное ожидание', value: 'open oncealways'}]}
+                        value={exdevActionValue}
+                        onChange={setExdevActionValue}
                     />
                 </>
             )}

@@ -5,6 +5,7 @@ type DeviceNumber = 0 | 1; // Номер ИУ (исполнительного у
 type Direction = 0 | 1;    // Направление ИУ
 type AccessMode = 'open' | 'control'; // Режим контроля доступа
 type ExdevAction = 'open' | 'close'; // Действие над ИУ
+type openType = 'open once' | 'open oncealways' | 'open once remove card' | 'open always'
 
 
 export const useControllerCommands = () => {
@@ -47,14 +48,15 @@ export const useControllerCommands = () => {
     action: ExdevAction, 
     deviceNumber: DeviceNumber = 0, 
     direction: Direction = 0,
-    openTimeMs: number = 1000 // Время разблокировки по умолчанию
+    openTimeMs: number = 1000,
+    type: openType // Время разблокировки по умолчанию
   ) => {
     sendControlCommand('exdev', {
       number: deviceNumber,
       direction: direction,
       action: action,
       open_time: openTimeMs,
-      // Можно добавить open_type при необходимости
+      open_type: type
     });
   };
 
