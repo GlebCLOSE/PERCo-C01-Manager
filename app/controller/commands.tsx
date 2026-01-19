@@ -52,7 +52,7 @@ export default function CommandsScreen() {
     }
 
     return (
-        <ScrollView contentContainerStyle={{ flex: 1, gap: 10 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
             <Text style={styles.text}>Меню команд</Text>
             <DropdownInput 
                 label='Тип команды'
@@ -60,18 +60,17 @@ export default function CommandsScreen() {
                 value={selectedValue}
                 onChange={setSelectedValue}
             />
-            <InputField 
-                label='Номер ИУ'
+            <DropdownInput 
+                label='Выбор ИУ'
+                items={[{label: 'Замок №1', value: '0'}, {label: 'Замок №2', value: '1'}]}
                 value={exdevNumber}
-                placeholder="От 0 до 1"
-                onChangeText={setExdevNumber}
+                onChange={setExdevNumber}
             />
-            <InputField 
-                label='Номер направления'
+            <DropdownInput 
+                label='Направление ИУ'
+                items={[{label: 'Направление 1', value: '0'}, {label: 'Направление 2', value: '1'}]}
                 value={exdevDirNumber}
-                placeholder="От 0 до 1"
-                onChangeText={setExdevDirNumber}
-                
+                onChange={setExdevDirNumber}
             />
             {selectedValue==='acm' && (
                 <DropdownInput 
@@ -89,17 +88,18 @@ export default function CommandsScreen() {
                         value={exdevActionValue}
                         onChange={setExdevActionValue}
                     />
-                    <InputField 
-                        label='Время разблокировки'
+                    {openType==='open once' && <InputField 
+                        label='Время разблокировки(мс)'
                         value={exdevUnlockTime}
                         placeholder="В миллисекундах"
                         onChangeText={setExdevUnlockTime}
-                    />
+                        keyboardType="numeric"
+                    />}
                     <DropdownInput 
                         label='Тип разблокировки'
                         items={[{label: 'Однократный проход', value: 'open once'}, {label: 'Однокр, бесконечное ожидание', value: 'open oncealways'}]}
-                        value={exdevActionValue}
-                        onChange={setExdevActionValue}
+                        value={openType}
+                        onChange={setOpenType}
                     />
                 </>
             )}
