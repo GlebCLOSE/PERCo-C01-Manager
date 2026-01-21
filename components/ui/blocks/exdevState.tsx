@@ -6,6 +6,7 @@ import { Button } from "../elements/buttons/Button"
 import { attemptConnection } from "../../../utils/attemptConnection"
 import { useController } from "../../../providers/ControllerContext"
 import ErrorModal from "../status/ErrorModal"
+import { SmallStateBlock } from "../elements/smallStateBlock"
 
 export interface ExdevStateProps {
     number: 0 | 1,
@@ -17,12 +18,12 @@ export interface ExdevStateProps {
 
 export const ExdevState: React.FC<ExdevStateProps> = ({ number, type, acm, status, pass}) => {
 
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
     const router = useRouter()
 
-    let image 
-    let exdevName
+
+
+    let image = require('../../../assets/icons/controller.png')
+    let exdevName = 'Замок'
     //Изображение и название меняются при разных типах ИУ(type)
     switch (type){
         case 'lock':
@@ -49,14 +50,23 @@ export const ExdevState: React.FC<ExdevStateProps> = ({ number, type, acm, statu
             <Text>{exdevName}</Text>
           </View>
           <View style={styles.block}>
-            {/**  три блока */}
+            <SmallStateBlock 
+              title={'режим'}
+              value={acm}
+              bottomBlockStyle={{backgroundColor: colorAcm}}
+            />
+            <SmallStateBlock 
+              title={'датчик'}
+              value={pass}
+              bottomBlockStyle={{backgroundColor: colorPass}}
+            />
+            <SmallStateBlock 
+              title={'статус'}
+              value={status}
+              bottomBlockStyle={{backgroundColor: colorStatus}}
+            />
           </View>
         </View>
-        <ErrorModal
-          visible={isErrorModalVisible}
-          message={errorMessage}
-          onClose={() => setIsErrorModalVisible(false)}
-        />
       </>
     )
 }
