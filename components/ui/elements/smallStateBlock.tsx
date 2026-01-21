@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet } from "react-native"
 
-export const SmallStateBlock = () => {
+export const SmallStateBlock = ({ title, value, bottomBlockStyle }) => {
     return (
         <View style={styles.container}>
             <View style={styles.top}>
                 <Text style={styles.textDark}>{title}</Text>
             </View>
-            <View style={styles.bottom}>
+            <View style={[styles.bottom, bottomBlockStyle]}>
                 <Text style={styles.textLight}>{value}</Text>
             </View>
         </View>
