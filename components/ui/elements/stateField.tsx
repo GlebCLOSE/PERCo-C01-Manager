@@ -5,7 +5,7 @@ export interface StateFieldProps {
     value: string
 }
 
-export const StateField = ({ title, value }) => {
+export const StateField: React.FC<StateFieldProps> = ({ title, value }) => {
     return (
         <View style={styles.container}>
             <Text style={styles.textDark}>{title}</Text>
@@ -21,9 +21,11 @@ const styles = StyleSheet.create({
         borderColor: '#00047060',
         width: '100%',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         flexDirection: 'row',
-        padding: 5
+        padding: 5,
+        borderRadius: 5,
+        gap: 15
     },
     textDark: {
         color: '#000670a8',

@@ -20,7 +20,29 @@ export const ExdevState: React.FC<ExdevStateProps> = ({ number, type, acm, statu
 
     const router = useRouter()
 
-
+    let colorAcm = '#000'
+    switch(acm){
+      case 'control':
+        colorAcm = '#ff6600d5'
+      case 'open':
+        colorAcm = '#3bb200c2'
+    }
+    let colorPass = '#000'
+    switch(pass){
+      case 'active':
+        colorPass = '#ff9100b7'
+      case 'normal':
+        colorPass = '#0048ffc2'
+    }
+    let colorStatus = '#000'
+    switch(status){
+      case 'unlocked':
+        colorStatus = '#3bb200c2'
+      case 'locked':
+        colorStatus = '#070157ce'
+      case 'break':
+        colorStatus = '#ff0000cc'
+    }
 
     let image = require('../../../assets/icons/controller.png')
     let exdevName = 'Замок'
@@ -83,6 +105,11 @@ const styles = StyleSheet.create({
     borderColor: '#00067057',
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.1)',
     borderRadius: 5
+  },
+  vr: {
+    height: '100%',
+    width: 1,
+    backgroundColor: '#00067057'
   },
   block: {
     gap: 5,

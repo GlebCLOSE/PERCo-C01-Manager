@@ -1,6 +1,12 @@
 import { View, Text, StyleSheet } from "react-native"
 
-export const SmallStateBlock = ({ title, value, bottomBlockStyle }) => {
+export interface SmallStateBlockProps {
+   title: string,
+   value: string,
+   bottomBlockStyle: object 
+}
+
+export const SmallStateBlock: React.FC<SmallStateBlockProps> = ({ title, value, bottomBlockStyle }) => {
     return (
         <View style={styles.container}>
             <View style={styles.top}>
@@ -18,18 +24,23 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffffa1',
         borderWidth: 1,
         borderColor: '#00047060',
-        height: 38,
+        height: 40,
         alignItems: 'center',
         justifyContent: 'center',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        overflow: 'hidden',
+        borderRadius: 5
     },
     top: { 
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        padding: 3
     },
     bottom: {
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        padding: 3,
+        width: '100%'
     },
     textDark: {
         color: '#000670d2',
