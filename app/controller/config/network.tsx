@@ -1,9 +1,80 @@
-import { Text } from "react-native";
+import { Text, ScrollView } from "react-native";
+import { useState } from "react";
+import { validateIP } from "../../../utils/validation/validateIP";
+import InputField from "../../../components/ui/elements/input/InputField";
+import { WarningText } from "../../../components/ui/blocks/warningText";
+import ErrorModal from "../../../components/ui/status/ErrorModal";
+import { useControllerCommands } from "../../../hooks/useControllerCommands";
 
 export default function NetworkScreen() {
+
+    const [errors, setErrors] = useState({});
+
+      const validateForm = () => {
+        const newErrors = {};
+    
+        const ipError = validateIP(ip);
+        if (ipError) newErrors.ip = ipError;
+    
+        const maskError = validateIP(mask);
+        if (maskError) newErrors.mask = maskError;
+    
+        const gatewayError = validateIP(gateway);
+        if (gatewayError) newErrors.gateway = gatewayError;
+    
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+      };
+    
+    
+    const [ip, setIp] = useState('')
+    const [mask, setMask] = useState('')
+    const [gateway, setGateway] = useState('')
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const handleSet = async () => {
+        if (!validateForm()) {
+            return;
+        }
+
+    }
+
     return (
         <>
-            <Text>Сетевые настройки</Text>
+            <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
+                <Text>Сетевые настройки</Text>
+                <WarningText text="При замене IP-адреса потеряется связь с контроллером. Потребуется повторное подключение"/>
+                <InputField
+                label="IP‑адрес"
+                placeholder="192.168.1.144"
+                value={ip}
+                onChangeText={setIp}
+                error={errors.ip}
+                keyboardType="numeric"
+                />
+                <InputField
+                label="Маска подсети"
+                placeholder="255.0.0.0"
+                value={mask}
+                onChangeText={setMask}
+                error={errors.ip}
+                keyboardType="numeric"
+                />
+                <InputField
+                label="Шлюз"
+                placeholder="192.168.1.1"
+                value={gateway}
+                onChangeText={setGateway}
+                error={errors.ip}
+                keyboardType="numeric"
+                />
+                <ErrorModal
+                visible={isErrorModalVisible}
+                message={errorMessage}
+                onClose={() => setIsErrorModalVisible(false)}
+                />
+            </ScrollView>
         </>
     );
 }

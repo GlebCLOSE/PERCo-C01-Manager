@@ -7,9 +7,94 @@ type AccessMode = 'open' | 'control'; // Режим контроля досту�
 type ExdevAction = 'open' | 'close'; // Действие над ИУ
 type openType = 'open once' | 'open oncealways' | 'open once remove card' | 'open always'
 
+interface NetworkC01Params {
+  ip?: string,
+  mask?: string,
+  gateway?: string,
+  server?: string,
+  password?: string
+}
+
 
 export const useControllerCommands = () => {
   const { socket, isConnected } = useController();
+
+  // Отравка команду на установку настроект
+const sendSetCommand = async (setType: string, payload: object) => {
+  // 1. Проверка подключения
+
+  if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
+    throw new Error("Нет подключения к контроллеру");
+  }
+
+  const commandPayload = {
+    "set": setType,
+    [setType]: payload
+  };
+
+  // 2. Возвращаем Promise, который разрешится при получении ответа
+  return new Promise((resolve, reject) => {
+    // Тайм-аут: если контроллер не ответит за 5 секунд
+    const timeout = setTimeout(() => {
+      socket.removeEventListener('message', handleResponse);
+      reject(new Error(`Превышено время ожидания ответа для: ${setType}`));
+    }, 5000);
+
+    // Функция-обработчик входящих сообщений
+    const handleResponse = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          // Проверяем, есть ли в ответе подтверждение для нашей команды
+          if (data.answer && data.answer[setType]) {
+            clearTimeout(timeout); // Отменяем тайм-аут
+            socket.removeEventListener('message', handleResponse); // Удаляем слушателя
+
+            if (data.answer[setType] === "ok") {
+              console.log(`Команда ${setType} выполнена успешно`);
+              resolve(data); // Возвращаем полные данные ответа (включая обновленные параметры)
+            } else {
+              reject(new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer[setType]}`));
+            }
+          }
+        } catch (err) {
+          console.error("Ошибка парсинга JSON:", err);
+        }
+      };
+
+      // Подписываемся на сообщения
+      socket.addEventListener('message', handleResponse);
+
+      // Отправляем команду
+      socket.send(JSON.stringify(commandPayload));
+    });
+  };
+
+    //Функция отправки сетевых настроек на контроллер
+  const setNetworkSettings = async (netParams: NetworkC01Params) => {
+    // Создаем объект только из тех полей, которые были переданы (не undefined)
+    const payload: NetworkC01Params = {};
+    
+    if (netParams.ip !== undefined) payload.ip = netParams.ip;
+    if (netParams.mask !== undefined) payload.mask = netParams.mask;
+    if (netParams.gateway !== undefined) payload.gateway = netParams.gateway;
+    if (netParams.server !== undefined) payload.server = netParams.server;
+    if (netParams.password !== undefined) payload.password = netParams.password;
+
+    // Если объект пустой, можно либо прервать выполнение, либо отправить как есть
+    if (Object.keys(payload).length === 0) {
+      console.warn("Нет данных для обновления");
+      return;
+    }
+
+    return await sendSetCommand('net', payload);
+  };
+
+  const setDefaultNetwork = async () => await sendSetCommand('net', {})
+
+
+
+
 
   // Вспомогательная функция для отправки JSON-команд управления
   const sendControlCommand = (controlType: string, payload: object) => {
@@ -88,6 +173,8 @@ export const useControllerCommands = () => {
 
   // Возвращаем набор методов для использования в компонентах
   return {
+    setNetworkSettings, 
+    setDefaultNetwork,
     setAccessMode,
     toggleExdevAction,
     requestDeviceState,
