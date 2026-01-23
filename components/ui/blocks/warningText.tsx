@@ -12,7 +12,8 @@ export const WarningText = ({text}) => {
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        padding: 15,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
         backgroundColor: '#ff741049',
         borderWidth: 1,
         borderColor: '#934107c9',
@@ -22,7 +23,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontFamily: 'inter',
-        fontWeight: '300',
-        fontSize: 20,
+        fontWeight: '200',
+        fontSize: 16,
     }
 })
