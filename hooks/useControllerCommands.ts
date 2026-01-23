@@ -70,6 +70,70 @@ const sendSetCommand = async (setType: string, payload: object) => {
     });
   };
 
+  // Функция получения данных с контроллера
+  const getDataFromController = async (getType: string, payload: object) => {
+
+    if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
+      throw new Error("Нет подключения к контроллеру");
+    }
+
+    let commandPayload = {
+      "get": getType,
+      [getType]: payload
+    };
+
+    if(getType==='state'){
+      commandPayload = {'get': 'state'}
+    }
+
+    return new Promise((resolve, reject) => {
+
+      // Таймаут подключения 
+      const timeout = setTimeout(() => {
+        socket.removeEventListener('message', handleResponse);
+        reject(new Error(`Превышено время ожидания ответа для: ${setType}`));
+      }, 5000);
+
+      const handleResponse = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+
+          if(data.answer && data.answer[getType]){
+
+            clearTimeout(timeout); // Отменяем тайм-аут
+            socket.removeEventListener('message', handleResponse); // Удаляем слушателя
+
+            if(data.answer[getType]==='ok'){
+              console.log('Данные состояния получены')
+              resolve(data)
+            }
+            else {
+              reject(new Error(`Контроллер вернул ошибку для ${getType}: ${data.answer[getType]}`));
+            }
+          }
+        } catch (err) {
+          console.error("Ошибка парсинга JSON:", err);
+        }
+
+      }
+
+
+      // Подписываемся на сообщения
+      socket.addEventListener('message', handleResponse);
+
+      // Отправляем команду
+      socket.send(JSON.stringify(commandPayload));
+
+    });
+
+  }
+
+
+  //Получаем данные о состоянии контроллера
+  const getState = async () => {
+    return await getDataFromController('state', {})
+  }
+
     //Функция отправки сетевых настроек на контроллер
   const setNetworkSettings = async (netParams: NetworkC01Params) => {
     // Создаем объект только из тех полей, которые были переданы (не undefined)
@@ -173,6 +237,7 @@ const sendSetCommand = async (setType: string, payload: object) => {
 
   // Возвращаем набор методов для использования в компонентах
   return {
+    getState,
     setNetworkSettings, 
     setDefaultNetwork,
     setAccessMode,

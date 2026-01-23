@@ -1,8 +1,35 @@
 import { Text, View, StyleSheet } from "react-native";
 import { ExdevState } from "../../components/ui/blocks/exdevState";
 import { StateField } from "../../components/ui/elements/stateField";
+import { useState } from "react";
+import { useControllerCommands } from "../../hooks/useControllerCommands";
 
 export default function StateScreen() {
+
+    const [type, setType] = useState('')
+    const [acm, setAcm] = useState('')
+    const [status, setStatus] = useState('')
+    const [pass, setPass] = useState('')
+
+    const [top, setTop] = useState('')
+    const [ipMode, setIpMode] = useState('')
+    const [voltage, setVoltage] = useState('')
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const { getState } = useControllerCommands()
+
+    const handleGetState = async () => {
+        try {
+            const data = await getState()
+        } catch (error) {
+            // Обработка сетевых ошибок и других исключений
+            setErrorMessage('Произошла непредвиденная ошибка при подключении');
+            setIsErrorModalVisible(true);
+        }
+    }
+    
+
     return (
         <>
             <View style={styles.title}>
