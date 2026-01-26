@@ -23,53 +23,54 @@ export default function StateScreen() {
 
     const { getState, getExdevInfo } = useControllerCommands()
 
-    const handleGetState = async () => {
-        try {
-            const data: Promise<Object> = await getState()
+const handleGetState = async () => {
+    try {
+        // 1. Получаем данные от
+        const data: any = await getState(); 
 
-            if(data.answer.state === 'ok'){
-                const state = data.state
-                alert('Данные о состоянии получены успешно')
-
-                //Параметры ИУ
-                const exdevArray = state.exdev
-                for(let i=0; i < exdevArray.length; i++){
-                    const exdevInfo: Promise<Object> = await getExdevInfo(i)
-                    exdevArray[i].number = i
-
-                    // здесь должна быть функция по определению типа ИУ
-                    exdevArray[i].type = exdevInfo['type']
-                    // Обработка physical_state, access_mode и т.д. для каждого направления ИУ
-                    exdevArray[i].acm 
-                }
-                setExdevs(exdevArray)
-                
-
-                //Общие параметры контроллера
-                if(state['cover_on']){setCoverOn('Открыта')} 
-                else { setCoverOn('Закрыта')}
-                
-                //определяем IP Mode
-                if(state['ip_mode']===true){
-                    setIpMode('DHCP Mode')
-                }
-                if(state['ip_default']===true){
-                    setIpMode('IP Default')
-                } else {
-                    setIpMode('Пользовательский режим')
-                }
-
-                //Определяем напряжение 
-                setVoltage((state['value_suply']/1000) + ' В')
-            }
+        if (data.answer?.state === 'ok') {
+            const state = data.state;
+            alert('Данные о состоянии получены успешно');
             
+            // Создаем глубокую копию массива, чтобы не мутировать state напрямую
+            const exdevArray = JSON.parse(JSON.stringify(state.exdev));
 
-        } catch (error) {
-            // Обработка сетевых ошибок и других исключений
-            setErrorMessage('Произошла непредвиденная ошибка при получении данных от контроллера');
-            setIsErrorModalVisible(true);
+            for (let i = 0; i < exdevArray.length; i++) {
+                // 2. Исправляем тип здесь
+                const exdevInfo: any = await getExdevInfo(i);
+                
+                exdevArray[i].number = i;
+                // 3. Теперь обращение к ['type'] будет работать
+                exdevArray[i].type = exdevInfo['type'];
+                
+                // Проверьте, что state.exdev[i] существует, прежде чем брать индексы [0]
+                exdevArray[i].acm = state.exdev[i]['access_mode']?.[0];
+                exdevArray[i].status = state.exdev[i]['unlock_state']?.[0];
+                exdevArray[i].pass = state.exdev[i]['physical_state']?.[0];
+            }
+
+            setExdevs(exdevArray);
+
+            // Общие параметры контроллера
+            setCoverOn(state['cover_on'] ? 'Открыта' : 'Закрыта');
+
+            // Логика IP Mode (исправлена последовательность if/else)
+            if (state['ip_mode'] === true) {
+                setIpMode('DHCP Mode');
+            } else if (state['ip_default'] === true) {
+                setIpMode('IP Default');
+            } else {
+                setIpMode('Пользовательский режим');
+            }
+
+            setVoltage((state['value_suply'] / 1000) + ' В');
         }
+    } catch (error) {
+        console.error(error); // Всегда логируйте реальную ошибку для отладки
+        setErrorMessage('Произошла непредвиденная ошибка при получении данных');
+        setIsErrorModalVisible(true);
     }
+};
 
     const exdevStates = exdevs.map((el)=>{ 
         return (
