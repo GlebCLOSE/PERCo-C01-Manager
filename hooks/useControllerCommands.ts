@@ -134,6 +134,11 @@ const sendSetCommand = async (setType: string, payload: object) => {
     return await getDataFromController('state', {})
   }
 
+  // Получаем данные о ИУ
+  const getExdevInfo = async (number: number) => {
+    return await getDataFromController('exdev', {'number': number})
+  }
+
     //Функция отправки сетевых настроек на контроллер
   const setNetworkSettings = async (netParams: NetworkC01Params) => {
     // Создаем объект только из тех полей, которые были переданы (не undefined)
@@ -238,6 +243,7 @@ const sendSetCommand = async (setType: string, payload: object) => {
   // Возвращаем набор методов для использования в компонентах
   return {
     getState,
+    getExdevInfo,
     setNetworkSettings, 
     setDefaultNetwork,
     setAccessMode,
