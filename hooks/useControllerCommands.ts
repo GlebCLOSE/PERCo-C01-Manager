@@ -96,6 +96,7 @@ const sendSetCommand = async (setType: string, payload: object) => {
 
       const handleResponse = (event) => {
         try {
+          console.log(event.data)
           const data = JSON.parse(event.data)
 
           if(data.answer && data.answer[getType]){

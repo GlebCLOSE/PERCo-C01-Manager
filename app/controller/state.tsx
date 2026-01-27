@@ -30,21 +30,22 @@ const handleGetState = async () => {
 
         if (data.answer?.state === 'ok') {
             const state = data.state;
+            
             alert('Данные о состоянии получены успешно');
             
-            // Создаем глубокую копию массива, чтобы не мутировать state напрямую
-            const exdevArray = JSON.parse(JSON.stringify(state.exdev));
+            const exdevArray: any[] = [{},{}]
 
-            for (let i = 0; i < exdevArray.length; i++) {
-                // 2. Исправляем тип здесь
+            for (let i = 0; i < 2; i++) {
+                // 2. Получаем данные номера и типа исполнительного устройства
                 const exdevInfo: any = await getExdevInfo(i);
                 
                 exdevArray[i].number = i;
                 // 3. Теперь обращение к ['type'] будет работать
-                exdevArray[i].type = exdevInfo['type'];
+                exdevArray[i].type = exdevInfo.exdev['type'];
+                
                 
                 // Проверьте, что state.exdev[i] существует, прежде чем брать индексы [0]
-                exdevArray[i].acm = state.exdev[i]['access_mode']?.[0];
+                exdevArray[i].acm = state.exdev[i]['access_state']?.[0];
                 exdevArray[i].status = state.exdev[i]['unlock_state']?.[0];
                 exdevArray[i].pass = state.exdev[i]['physical_state']?.[0];
             }
@@ -54,7 +55,7 @@ const handleGetState = async () => {
             // Общие параметры контроллера
             setCoverOn(state['cover_on'] ? 'Открыта' : 'Закрыта');
 
-            // Логика IP Mode (исправлена последовательность if/else)
+            // Логика IP Mode
             if (state['ip_mode'] === true) {
                 setIpMode('DHCP Mode');
             } else if (state['ip_default'] === true) {
@@ -66,7 +67,7 @@ const handleGetState = async () => {
             setVoltage((state['value_suply'] / 1000) + ' В');
         }
     } catch (error) {
-        console.error(error); // Всегда логируйте реальную ошибку для отладки
+        console.error(error); 
         setErrorMessage('Произошла непредвиденная ошибка при получении данных');
         setIsErrorModalVisible(true);
     }

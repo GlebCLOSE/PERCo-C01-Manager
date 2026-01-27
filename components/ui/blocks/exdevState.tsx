@@ -12,7 +12,7 @@ export interface ExdevStateProps {
     number: 0 | 1,
     type: 'lock' | 'turnstyle' | 'gate' | 'double lock',
     acm: 'control' | 'open',
-    status: 'unlocked' | 'locked' | 'break',
+    status: 'unlocked' | 'lock' | 'break',
     pass: 'active' | 'normal'
 }
 
@@ -24,40 +24,48 @@ export const ExdevState: React.FC<ExdevStateProps> = ({ number, type, acm, statu
     switch(acm){
       case 'control':
         colorAcm = '#ff6600d5'
+        break;
       case 'open':
         colorAcm = '#3bb200c2'
+        break;
     }
     let colorPass = '#000'
     switch(pass){
       case 'active':
         colorPass = '#ff9100b7'
+        break;
       case 'normal':
         colorPass = '#0048ffc2'
+        break;
     }
     let colorStatus = '#000'
     switch(status){
       case 'unlocked':
         colorStatus = '#3bb200c2'
-      case 'locked':
+        break;
+      case 'lock':
         colorStatus = '#070157ce'
+        break;
       case 'break':
         colorStatus = '#ff0000cc'
+        break;
     }
 
     let image = require('../../../assets/icons/controller.png')
-    let exdevName = 'Замок'
+    let exdevName = 'Замок1'
     //Изображение и название меняются при разных типах ИУ(type)
     switch (type){
         case 'lock':
-            image = require('../../../assets/icons/controller.png')
+        case 'double lock':
+            image = require('../../../assets/icons/lock.png')
             exdevName = 'Замок'
             break;
         case 'turnstyle':
-            image = require('../../../assets/icons/controller.png')
+            image = require('../../../assets/icons/turnstyle.png')
             exdevName = 'Турникет'
             break;
         case 'gate':
-            image = require('../../../assets/icons/controller.png')
+            image = require('../../../assets/icons/gate.png')
             exdevName = 'Шлагбаум'
             break;
     }
@@ -68,7 +76,7 @@ export const ExdevState: React.FC<ExdevStateProps> = ({ number, type, acm, statu
           <View style={styles.block}>
             <Text>{(number + 1)}</Text>
             <View style={styles.vr}></View>
-            <Image source={image} />
+            <Image source={image} style={{height: 43, width: 33}}/>
             <Text>{exdevName}</Text>
           </View>
           <View style={styles.block}>
