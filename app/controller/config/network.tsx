@@ -45,7 +45,7 @@ export default function NetworkScreen() {
     return (
         <>
             <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
-                <Text>Сетевые настройки</Text>
+                <Text style={styles.title}>Сетевые настройки</Text>
                 <View style={styles.blockButtons}>
                     <ButtonSquare title='Указать IP сервера' onPress={()=>{}} icon={require('../../../assets/icons/servers.png')} />
                     <ButtonSquare title='Сменить пароль' onPress={()=>{}} icon={require('../../../assets/icons/password.png')} />
@@ -88,6 +88,12 @@ export default function NetworkScreen() {
 }
 
 const styles = StyleSheet.create({
+    title: {
+        fontFamily: 'inter',
+        fontSize: 24,
+        fontWeight: '400',
+        color: '#1A2253'
+    },
     blockButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between'
