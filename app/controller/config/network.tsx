@@ -1,10 +1,11 @@
-import { Text, ScrollView } from "react-native";
+import { Text, ScrollView, View, StyleSheet } from "react-native";
 import { useState } from "react";
 import { validateIP } from "../../../utils/validation/validateIP";
 import InputField from "../../../components/ui/elements/input/InputField";
 import { WarningText } from "../../../components/ui/blocks/warningText";
 import ErrorModal from "../../../components/ui/status/ErrorModal";
 import { useControllerCommands } from "../../../hooks/useControllerCommands";
+import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSquare";
 
 export default function NetworkScreen() {
 
@@ -44,7 +45,12 @@ export default function NetworkScreen() {
         <>
             <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
                 <Text>Сетевые настройки</Text>
-                <WarningText text="При замене IP-адреса потеряется связь с контроллером. Потребуется повторное подключение"/>
+                <View style={styles.blockButtons}>
+                    <ButtonSquare title='Указать IP сервера' onPress={()=>{}} icon={require('../../../assets/icons/servers.png')} />
+                    <ButtonSquare title='Сменить пароль' onPress={()=>{}} icon={require('../../../assets/icons/password.png')} />
+                    <ButtonSquare title='Сброс до заводских' onPress={()=>{}} icon={require('../../../assets/icons/factory.png')} isYellow={true} />
+                </View>
+                <WarningText text="При замене IP-адреса потеряется связь с контроллером. Потребуется повторное подключение 1"/>
                 <InputField
                 label="IP‑адрес"
                 placeholder="192.168.1.144"
@@ -78,3 +84,10 @@ export default function NetworkScreen() {
         </>
     );
 }
+
+const styles = StyleSheet.create({
+    blockButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    }
+})
