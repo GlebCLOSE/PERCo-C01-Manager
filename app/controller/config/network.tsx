@@ -6,6 +6,7 @@ import { WarningText } from "../../../components/ui/blocks/warningText";
 import ErrorModal from "../../../components/ui/status/ErrorModal";
 import { useControllerCommands } from "../../../hooks/useControllerCommands";
 import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSquare";
+import { Button } from "../../../components/ui/elements/buttons/Button";
 
 export default function NetworkScreen() {
 
@@ -50,7 +51,7 @@ export default function NetworkScreen() {
                     <ButtonSquare title='Сменить пароль' onPress={()=>{}} icon={require('../../../assets/icons/password.png')} />
                     <ButtonSquare title='Сброс до заводских' onPress={()=>{}} icon={require('../../../assets/icons/factory.png')} isYellow={true} />
                 </View>
-                <WarningText text="При замене IP-адреса потеряется связь с контроллером. Потребуется повторное подключение 1"/>
+                <WarningText text="При замене IP-адреса потеряется связь с контроллером. Потребуется повторное подключение"/>
                 <InputField
                 label="IP‑адрес"
                 placeholder="192.168.1.144"
@@ -75,6 +76,7 @@ export default function NetworkScreen() {
                 error={errors.ip}
                 keyboardType="numeric"
                 />
+                <Button title='Отправить' onPress={()=>{}} size='M'/>
                 <ErrorModal
                 visible={isErrorModalVisible}
                 message={errorMessage}
