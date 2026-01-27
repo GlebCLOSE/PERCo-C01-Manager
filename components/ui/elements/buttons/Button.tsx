@@ -60,7 +60,7 @@ export const Button: React.FC<CustomButtonProps> = ({
     [Size.S]: styles.buttonSmall,
     [Size.M]: styles.buttonMedium,
     [Size.L]: styles.buttonLarge,
-    [Size.Long]: styles.buttonLarge
+    [Size.Long]: styles.buttonLong
   };
 
   // Базовые стили для текста внутри кнопки
@@ -102,7 +102,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 20
+    gap: 20,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25), inset -3px -3px 15px rgba(0, 0, 0, 0.25)',
   },
   buttonSmall: {
     paddingVertical: 6,
@@ -121,9 +122,12 @@ const styles = StyleSheet.create({
   },
   buttonLong: {
     width: '100%',
-    paddingVertical: 18,
+    paddingVertical: 10,
     paddingHorizontal: 25,
+    justifyContent: 'flex-start',
     fontSize: 24,
+    borderWidth: 1,
+    borderColor: '#ffffff94',
   },
   buttonText: {
     color: '#FFFFFF',
