@@ -56,6 +56,9 @@ const sendSetCommand = async (setType: string, payload: object) => {
             } else {
               reject(new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer[setType]}`));
             }
+          } else {
+            // Это пинг или другое событие. Просто логируем и пропускаем.
+            console.log("Получено стороннее событие или пинг, продолжаем ждать...");
           }
         } catch (err) {
           console.error("Ошибка парсинга JSON:", err);
@@ -91,7 +94,7 @@ const sendSetCommand = async (setType: string, payload: object) => {
       // Таймаут подключения 
       const timeout = setTimeout(() => {
         socket.removeEventListener('message', handleResponse);
-        reject(new Error(`Превышено время ожидания ответа для: ${setType}`));
+        reject(new Error(`Превышено время ожидания ответа для: ${getType}`));
       }, 5000);
 
       const handleResponse = (event) => {
@@ -167,32 +170,74 @@ const sendSetCommand = async (setType: string, payload: object) => {
 
 
   // Вспомогательная функция для отправки JSON-команд управления
-  const sendControlCommand = (controlType: string, payload: object) => {
+  const sendControlCommand = (controlType: string, payload: object): Promise<any> => {
+  return new Promise((resolve, reject) => {
     if (isConnected && socket) {
       const commandPayload = {
         "control": controlType,
         [controlType]: payload
       };
+
+      // Обработчик входящих сообщений
+      const handleMessage = (event: MessageEvent) => {
+        try {
+          const response = JSON.parse(event.data);
+          // Проверяем, что ответ относится к нашей команде (есть ключ controlType)
+
+          if (response.result && response.result[controlType]) {
+            socket.removeEventListener('message', handleMessage);
+            clearTimeout(timeoutId); // Очищаем таймер при успехе
+            resolve(response);
+          } else {
+            // Это пинг или другое событие. Просто логируем и пропускаем.
+            console.log("Получено стороннее событие или пинг, продолжаем ждать...");
+          }
+        } catch (e) {
+          console.error("Ошибка парсинга ответа:", e);
+        }
+      };
+
+      socket.addEventListener('message', handleMessage);
       socket.send(JSON.stringify(commandPayload));
+
+      // Таймаут, чтобы не ждать вечно
+      const timeoutId = setTimeout(() => {
+        socket.removeEventListener('message', handleMessage);
+        reject(new Error("Превышено время ожидания ответа от контроллера"));
+      }, 5000);
+
     } else {
-      console.error("Попытка отправить команду без подключения");
+      reject(new Error("Попытка отправить команду без подключения"));
     }
-  };
+  });
+};
 
   /**
    * 4.1. Установить РКД (Режим Контроля Доступа)
    * Установка: сервер → контроллер: {"control": "acm", "acm": {...}}
    */
-  const setAccessMode = (
+  const setAccessMode = async (
     mode: AccessMode, 
     deviceNumber: DeviceNumber = 0, 
     direction: Direction = 0
   ) => {
-    sendControlCommand('acm', {
-      number: deviceNumber,
-      direction: direction,
-      access_mode: mode,
-    });
+    try {
+      const response = await sendControlCommand('acm', {
+        number: deviceNumber,
+        direction: direction,
+        access_mode: mode,
+      });
+
+      if (response.result.acm === "ok") {
+        console.log(`Режим ${response.acm.access_mode} успешно установлен для ИУ ${response.acm.number}`);
+        return `success`
+      }
+      else {
+        return 'no_answer'
+      }
+    } catch (error) {
+      console.error("Ошибка при установке РКД:", error);
+    }
   };
 
   /**

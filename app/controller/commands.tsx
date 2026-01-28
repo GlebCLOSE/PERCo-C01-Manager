@@ -5,6 +5,7 @@ import DropdownInput from "../../components/ui/elements/input/DropdownInput";
 import { Button } from "../../components/ui/elements/buttons/Button";
 import { useControllerCommands } from "../../hooks/useControllerCommands";
 import ErrorModal from '../../components/ui/status/ErrorModal'
+import ModalText from "../../components/ui/status/ModalText";
 
 export default function CommandsScreen() {
 
@@ -18,6 +19,8 @@ export default function CommandsScreen() {
     const [openType, setOpenType] = useState('open once')
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [resultMessage, setResultMessage] = useState('');
 
 
     const commandTypeList = [
@@ -28,21 +31,33 @@ export default function CommandsScreen() {
 
 
     //функция исполнения команды
-    const executeCommand = () => {
+    const executeCommand = async () => {
+
+        // добавить обработку ответа от контроллера
         if(!isConnected){
             setErrorMessage('Команда не может быть отправлена, так как контроллер не подключен')
             setIsErrorModalVisible(true)
             return ;
         }
+
         //тип команды зависит от типа selectedValue(при разных типах)
         if(selectedValue==='acm'){
-            setAccessMode(accessModeValue, exdevNumber, exdevDirNumber)
+
+            const result = await setAccessMode(accessModeValue, exdevNumber, exdevDirNumber)
+            if(result==='success'){
+                setIsModalVisible(true)
+                setResultMessage('Установка РКД успешна')
+            }
         }
         if(selectedValue==='exdev'){
+
             toggleExdevAction(exdevActionValue, exdevNumber, exdevDirNumber, exdevUnlockTime, openType)
+
         }
         if(selectedValue==='access'){
+
             declineAccessAction(exdevNumber, exdevDirNumber)
+
         }
         setErrorMessage('Команда отправлена')
         setIsErrorModalVisible(true)
@@ -108,6 +123,12 @@ export default function CommandsScreen() {
                 visible={isErrorModalVisible}
                 message={errorMessage}
                 onClose={() => setIsErrorModalVisible(false)}
+            />
+            <ModalText
+                title={''} 
+                message={resultMessage}
+                visible={isModalVisible}
+                onClose={()=> setIsModalVisible(false)}
             />
         </ScrollView>
     );
