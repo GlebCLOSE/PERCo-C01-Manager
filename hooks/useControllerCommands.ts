@@ -227,13 +227,21 @@ const sendSetCommand = async (setType: string, payload: object) => {
         direction: direction,
         access_mode: mode,
       });
+      
+      const msgObj = {
+        result: '',
+        accessMode: mode,
+        number: deviceNumber + 1
+      }
 
       if (response.result.acm === "ok") {
         console.log(`Режим ${response.acm.access_mode} успешно установлен для ИУ ${response.acm.number}`);
-        return `success`
+        msgObj.result='success'
+        return msgObj
       }
       else {
-        return 'no_answer'
+        msgObj.result = 'no_answer'
+        return msgObj
       }
     } catch (error) {
       console.error("Ошибка при установке РКД:", error);
@@ -244,20 +252,40 @@ const sendSetCommand = async (setType: string, payload: object) => {
    * 4.2. Открыть/Закрыть ИУ
    * Установка: сервер → контроллер: {"control": "exdev", "exdev": {...}}
    */
-  const toggleExdevAction = (
+  const toggleExdevAction = async (
     action: ExdevAction, 
     deviceNumber: DeviceNumber = 0, 
     direction: Direction = 0,
     openTimeMs: number = 1000,
     type: openType // Время разблокировки по умолчанию
   ) => {
-    sendControlCommand('exdev', {
-      number: deviceNumber,
-      direction: direction,
-      action: action,
-      open_time: openTimeMs,
-      open_type: type
-    });
+    try { 
+      const response = await sendControlCommand('exdev', {
+        number: deviceNumber,
+        direction: direction,
+        action: action,
+        open_time: openTimeMs,
+        open_type: type
+      });
+
+      const msgObj = {
+        result: '',
+        action: action,
+        number: deviceNumber + 1
+      }
+
+      if (response.result.exdev === "ok") {
+        console.log(`Команда ${response.exdev.action} успешно выполнена для ИУ ${response.exdev.number}`);
+        msgObj.result='success'
+        return msgObj
+      }
+      else {
+        msgObj.result = 'no_answer'
+        return msgObj
+      }
+    } catch (error) {
+      console.error("Ошибка при отправке команды:", error);
+    }
   };
 
   /* 4.3. Команда запрета прохода

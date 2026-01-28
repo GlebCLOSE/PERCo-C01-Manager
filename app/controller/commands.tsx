@@ -43,15 +43,19 @@ export default function CommandsScreen() {
         //тип команды зависит от типа selectedValue(при разных типах)
         if(selectedValue==='acm'){
 
-            const result = await setAccessMode(accessModeValue, exdevNumber, exdevDirNumber)
-            if(result==='success'){
+            const answer = await setAccessMode(accessModeValue, exdevNumber, exdevDirNumber)
+            if(answer.result==='success'){
                 setIsModalVisible(true)
                 setResultMessage('Установка РКД успешна')
             }
         }
         if(selectedValue==='exdev'){
 
-            toggleExdevAction(exdevActionValue, exdevNumber, exdevDirNumber, exdevUnlockTime, openType)
+            const answer = await toggleExdevAction(exdevActionValue, exdevNumber, exdevDirNumber, exdevUnlockTime, openType)
+            if(answer.result==='success'){
+                setIsModalVisible(true)
+                setResultMessage(`Команда ${exdevActionValue} успешно выполнена для ИУ ${exdevDirNumber}`)
+            }
 
         }
         if(selectedValue==='access'){
@@ -59,8 +63,6 @@ export default function CommandsScreen() {
             declineAccessAction(exdevNumber, exdevDirNumber)
 
         }
-        setErrorMessage('Команда отправлена')
-        setIsErrorModalVisible(true)
 
         // отправка команды и получение ответа(вывод можно в alert сделать)
         return ;
