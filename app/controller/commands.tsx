@@ -46,7 +46,7 @@ export default function CommandsScreen() {
             const answer = await setAccessMode(accessModeValue, exdevNumber, exdevDirNumber)
             if(answer.result==='success'){
                 setIsModalVisible(true)
-                setResultMessage('Установка РКД успешна')
+                setResultMessage(`Установка РКД ${accessModeValue==='open' ? 'Открыто' : 'Контроль'} успешна`)
             }
         }
         if(selectedValue==='exdev'){
@@ -127,7 +127,7 @@ export default function CommandsScreen() {
                 onClose={() => setIsErrorModalVisible(false)}
             />
             <ModalText
-                title={''} 
+                title={'Ответ'} 
                 message={resultMessage}
                 visible={isModalVisible}
                 onClose={()=> setIsModalVisible(false)}

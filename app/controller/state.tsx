@@ -1,10 +1,11 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, ActivityIndicator } from "react-native";
 import { ExdevState } from "../../components/ui/blocks/exdevState";
 import { StateField } from "../../components/ui/elements/stateField";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useControllerCommands } from "../../hooks/useControllerCommands";
 import ErrorModal from "../../components/ui/status/ErrorModal";
 import { Button } from "../../components/ui/elements/buttons/Button";
+import { useFocusEffect } from 'expo-router';
 
 export default function StateScreen() {
 
@@ -14,64 +15,76 @@ export default function StateScreen() {
     const [pass, setPass] = useState('')
     const [exdevs, setExdevs] = useState([{"number": 1, "type": "turnstyle", "physical_state" : ["",""], "unlock_state" : ["",""], "access_mode" : ["",""]}, {"number": 2, "type": "turnstyle", "physical_state" : ["",""], "unlock_state" : ["",""], "access_mode" : ["",""]}])
 
-    const [coverOn, setCoverOn] = useState('нет данных')
-    const [ipMode, setIpMode] = useState('нет данных')
-    const [voltage, setVoltage] = useState('нет данных')
+    const [coverOn, setCoverOn] = useState('нет данных');
+    const [ipMode, setIpMode] = useState('нет данных');
+    const [voltage, setVoltage] = useState('нет данных');
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [stateData, setStateData] = useState({})
+    const [stateData, setStateData] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
     const { getState, getExdevInfo } = useControllerCommands()
 
-const handleGetState = async () => {
-    try {
-        // 1. Получаем данные от
-        const data: any = await getState(); 
+    const handleGetState = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            // 1. Получаем данные от контроллера
+            const data: any = await getState(); 
 
-        if (data.answer?.state === 'ok') {
-            const state = data.state;
-            
-            alert('Данные о состоянии получены успешно');
-            
-            const exdevArray: any[] = [{},{}]
+            if (data.answer?.state === 'ok') {
+                const state = data.state;
+                
+                // alert('Данные о состоянии получены успешно');
+                
+                const exdevArray: any[] = [{},{}]
 
-            for (let i = 0; i < 2; i++) {
-                // 2. Получаем данные номера и типа исполнительного устройства
-                const exdevInfo: any = await getExdevInfo(i);
-                
-                exdevArray[i].number = i;
-                // 3. Теперь обращение к ['type'] будет работать
-                exdevArray[i].type = exdevInfo.exdev['type'];
-                
-                
-                // Проверьте, что state.exdev[i] существует, прежде чем брать индексы [0]
-                exdevArray[i].acm = state.exdev[i]['access_state']?.[0];
-                exdevArray[i].status = state.exdev[i]['unlock_state']?.[0];
-                exdevArray[i].pass = state.exdev[i]['physical_state']?.[0];
+                for (let i = 0; i < 2; i++) {
+                    // 2. Получаем данные номера и типа исполнительного устройства
+                    const exdevInfo: any = await getExdevInfo(i);
+                    
+                    exdevArray[i].number = i;
+                    // 3. Теперь обращение к ['type'] будет работать
+                    exdevArray[i].type = exdevInfo.exdev['type'];
+                    
+                    
+                    // Проверьте, что state.exdev[i] существует, прежде чем брать индексы [0]
+                    exdevArray[i].acm = state.exdev[i]['access_state']?.[0];
+                    exdevArray[i].status = state.exdev[i]['unlock_state']?.[0];
+                    exdevArray[i].pass = state.exdev[i]['physical_state']?.[0];
+                }
+
+                setExdevs(exdevArray);
+
+                // Общие параметры контроллера
+                setCoverOn(state['cover_on'] ? 'Открыта' : 'Закрыта');
+
+                // Логика IP Mode
+                if (state['ip_mode'] === true) {
+                    setIpMode('DHCP Mode');
+                } else if (state['ip_default'] === true) {
+                    setIpMode('IP Default');
+                } else {
+                    setIpMode('Пользовательский режим');
+                }
+
+                setVoltage((state['value_suply'] / 1000) + ' В');
             }
-
-            setExdevs(exdevArray);
-
-            // Общие параметры контроллера
-            setCoverOn(state['cover_on'] ? 'Открыта' : 'Закрыта');
-
-            // Логика IP Mode
-            if (state['ip_mode'] === true) {
-                setIpMode('DHCP Mode');
-            } else if (state['ip_default'] === true) {
-                setIpMode('IP Default');
-            } else {
-                setIpMode('Пользовательский режим');
-            }
-
-            setVoltage((state['value_suply'] / 1000) + ' В');
+        } catch (error) {
+            console.error(error); 
+            setErrorMessage('Произошла непредвиденная ошибка при получении данных');
+            setIsErrorModalVisible(true);
+        } finally {
+            setIsLoading(false); // Выключаем спиннер в любом случае
         }
-    } catch (error) {
-        console.error(error); 
-        setErrorMessage('Произошла непредвиденная ошибка при получении данных');
-        setIsErrorModalVisible(true);
-    }
-};
+    }, []); 
+
+    useFocusEffect(
+        useCallback(() => {
+            handleGetState();
+
+            return () => {};
+        }, [handleGetState])
+    );
 
     const exdevStates = exdevs.map((el)=>{ 
         return (
@@ -116,6 +129,12 @@ const handleGetState = async () => {
                     onClose={() => setIsErrorModalVisible(false)}
                 />
             </View>
+            {isLoading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#0000ff" />
+                    <Text style={{ marginTop: 10, color: '#fff' }}>Загрузка данных...</Text>
+                </View>
+            )}
         </>
     );
 }
@@ -140,5 +159,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: 'inter',
         fontWeight: '300'
-    }
+    },
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject, // Растягивает на весь экран
+        backgroundColor: 'rgba(255, 255, 255, 0.21)', // Полупрозрачный фон
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000, // Чтобы быть поверх всех элементов
+    },
 })
