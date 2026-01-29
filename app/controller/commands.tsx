@@ -54,7 +54,7 @@ export default function CommandsScreen() {
             const answer = await toggleExdevAction(exdevActionValue, exdevNumber, exdevDirNumber, exdevUnlockTime, openType)
             if(answer.result==='success'){
                 setIsModalVisible(true)
-                setResultMessage(`Команда ${exdevActionValue} успешно выполнена для ИУ ${exdevDirNumber}`)
+                setResultMessage(`Команда на ${exdevActionValue==='open'?'открытие':'закрытие'} успешно выполнена для ИУ ${exdevDirNumber}`)
             }
 
         }
@@ -64,7 +64,6 @@ export default function CommandsScreen() {
 
         }
 
-        // отправка команды и получение ответа(вывод можно в alert сделать)
         return ;
     }
 
