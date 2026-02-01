@@ -1,21 +1,62 @@
 import { View, Text, Image } from 'react-native'
 
-export const ReaderLine = ({number, type, exdev}) => {
+export const ReaderLine = ({number, type, exdevNumber, exdevDirNumber}) => {
+
+    let readerIcon = require('../../../assets/icons/lock.png')
+    let readerInterface = 'no-info'
+
+    switch(type){
+        case 'wiegand':
+            readerIcon = require('../../../assets/icons/lock.png')
+            readerInterface = 'Wiegand'
+            break;
+        case 'barcode':
+            readerIcon = require('../../../assets/icons/lock.png')
+            readerInterface = 'Сканер-QR'
+            break;
+    }
+
+
+
+    let exdevName = 'Замок'
+    let exdevIcon = require('../../../assets/icons/lock.png')
+    switch (type){
+        case 'lock':
+        case 'double lock':
+            exdevIcon = require('../../../assets/icons/lock.png')
+            exdevName = 'Замок'
+            break;
+        case 'turnstyle':
+            exdevIcon = require('../../../assets/icons/turnstyle.png')
+            exdevName = 'Турникет'
+            break;
+        case 'gate':
+            exdevIcon = require('../../../assets/icons/gate.png')
+            exdevName = 'Шлагбаум'
+            break;
+    }
+    //Функция позволяющая по номеру ИУ, узнать его тип
+
+
     return (
             <>
               <View style={styles.container}>
                 <View style={styles.block}>
                   <Text>{(number + 1)}</Text>
                   <View style={styles.vr}></View>
-                  <Image source={image} style={{height: 43, width: 33}}/>
-                  <Text>{exdevName}</Text>
+                  <Image source={readerIcon} style={{height: 43, width: 33}}/>
+                  <Text>{readerInterface}</Text>
                 </View>
                 <View style={styles.block}>
+                  <Text>ИУ:</Text>
+                  <Image source={exdevIcon} style={{height: 43, width: 33}}/>
+                  <Text>{exdevName}</Text>
+                  <Text>{exdevDirNumber==='0'?'Вход': 'Выход'}</Text>
                 </View>
               </View>
             </>
           )
-      }
+      };
       
       const styles = StyleSheet.create({
         container: {
