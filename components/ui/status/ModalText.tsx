@@ -7,6 +7,7 @@ interface ErrorModalProps {
   visible: boolean;
   message: string;
   onClose: () => void;
+  isWarn?: boolean;
 }
 
 export default function ModalText({ title, visible, message, isWarn=false, onClose }: ErrorModalProps) {

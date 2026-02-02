@@ -6,7 +6,6 @@ import { BlurView } from 'expo-blur';
 interface ErrorModalProps {
   title: string;
   visible: boolean;
-  message: string;
   isWarn?: boolean;
   onClose: () => void;
   children?: React.ReactNode; 
@@ -25,12 +24,13 @@ export const ModalChildren = ({ title, visible, isWarn=false, onClose, children 
       <View style={styles.modalOverlay}>
         <View style={styles.modalWrapper}>
           <BlurView 
-            intensity={50} // Настройка силы размытия внутри окна
-            tint="light"   // 'light', 'dark' или 'extraLight'
-            style={StyleSheet.absoluteFill} 
+            intensity={60}
+            tint="light"
+            experimentalBlurMethod={'dimezisBlurView'}
+            style={StyleSheet.absoluteFill}
           />
           <View style={styles.modalContainer}>
-            <View style={{justifyContent:'space-between', alignItems: 'center'}}>
+            <View style={{flexDirection: 'row', width:'100%', justifyContent:'space-between', alignItems: 'center'}}>
                 <Text style={styles.modalTitle}>{title}</Text>
                 <IconButton hasBorder={false} onPress={onClose} size={'s'} icon={iconClose}/>
             </View>
@@ -55,9 +55,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderColor: '#ffffff86',
     borderWidth: 1,
+    overflow: 'hidden'
   },
   modalContainer: {
     padding: 20,
+    borderRadius: 20,
     alignItems: 'center',
   },
   modalTitle: {

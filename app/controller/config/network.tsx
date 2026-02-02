@@ -7,31 +7,29 @@ import ErrorModal from "../../../components/ui/status/ErrorModal";
 import { useControllerCommands } from "../../../hooks/useControllerCommands";
 import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSquare";
 import { Button } from "../../../components/ui/elements/buttons/Button";
-import { ModalChildren }
+import { ModalChildren } from "../../../components/ui/status/ModalChildren";
 
 export default function NetworkScreen() {
 
     const [errors, setErrors] = useState({});
-    const [modalType, setModalType] = useState(''); // 'SERVER' | 'PASSWORD' | 'FACTORY' | null
-    const [selectedReader, setSelectedReader] = useState(null);
+    const [modalType, setModalType] = useState(''); // 'SERVER' | 'PASSWORD' | 'FACTORY' | ''
 
     const closeModal = () => {
-    setModalType(null);
-    setSelectedReader(null);
+        setModalType('');
     };
 
     // Функция-хелпер для отрисовки контента
     const renderModalContent = () => {
-    switch (modalType) {
-        case 'SERVER':
-            return <ConfigComponent data={selectedReader} />;
-        case 'PASSWORD':
-            return <AddReaderForm onSubmit={handleAddNew} />;
-        case 'FACTORY':
-            return <GeneralSettings />;
-        default:
-        return null;
-    }
+        switch (modalType) {
+            case 'SERVER':
+                return (<Text>Настройки сервера</Text>);
+            case 'PASSWORD':
+                return (<Text>Установка пароля</Text>);
+            case 'FACTORY':
+                return (<Text>Сброс до заводских</Text>);
+            default:
+            return null;
+        }
     };
 
       const validateForm = () => {
@@ -69,9 +67,9 @@ export default function NetworkScreen() {
             <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
                 <Text style={styles.title}>Сетевые настройки</Text>
                 <View style={styles.blockButtons}>
-                    <ButtonSquare title='Указать IP сервера' onPress={()=>{}} icon={require('../../../assets/icons/servers.png')} />
-                    <ButtonSquare title='Сменить пароль' onPress={()=>{}} icon={require('../../../assets/icons/password.png')} />
-                    <ButtonSquare title='Сброс до заводских' onPress={()=>{}} icon={require('../../../assets/icons/factory.png')} isYellow={true} />
+                    <ButtonSquare title='Указать IP сервера' onPress={()=>{setModalType('SERVER')}} icon={require('../../../assets/icons/servers.png')} />
+                    <ButtonSquare title='Сменить пароль' onPress={()=>{setModalType('PASSWORD')}} icon={require('../../../assets/icons/password.png')} />
+                    <ButtonSquare title='Сброс до заводских' onPress={()=>{setModalType('FACTORY')}} icon={require('../../../assets/icons/factory.png')} isYellow={true} />
                 </View>
                 <WarningText text="При замене IP-адреса потеряется связь с контроллером. Потребуется повторное подключение"/>
                 <InputField
@@ -104,6 +102,9 @@ export default function NetworkScreen() {
                 message={errorMessage}
                 onClose={() => setIsErrorModalVisible(false)}
                 />
+                <ModalChildren title={'Test'} visible={modalType !== ''} onClose={closeModal}>
+                    {renderModalContent()}
+                </ModalChildren>
             </ScrollView>
         </>
     );
