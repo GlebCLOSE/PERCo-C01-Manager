@@ -1,22 +1,7 @@
 import { View, Text, Image, StyleSheet } from 'react-native'
 import { IconButton } from '../elements/buttons/IconButton';
 
-export const ReaderLine = ({number = 0, type = 'Wiegand', exdevNumber = 1, exdevDirNumber = 0}) => {
-
-    let readerIcon = require('../../../assets/icons/reader.png')
-    let readerInterface = 'no-info'
-
-    switch(type){
-        case 'Wiegand':
-            readerIcon = require('../../../assets/icons/reader.png')
-            readerInterface = 'Wiegand'
-            break;
-        case 'barcode':
-            readerIcon = require('../../../assets/icons/barcode.png')
-            readerInterface = 'Сканер-QR'
-            break;
-    }
-
+export const ExdevLine = ({number = 0, type = 'lock'}) => {
 
     const settingsIcon = require('../../../assets/icons/settings.png')
     let exdevName = 'Замок'
@@ -45,14 +30,8 @@ export const ReaderLine = ({number = 0, type = 'Wiegand', exdevNumber = 1, exdev
                 <View style={styles.block}>
                   <Text>{(number + 1)}</Text>
                   <View style={styles.vr}></View>
-                  <Image source={readerIcon} style={{height: 38, width: 13}}/>
-                  <Text>{readerInterface}</Text>
-                </View>
-                <View style={styles.block}>
-                  <Text>ИУ:</Text>
                   <Image source={exdevIcon} style={{height: 36, width: 27}}/>
                   <Text>{exdevName}</Text>
-                  <Text>{exdevDirNumber===0?'Вход': 'Выход'}</Text>
                 </View>
                 <IconButton hasBorder={false} icon={settingsIcon} size='s' onPress={()=>{}}/>
               </View>
