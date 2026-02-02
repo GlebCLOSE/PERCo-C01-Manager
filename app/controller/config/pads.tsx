@@ -1,5 +1,6 @@
 import { Text, StyleSheet, ScrollView, View } from "react-native";
 import { WarningText } from "../../../components/ui/blocks/warningText";
+import { PadLine } from "../../../components/ui/blocks/padLine";
 
 export default function PadsScreen() {
     return (
@@ -8,7 +9,7 @@ export default function PadsScreen() {
                 <Text style={styles.title}>Физические контакты</Text>
                 <WarningText text="Необдуманные действия в этом разделе могут привести к некорректной работе контроллера"/>
                 <View>
-                    <Text></Text>
+                    <PadLine />
                 </View>
             </ScrollView>
         </>

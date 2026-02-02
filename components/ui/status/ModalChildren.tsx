@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { Children } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { IconButton } from '../elements/buttons/IconButton';
+import { BlurView } from 'expo-blur';
 
 interface ErrorModalProps {
-  title: string,
+  title: string;
   visible: boolean;
   message: string;
+  isWarn?: boolean;
   onClose: () => void;
+  children?: React.ReactNode; 
 }
 
-export default function ModalText({ title, visible, message, isWarn=false, onClose }: ErrorModalProps) {
+export const ModalChildren = ({ title, visible, isWarn=false, onClose, children }: ErrorModalProps) => {
     
   const iconClose = require('../../../assets/icons/close.png')
   return (
@@ -20,15 +23,19 @@ export default function ModalText({ title, visible, message, isWarn=false, onClo
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={{justifyContent:'space-between', alignItems: 'center'}}>
-            <Text style={styles.modalTitle}>{title}</Text>
-            <IconButton hasBorder={false} onPress={onClose} size={'s'} icon={iconClose}/>
+        <View style={styles.modalWrapper}>
+          <BlurView 
+            intensity={50} // Настройка силы размытия внутри окна
+            tint="light"   // 'light', 'dark' или 'extraLight'
+            style={StyleSheet.absoluteFill} 
+          />
+          <View style={styles.modalContainer}>
+            <View style={{justifyContent:'space-between', alignItems: 'center'}}>
+                <Text style={styles.modalTitle}>{title}</Text>
+                <IconButton hasBorder={false} onPress={onClose} size={'s'} icon={iconClose}/>
+            </View>
+            {children}
           </View>
-          <Text style={styles.modalMessage}>{message}</Text>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Понятно</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -42,11 +49,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContainer: {
-    width: 300,
-    padding: 20,
+  modalWrapper: {
+    width: '80%',
     backgroundColor: '#ffffffb4',
-    borderRadius: 10,
+    borderRadius: 20,
+    borderColor: '#ffffff86',
+    borderWidth: 1,
+  },
+  modalContainer: {
+    padding: 20,
     alignItems: 'center',
   },
   modalTitle: {

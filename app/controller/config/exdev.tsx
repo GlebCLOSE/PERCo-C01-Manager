@@ -5,7 +5,7 @@ import { ExdevLine } from "../../../components/ui/blocks/exdevLine";
 export default function ExdevScreen() {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Считыватели</Text>
+            <Text style={styles.title}>Исполнительные устройства</Text>
             <View style={{gap: 5}}>
                 <Text style={styles.subtitle}>Список устройств</Text>
                 <ExdevLine />

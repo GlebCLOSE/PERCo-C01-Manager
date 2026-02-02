@@ -7,10 +7,32 @@ import ErrorModal from "../../../components/ui/status/ErrorModal";
 import { useControllerCommands } from "../../../hooks/useControllerCommands";
 import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSquare";
 import { Button } from "../../../components/ui/elements/buttons/Button";
+import { ModalChildren }
 
 export default function NetworkScreen() {
 
     const [errors, setErrors] = useState({});
+    const [modalType, setModalType] = useState(''); // 'SERVER' | 'PASSWORD' | 'FACTORY' | null
+    const [selectedReader, setSelectedReader] = useState(null);
+
+    const closeModal = () => {
+    setModalType(null);
+    setSelectedReader(null);
+    };
+
+    // Функция-хелпер для отрисовки контента
+    const renderModalContent = () => {
+    switch (modalType) {
+        case 'SERVER':
+            return <ConfigComponent data={selectedReader} />;
+        case 'PASSWORD':
+            return <AddReaderForm onSubmit={handleAddNew} />;
+        case 'FACTORY':
+            return <GeneralSettings />;
+        default:
+        return null;
+    }
+    };
 
       const validateForm = () => {
         const newErrors = {};

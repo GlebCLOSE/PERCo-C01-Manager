@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-native-picker/picker": "2.11.1",
     "expo": "~54.0.31",
+    "expo-blur": "~15.0.8",
     "expo-checkbox": "~5.0.8",
     "expo-constants": "~18.0.13",
     "expo-linear-gradient": "~15.0.8",
