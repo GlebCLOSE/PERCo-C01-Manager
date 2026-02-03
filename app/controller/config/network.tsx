@@ -16,6 +16,9 @@ export default function NetworkScreen() {
     const [errors, setErrors] = useState({});
     const [modalType, setModalType] = useState(''); // 'SERVER' | 'PASSWORD' | 'FACTORY' | ''
 
+    // Передаём в окно параметр isWarn true только при типе модального окна FACTORY
+    const isWarn = modalType === 'FACTORY';
+
     const closeModal = () => {
         setModalType('');
     };
@@ -87,7 +90,7 @@ export default function NetworkScreen() {
                 placeholder="255.0.0.0"
                 value={mask}
                 onChangeText={setMask}
-                error={errors.ip}
+                error={errors.mask}
                 keyboardType="numeric"
                 />
                 <InputField
@@ -95,7 +98,7 @@ export default function NetworkScreen() {
                 placeholder="192.168.1.1"
                 value={gateway}
                 onChangeText={setGateway}
-                error={errors.ip}
+                error={errors.gateway}
                 keyboardType="numeric"
                 />
                 <Button title='Отправить' onPress={()=>{}} size='M'/>
@@ -104,7 +107,7 @@ export default function NetworkScreen() {
                 message={errorMessage}
                 onClose={() => setIsErrorModalVisible(false)}
                 />
-                <ModalChildren title={'Test'} visible={modalType !== ''} onClose={closeModal}>
+                <ModalChildren title={'Test'} visible={modalType !== ''} onClose={closeModal} isWarn={isWarn}>
                     {renderModalContent()}
                 </ModalChildren>
             </ScrollView>

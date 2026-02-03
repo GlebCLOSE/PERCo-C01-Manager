@@ -22,7 +22,7 @@ export const ModalChildren = ({ title, visible, isWarn=false, onClose, children 
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalWrapper}>
+        <View style={[styles.modalWrapper, isWarn&&styles.wrapperWarn]}>
           <BlurView 
             intensity={60}
             tint="light"
@@ -31,7 +31,7 @@ export const ModalChildren = ({ title, visible, isWarn=false, onClose, children 
           />
           <View style={styles.modalContainer}>
             <View style={{flexDirection: 'row', width:'100%', justifyContent:'space-between', alignItems: 'center'}}>
-                <Text style={styles.modalTitle}>{title}</Text>
+                <Text style={[styles.modalTitle, isWarn&&styles.titleWarn]}>{title}</Text>
                 <IconButton hasBorder={false} onPress={onClose} size={'s'} icon={iconClose}/>
             </View>
             {children}
