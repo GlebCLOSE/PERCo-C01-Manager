@@ -10,6 +10,7 @@ import { Button } from "../../../components/ui/elements/buttons/Button";
 import { ModalChildren } from "../../../components/ui/status/ModalChildren";
 import { FactoryModal } from "../../../components/modal-content/factoryModal";
 import { ServerModal } from "../../../components/modal-content/serverModal";
+import { PasswordModal } from "../../../components/modal-content/passwordModal";
 
 export default function NetworkScreen() {
 
@@ -29,7 +30,7 @@ export default function NetworkScreen() {
             case 'SERVER':
                 return (<ServerModal />);
             case 'PASSWORD':
-                return (<ServerModal />);
+                return (<PasswordModal />);
             case 'FACTORY':
                 return (<FactoryModal />);
             default:
