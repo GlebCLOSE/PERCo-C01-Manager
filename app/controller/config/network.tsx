@@ -8,6 +8,7 @@ import { useControllerCommands } from "../../../hooks/useControllerCommands";
 import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSquare";
 import { Button } from "../../../components/ui/elements/buttons/Button";
 import { ModalChildren } from "../../../components/ui/status/ModalChildren";
+import { FactoryModal } from "../../../components/modal-content/factoryModal";
 
 export default function NetworkScreen() {
 
@@ -26,7 +27,7 @@ export default function NetworkScreen() {
             case 'PASSWORD':
                 return (<Text>Установка пароля</Text>);
             case 'FACTORY':
-                return (<Text>Сброс до заводских</Text>);
+                return (<FactoryModal />);
             default:
             return null;
         }

@@ -10,6 +10,7 @@ interface DropdownItem {
 
 // Описываем пропсы компонента
 interface Props {
+  size?: 's' | 'm' | undefined;
   label?: string;
   items: DropdownItem[];
   placeholder?: string | object;
@@ -17,17 +18,35 @@ interface Props {
   value?: any;
 }
 
-const DropdownInput: React.FC<Props> = ({ label, items, placeholder, onChange, value }) => {
+const DropdownInput: React.FC<Props> = ({ size='m', label, items, placeholder, onChange, value }) => {
+
+  const isSmall = size === 's';
+  const fontSize = isSmall ? 14 : 20;
+  const padding = isSmall ? 8 : 12;
+
+  const dynamicPickerStyles = {
+    inputIOS: {
+      ...pickerSelectStyles.commonInput,
+      fontSize,
+      paddingVertical: padding,
+    },
+    inputAndroid: {
+      ...pickerSelectStyles.commonInput,
+      fontSize,
+      paddingVertical: padding,
+    },
+  };
+
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[styles.label, {fontSize: fontSize}]}>{label}</Text>}
       
       <RNPickerSelect
         onValueChange={onChange}
         items={items}
         value={value}
         placeholder={placeholder ? { label: placeholder, value: null } : {}}
-        style={pickerSelectStyles}
+        style={dynamicPickerStyles}
         useNativeAndroidPickerStyle={false} // Чтобы кастомные стили работали на Android
       />
     </View>
@@ -47,22 +66,9 @@ const styles = StyleSheet.create({
 });
 
 // Стилизация самого выпадающего списка
-const pickerSelectStyles = StyleSheet.create({
-  inputIOS: {
-    fontSize: 20,
-    paddingVertical: 12,
+const pickerSelectStyles = {
+  commonInput: {
     paddingHorizontal: 15,
-    borderWidth: 1,
-    borderColor: '#1a225381',
-    borderRadius: 8,
-    color: 'black',
-    paddingRight: 30, // место для иконки
-    backgroundColor: '#96ced41e',
-  },
-  inputAndroid: {
-    fontSize: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
     borderWidth: 1,
     borderColor: '#1a225381',
     borderRadius: 8,
@@ -70,40 +76,6 @@ const pickerSelectStyles = StyleSheet.create({
     paddingRight: 30,
     backgroundColor: '#c3dde03d',
   },
-});
+};
 
 export default DropdownInput;
-
-const styles1 = StyleSheet.create({
-  container: {
-    alignSelf: 'stretch'
-  },
-  label: {
-    fontSize: 20,
-    fontStyle: 'normal',
-    color: '#1a225381'
-  },
-  placeholder: {
-    color: '#999999'
-  },
-  input: {
-    height: 50,
-    borderColor: '#1a225381',
-    borderWidth: 1,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    backgroundColor: '#96ced43d',
-    fontSize: 20,
-    alignSelf: 'stretch'
-  },
-  inputError: {
-    borderColor: 'red',
-    backgroundColor: '#ffe6e6'
-  },
-  errorText: {
-    color: 'red',
-    marginBottom: 10,
-    fontSize: 12,
-    alignSelf: 'stretch'
-  }
-});

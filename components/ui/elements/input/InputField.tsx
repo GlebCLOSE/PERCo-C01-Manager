@@ -2,6 +2,7 @@ import React from 'react';
 import { TextInput, View, Text, StyleSheet } from 'react-native';
 
 interface InputFieldProps {
+  size?: 's' | 'm' |undefined;
   label: string;
   value: string;
   onChangeText: (text: string) => void;
@@ -14,6 +15,7 @@ interface InputFieldProps {
 }
 
 export default function InputField({
+  size='m',
   label,
   value,
   onChangeText,
@@ -24,6 +26,14 @@ export default function InputField({
   numberOfLines = 1,
   keyboardType = 'default'
 }: InputFieldProps) {
+
+  let inputStyle = styles.input
+  let labelStyle = styles.label
+  if(size==='s'){
+    inputStyle = styles.inputSmall
+    labelStyle = styles.labelSmall
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
@@ -55,6 +65,12 @@ const styles = StyleSheet.create({
     fontStyle: 'normal',
     color: '#1a225381'
   },
+  labelSmall: {
+    fontSize: 14,
+    fontStyle: 'normal',
+    fontWeight: '300',
+    color: '#1a225381'
+  },
   placeholder: {
     color: '#999999'
   },
@@ -66,6 +82,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#96ced43d',
     fontSize: 20,
+    alignSelf: 'stretch'
+  },
+  inputSmall: {
+    height: 33,
+    borderColor: '#1a225381',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: '#96ced43d',
+    fontSize: 14,
     alignSelf: 'stretch'
   },
   inputError: {

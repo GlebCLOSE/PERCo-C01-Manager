@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { IconButton } from '../elements/buttons/IconButton';
+import { BlurView } from 'expo-blur';
 
 interface ErrorModalProps {
   title: string,
@@ -21,15 +22,23 @@ export default function ModalText({ title, visible, message, isWarn=false, onClo
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={{justifyContent:'space-between', alignItems: 'center'}}>
-            <Text style={styles.modalTitle}>{title}</Text>
-            <IconButton hasBorder={false} onPress={onClose} size={'s'} icon={iconClose}/>
+        <View style={styles.modalWrapper}>
+          <BlurView 
+            intensity={40}
+            tint="light"
+            experimentalBlurMethod={'dimezisBlurView'}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.modalContainer}>
+            <View style={{flexDirection: 'row', width:'100%', justifyContent:'space-between', alignItems: 'center'}}>
+              <Text style={styles.modalTitle}>{title}</Text>
+              <IconButton hasBorder={false} onPress={onClose} size={'s'} icon={iconClose}/>
+            </View>
+            <Text style={styles.modalMessage}>{message}</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>Понятно</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.modalMessage}>{message}</Text>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Понятно</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -43,11 +52,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
+  modalWrapper: {
+    width: '80%',
+    backgroundColor: '#ffffff2c',
+    borderRadius: 20,
+    borderColor: '#ffffff86',
+    borderWidth: 1,
+    overflow: 'hidden'
+  },
   modalContainer: {
-    width: 300,
     padding: 20,
-    backgroundColor: '#ffffffb4',
-    borderRadius: 10,
+    borderRadius: 20,
     alignItems: 'center',
   },
   modalTitle: {
@@ -57,7 +72,7 @@ const styles = StyleSheet.create({
   },
   modalMessage: {
     fontSize: 14,
-    marginBottom: 20,
+    margin: 20,
     textAlign: 'center',
     color: '#4d4d4d',
   },
