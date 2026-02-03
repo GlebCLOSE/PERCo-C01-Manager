@@ -16,7 +16,7 @@ export const ServerModal = () => {
                 size='s'
                 placeholder="192.168.1.1"
                 value={serverIp}
-                onChangeText={()=>{setServerIp(serverIp)}}
+                onChangeText={setServerIp}
             />
             <Button 
                 title='Сохранить'

@@ -18,7 +18,7 @@ export const PasswordModal = () => {
                 secureTextEntry={true}
                 placeholder="0000"
                 value={password}
-                onChangeText={()=>{setPassword(password)}}
+                onChangeText={setPassword}
             />
             <InputField 
                 label='Повторить пароль'
@@ -26,7 +26,7 @@ export const PasswordModal = () => {
                 secureTextEntry={true}
                 placeholder="0000"
                 value={passwordС}
-                onChangeText={()=>{setPasswordС(passwordС)}}
+                onChangeText={setPasswordС}
             />
             <Button 
                 title='Сохранить'
