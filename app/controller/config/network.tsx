@@ -9,6 +9,7 @@ import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSqua
 import { Button } from "../../../components/ui/elements/buttons/Button";
 import { ModalChildren } from "../../../components/ui/status/ModalChildren";
 import { FactoryModal } from "../../../components/modal-content/factoryModal";
+import { ServerModal } from "../../../components/modal-content/serverModal";
 
 export default function NetworkScreen() {
 
@@ -23,9 +24,9 @@ export default function NetworkScreen() {
     const renderModalContent = () => {
         switch (modalType) {
             case 'SERVER':
-                return (<Text>Настройки сервера</Text>);
+                return (<ServerModal />);
             case 'PASSWORD':
-                return (<Text>Установка пароля</Text>);
+                return (<ServerModal />);
             case 'FACTORY':
                 return (<FactoryModal />);
             default:

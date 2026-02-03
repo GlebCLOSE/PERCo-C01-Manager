@@ -18,6 +18,7 @@ interface CustomButtonProps {
   title: string;
   onPress: () => void;
   size: Size;
+  isWarn?: boolean;
   borderRadiusStyle?: BorderRadiusStyle; // Новый пропс для стиля скругления
   customStyles?: object;                // Дополнительный пропс для кастомных стилей
   customTextStyles?: object;            // Пропс для кастомных стилей текста кнопки
@@ -27,6 +28,7 @@ export const Button: React.FC<CustomButtonProps> = ({
   title,
   onPress,
   size,
+  isWarn = false,
   borderRadiusStyle = BorderRadiusStyle.ROUNDED,
   customStyles = {},
   customTextStyles = {}
@@ -82,6 +84,7 @@ export const Button: React.FC<CustomButtonProps> = ({
       style={[
         styles.button,
         baseStyle,
+        isWarn&&styles.buttonWarn,
         { borderRadius },
         customStyles // Пользовательские стили (переопределяют всё)
       ]}
@@ -105,14 +108,17 @@ const styles = StyleSheet.create({
     gap: 20,
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25), inset -3px -3px 15px rgba(0, 0, 0, 0.25)',
   },
+  buttonWarn: {
+    backgroundColor: '#BB0306',
+  },
   buttonSmall: {
     paddingVertical: 6,
     paddingHorizontal: 10,
     fontSize: 11
   },
   buttonMedium: {
-    paddingVertical: 15,
-    paddingHorizontal: 35,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     fontSize: 24
   },
   buttonLarge: {

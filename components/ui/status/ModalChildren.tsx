@@ -12,7 +12,7 @@ interface ErrorModalProps {
 }
 
 export const ModalChildren = ({ title, visible, isWarn=false, onClose, children }: ErrorModalProps) => {
-    
+   
   const iconClose = require('../../../assets/icons/close.png')
   return (
     <Modal
@@ -50,12 +50,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalWrapper: {
-    width: '80%',
+    width: '90%',
     backgroundColor: '#ffffffb4',
     borderRadius: 20,
     borderColor: '#ffffff86',
     borderWidth: 1,
     overflow: 'hidden'
+  },
+  wrapperWarn: {
+    backgroundColor: '#fff1e99c',
+    borderRadius: 20,
+    borderColor: '#ffffff86',
   },
   modalContainer: {
     padding: 20,
@@ -66,6 +71,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     color: '#000670e1',
+  },
+  titleWarn: {
+    color: '#580000e1',
   },
   modalMessage: {
     fontSize: 14,

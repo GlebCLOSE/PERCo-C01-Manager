@@ -11,6 +11,7 @@ export const FactoryModal = () => {
                 title='Сбросить'
                 onPress={()=>{}}
                 size="M"
+                isWarn={true}
             />
         </View>
     )
