@@ -24,6 +24,13 @@ export default function NetworkScreen() {
         setModalType('');
     };
 
+    const titles = new Map<string, string>([
+        ['SERVER', 'Обратное подключение'],
+        ['PASSWORD', 'Установка пароля'],
+        ['FACTORY', 'Сброс до заводских']
+    ]);
+
+    const modalTitle = titles.get(modalType) || '';
     // Функция-хелпер для отрисовки контента
     const renderModalContent = () => {
         switch (modalType) {
@@ -108,7 +115,7 @@ export default function NetworkScreen() {
                 message={errorMessage}
                 onClose={() => setIsErrorModalVisible(false)}
                 />
-                <ModalChildren title={'Test'} visible={modalType !== ''} onClose={closeModal} isWarn={isWarn}>
+                <ModalChildren title={modalTitle} visible={modalType !== ''} onClose={closeModal} isWarn={isWarn}>
                     {renderModalContent()}
                 </ModalChildren>
             </ScrollView>

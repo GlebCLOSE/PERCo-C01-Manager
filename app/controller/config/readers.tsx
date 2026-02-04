@@ -1,8 +1,16 @@
 import { Text, View, StyleSheet } from "react-native";
 import { ReaderLine } from "../../../components/ui/blocks/readerLine";
 import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSquare";
+import { ModalChildren } from "../../../components/ui/status/ModalChildren";
 
 export default function ReadersScreen() {
+
+    const [activeReader, setActiveReader] = useState(null);
+
+    const closeModal = () => {
+        setModalType('');
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Считыватели</Text>
@@ -12,6 +20,9 @@ export default function ReadersScreen() {
                 <ReaderLine />
                 <ReaderLine />
             </View>
+            <ModalChildren title={'Test'} visible={modalType !== ''} onClose={closeModal} isWarn={isWarn}>
+                <ReaderDetails data={activeReader} onClose={() => setActiveReader(null)} />
+            </ModalChildren>
             <ButtonSquare title='Добавить считыватель' onPress={()=>{}} icon={require('../../../assets/icons/addReader.png')}/>
         </View>
     );

@@ -19,7 +19,7 @@ interface NetworkC01Params {
 export const useControllerCommands = () => {
   const { socket, isConnected } = useController();
 
-  // Отравка команду на установку настроект
+  // Отправка команды set, для установки конфигурационных параметров(разных setType, например readers или exdev)
 const sendSetCommand = async (setType: string, payload: object) => {
   // 1. Проверка подключения
 
@@ -138,6 +138,14 @@ const sendSetCommand = async (setType: string, payload: object) => {
     return await getDataFromController('state', {})
   }
 
+  //Получаем данные о считывателях, параметр(number либо равен 'all' либо number)
+  const getReadersInfo = async (number: 'all' | number) => {
+    if(number==='all'){
+      return await getDataFromController('reader', {})
+    }
+    return await getDataFromController('reader', {'number': number})
+  }
+
   // Получаем данные о ИУ
   const getExdevInfo = async (number: number) => {
     return await getDataFromController('exdev', {'number': number})
@@ -163,6 +171,7 @@ const sendSetCommand = async (setType: string, payload: object) => {
     return await sendSetCommand('net', payload);
   };
 
+  // Установка заводских сетевых настроек
   const setDefaultNetwork = async () => await sendSetCommand('net', {})
 
 

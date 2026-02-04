@@ -10,6 +10,8 @@ export default function PadsScreen() {
                 <WarningText text="Необдуманные действия в этом разделе могут привести к некорректной работе контроллера"/>
                 <View>
                     <PadLine />
+                    <PadLine />
+                    <PadLine />
                 </View>
             </ScrollView>
         </>
