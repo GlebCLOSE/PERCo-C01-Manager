@@ -56,7 +56,6 @@ const DropdownInput: React.FC<Props> = ({ size='m', label, items, placeholder, o
 const styles = StyleSheet.create({
   container: {
     gap: 5,
-    width: '100%',
   },
   label: {
     fontSize: 20,

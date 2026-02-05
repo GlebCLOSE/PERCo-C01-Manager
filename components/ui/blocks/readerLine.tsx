@@ -1,7 +1,7 @@
 import { View, Text, Image, StyleSheet } from 'react-native'
 import { IconButton } from '../elements/buttons/IconButton';
 
-export const ReaderLine = ({number = 0, type = 'Wiegand', exdevNumber = 1, exdevDirNumber = 0}) => {
+export const ReaderLine = ({number = 0, type = 'Wiegand', exdevNumber = 1, exdevDirNumber = 0, onPress}) => {
 
     let readerIcon = require('../../../assets/icons/reader.png')
     let readerInterface = 'no-info'
@@ -54,7 +54,7 @@ export const ReaderLine = ({number = 0, type = 'Wiegand', exdevNumber = 1, exdev
                   <Text>{exdevName}</Text>
                   <Text>{exdevDirNumber===0?'Вход': 'Выход'}</Text>
                 </View>
-                <IconButton hasBorder={false} icon={settingsIcon} size='s' onPress={()=>{}}/>
+                <IconButton hasBorder={false} icon={settingsIcon} size='s' onPress={onPress}/>
               </View>
             </>
           )

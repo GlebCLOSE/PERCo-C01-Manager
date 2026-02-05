@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
     },
     horizontalBlock: {
         width: '100%',
-        flexDirection: 'row'
+        flexDirection: 'row',
+        justifyContent: 'space-between'
     }
 })
