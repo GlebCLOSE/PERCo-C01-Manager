@@ -1,8 +1,17 @@
 import { Text, StyleSheet, View } from "react-native";
 import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSquare";
 import { ExdevLine } from "../../../components/ui/blocks/exdevLine";
+import { useState } from 'react'
+import { ModalChildren } from "../../../components/ui/status/ModalChildren";
 
 export default function ExdevScreen() {
+
+    const [activeExdev, setActiveExdev] = useState('')
+
+    function closeModal(){
+        setActiveExdev('')
+    }
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Исполнительные устройства</Text>
@@ -12,6 +21,9 @@ export default function ExdevScreen() {
                 <ExdevLine />
                 <ExdevLine />
             </View>
+            <ModalChildren title={'Исполнительное устройство'} visible={activeExdev !== ''} onClose={closeModal}>
+                <ExdevDetails data={activeExdev}/>
+            </ModalChildren>
             <ButtonSquare title='Добавить считыватель' onPress={()=>{}} icon={require('../../../assets/icons/addReader.png')}/>
         </View>
     );
