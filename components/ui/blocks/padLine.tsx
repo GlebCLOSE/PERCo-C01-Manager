@@ -8,21 +8,34 @@ export interface PadLineProps {
 export const PadLine: React.FC<PadLineProps> = ({ name = 'in1', type = 'Сигнал прохода'}) => {
 
     let padName = 'Тип входа'
+    let lineStyle: Array<object> = [styles.container]
+    let textStyle: Array<object> = [styles.text]
+
     switch(type){
         case 'pass':
-            padName='Сигнал прохода'
+            padName = 'Сигнал прохода'
+            lineStyle = [styles.container, styles.containerYellow] 
+            textStyle = [styles.text]
         break
         case 'remote control input':
             padName='Кнопка ПДУ'
+            lineStyle = [styles.container, styles.containerGreen]
+            textStyle = [styles.text] 
         break
         case 'input':
             padName='Вход обычный'
+            lineStyle = [styles.container] 
+            textStyle = [styles.text]
         break
         case 'fire alarm input':
             padName='Вход пожарной тревоги'
+            lineStyle = [styles.container, styles.containerOrange]
+            textStyle = [styles.text] 
         break
         case 'output':
-            padName='Вход пожарной тревоги'
+            padName='Выход обычный'
+            lineStyle = [styles.container, styles.containerYellow]
+            textStyle = [styles.text] 
         break        
 
     }
@@ -54,6 +67,9 @@ const styles = StyleSheet.create({
         borderColor: '#ab7500c0',
         backgroundColor: '#fff7b29d'
     },
+    textYellow: {
+        
+    },
     containerGreen: {
         borderColor: '#254426a6',
         backgroundColor: '#a3eca7a8'
@@ -61,6 +77,10 @@ const styles = StyleSheet.create({
     containerOrange: {
         borderColor: '#ab7500c0',
         backgroundColor: '#ffcd82ad'
+    },
+    containerRed: {
+        borderColor: '#7C0707c0',
+        backgroundColor: '#ff3f3f8e'
     },
     containerBlue: {
         borderColor: '#32117Ac0',
