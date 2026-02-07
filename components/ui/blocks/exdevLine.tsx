@@ -1,7 +1,13 @@
 import { View, Text, Image, StyleSheet } from 'react-native'
 import { IconButton } from '../elements/buttons/IconButton';
 
-export const ExdevLine = ({number = 0, type = 'lock'}) => {
+interface ExdevLineProps {
+  number: number,
+  type: 'lock' | 'double lock' | 'turnstyle' | 'gate',
+  onPress: () => void
+}
+
+export const ExdevLine: React.FC<ExdevLineProps> = ({number = 0, type = 'lock', onPress}) => {
 
     const settingsIcon = require('../../../assets/icons/settings.png')
     let exdevName = 'Замок'
@@ -33,7 +39,7 @@ export const ExdevLine = ({number = 0, type = 'lock'}) => {
                   <Image source={exdevIcon} style={{height: 36, width: 27}}/>
                   <Text>{exdevName}</Text>
                 </View>
-                <IconButton hasBorder={false} icon={settingsIcon} size='s' onPress={()=>{}}/>
+                <IconButton hasBorder={false} icon={settingsIcon} size='s' onPress={onPress}/>
               </View>
             </>
           )

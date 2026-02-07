@@ -20,7 +20,7 @@ export const ListOfDevices = () => {
             </View>
             <View style={styles.list}>
                 <RememberedDevice name={d.name} ip={d.ip} password={d.password} small={true}/>
-                                <Button
+                <Button
                   title='Список устройств →'
                   onPress={() => router.push('/remembered')}
                   size='S'
