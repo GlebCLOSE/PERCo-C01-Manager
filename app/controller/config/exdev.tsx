@@ -24,6 +24,10 @@ export default function ExdevScreen() {
         setActiveExdev('')
     }
 
+    const ItemSeparator = () => (
+        <View style={{ height: 10, backgroundColor: 'transparent' }} /> // Adjust height for vertical gap
+    );
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Исполнительные устройства</Text>
@@ -31,7 +35,9 @@ export default function ExdevScreen() {
                 <Text style={styles.subtitle}>Список устройств</Text>
                 <FlatList
                     data={arrayExdevs}
-                    renderItem={({item})=><ExdevLine number={item.number} type={item.type}  onPress={()=>{setActiveReader(item)}}/>}
+                    style={{gap: 10}}
+                    renderItem={({item})=><ExdevLine number={item.number} type={item.type}  onPress={()=>{setActiveExdev(item)}}/>}
+                    ItemSeparatorComponent={ItemSeparator}
                 /> 
             </View>
             <ModalChildren title={'Исполнительное устройство'} visible={activeExdev !== ''} onClose={closeModal}>

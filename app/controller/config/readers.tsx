@@ -36,6 +36,10 @@ export default function ReadersScreen() {
         setActiveReader('');
     };
 
+    const ItemSeparator = () => (
+        <View style={{ height: 10, backgroundColor: 'transparent' }} /> // Adjust height for vertical gap
+    );
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Считыватели</Text>
@@ -43,6 +47,7 @@ export default function ReadersScreen() {
                 <Text style={styles.subtitle}>Список устройств</Text>
                 <FlatList
                     data={arrayReaders}
+                    ItemSeparatorComponent={ItemSeparator}
                     renderItem={({item})=><ReaderLine number={item.number} type={item.type} exdevNumber={item["exdev_number"]} exdevDirNumber={item["exdev_direction"]} onPress={()=>{setActiveReader(item)}}/>}
                 /> 
             </View>

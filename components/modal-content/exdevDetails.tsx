@@ -3,15 +3,21 @@ import { useState } from "react"
 import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
+import Checkbox from "expo-checkbox"
 
 interface ExdevParams {
 
-    //Нужно переписать!
-    "number" : 0 | 1,
-    "type" : "Wiegand" | "Barcode" | "Barcode_terminator" | "Barcode-USB_terminator" | "Barcode-USB",
-    "port" : 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
-    "exdev_number" : 0 | 1,
-    "exdev_direction" : 0 | 1
+    "number" : 0,
+    "type" : "lock" | "double lock" | "turnstyle" | "gate",
+    "opt_fix" : "card" | "pass",
+    "analysis _time" : number,
+    "unblock_time" : number,
+    "opt_mode" : "potencial" | "pulse",
+    "opt_norm" : "afterclosed" | "afteropened",
+    "impulse_time" : number,
+    "remove_card_time" : number,
+    "wait_command_time" : number
+
 }
 
 interface ExdevDetailsProps {
@@ -20,48 +26,69 @@ interface ExdevDetailsProps {
 
 export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
 
-    const [readerType, setReaderType] = useState(data["type"])
-    const [readerPort, setReaderPort] = useState(data["port"])
-    const [exdevDirection, setExdevDirection] = useState(data["exdev_number"])
-    const [exdevNumber, setExdevNumber] = useState(data["exdev_direction"])
+    const [exdevType, setExdevType] = useState(data["type"])
+    const [optMode, setOptMode] = useState(data["opt_mode"])
+    const [optNorm, setOptNorm] = useState(data["opt_norm"])
+    const [exdevOptFix, setExdevOptFix] = useState(data["opt_fix"])
+    const [analysisTime, setAnalisysTime] = useState(data["analysis _time"])
+    const [unlockTime, setUnlockTime] = useState(data["analysis _time"])
+    const [isChecked, setChecked] = useState(false)
 
-    const readerTypeList = [
-        {label: 'Wiegand', value: 'Wiegand'},
-        {label: 'Сканер штрих-кода(RS-232)(без перевода строк)', value: 'Barcode'},
-        {label: 'Сканер штрих-кода(USB)(без перевода строк)', value: 'Barcode-USB'},
-        {label: 'Сканер штрих-кода(USB)', value: 'Barcode_terminator'},
-        {label: 'Сканер штрих-кода(USB)', value: "Barcode-USB_terminator"}
+    const exdevTypeList = [
+        {label: 'Односторонний замок', value: 'lock'},
+        {label: 'Двухсторонний замок', value: 'double lock'},
+        {label: 'Турникет', value: 'turnstyle'},
+        {label: 'Шлагбаум', value: 'gate'},
     ]
 
     return (
         <View style={styles.container}>
-            <Text style={styles.smallText}>Считыватель №{data["number"] + 1}</Text>
+            <Text style={styles.smallText}>ИУ №{data["number"] + 1}</Text>
             <View style={styles.hr}></View>
             <DropdownInput 
-                label='Тип команды'
-                items={readerTypeList}
-                value={readerType}
-                onChange={setReaderType}
+                label='Тип ИУ'
+                items={exdevTypeList}
+                value={exdevType}
+                onChange={setExdevType}
+                size='s'
+            />
+            <DropdownInput 
+                label='Режим управления'
+                items={[{label: 'Потенциальный', value: "potencial"}, {label: 'Импульсный', value: "pulse"}]}
+                value={optMode}
+                onChange={setOptMode}
+                size='s'
             />
             <View style={styles.horizontalBlock}>
-                <DropdownInput 
-                    label='Порт'
-                    items={[{label: '1', value: 0}, {label: '2', value: 1}, {label: '3', value: 2}, {label: '4', value: 3}, {label: '5', value: 4}, {label: '6', value: 5}, {label: '7', value: 6}, {label: '8', value: 7} ]}
-                    value={readerPort}
-                    onChange={setReaderPort}
+                <InputField 
+                    label='Время анализа ID'
+                    size='s'
+                    placeholder="1000 мс"
+                    value={analysisTime}
+                    onChangeText={setAnalisysTime}
                 />
-                <DropdownInput 
-                    label='Номер ИУ'
-                    items={[{label: '1', value: 0}, {label: '2', value: 1}]}
-                    value={exdevNumber}
-                    onChange={setExdevNumber}
+                <InputField 
+                    label='Время разблокировки'
+                    size='s'
+                    placeholder="1000 мс"
+                    value={unlockTime}
+                    onChangeText={setUnlockTime}
+                />           
+            </View>
+            <DropdownInput 
+                label='Нормализация выхода управления'
+                items={[{label: 'После закрытия', value: "afterclosed"}, {label: 'После открытия', value: "afteropened"}]}
+                value={optMode}
+                onChange={setOptMode}
+                size='s'
+            />
+            <View style={styles.horizontalBlock}>
+                <Checkbox
+                    value={isChecked}
+                    onValueChange={setChecked}
+                    color={isChecked ? '#4630EB' : undefined}
                 />
-                <DropdownInput 
-                    label='Направление'
-                    items={[{label: '1', value: 0}, {label: '2', value: 1}]}
-                    value={exdevDirection}
-                    onChange={setExdevDirection}
-                />                
+                <Text style={styles.smallText}>Регистрация прохода по предъявлению ID</Text>
             </View>
             <Button 
                 title='Сохранить'

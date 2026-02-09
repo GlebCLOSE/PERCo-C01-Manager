@@ -29,6 +29,7 @@ export default function InputField({
 
   let inputStyle = styles.input
   let labelStyle = styles.label
+
   if(size==='s'){
     inputStyle = styles.inputSmall
     labelStyle = styles.labelSmall
@@ -36,7 +37,7 @@ export default function InputField({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={labelStyle}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -47,7 +48,7 @@ export default function InputField({
         numberOfLines={numberOfLines}
         keyboardType={keyboardType}
         style={[
-          styles.input,
+          inputStyle,
           error && styles.inputError
         ]}
       />
@@ -85,10 +86,11 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch'
   },
   inputSmall: {
-    height: 33,
+    height: 37,
     borderColor: '#1a225381',
     borderWidth: 1,
     paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 8,
     backgroundColor: '#96ced43d',
     fontSize: 14,

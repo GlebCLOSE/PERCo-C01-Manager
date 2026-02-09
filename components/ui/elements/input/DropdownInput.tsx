@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
 // Стилизация самого выпадающего списка
 const pickerSelectStyles = {
   commonInput: {
+    paddingVertical: 10,
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#1a225381',
