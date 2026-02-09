@@ -36,10 +36,11 @@ export const ReaderDetails: React.FC<ReaderDetailsProps> = ({data}) => {
             <Text style={styles.smallText}>Считыватель №{data["number"] + 1}</Text>
             <View style={styles.hr}></View>
             <DropdownInput 
-                label='Тип команды'
+                label='Тип считывателя'
                 items={readerTypeList}
                 value={readerType}
                 onChange={setReaderType}
+                size='s'
             />
             <View style={styles.horizontalBlock}>
                 <DropdownInput 
@@ -47,18 +48,21 @@ export const ReaderDetails: React.FC<ReaderDetailsProps> = ({data}) => {
                     items={[{label: '1', value: 0}, {label: '2', value: 1}, {label: '3', value: 2}, {label: '4', value: 3}, {label: '5', value: 4}, {label: '6', value: 5}, {label: '7', value: 6}, {label: '8', value: 7} ]}
                     value={readerPort}
                     onChange={setReaderPort}
+                    size='s'
                 />
                 <DropdownInput 
                     label='Номер ИУ'
                     items={[{label: '1', value: 0}, {label: '2', value: 1}]}
                     value={exdevNumber}
                     onChange={setExdevNumber}
+                    size='s'
                 />
                 <DropdownInput 
                     label='Направление'
                     items={[{label: '1', value: 0}, {label: '2', value: 1}]}
                     value={exdevDirection}
                     onChange={setExdevDirection}
+                    size='s'
                 />                
             </View>
             <Button 

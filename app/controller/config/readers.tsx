@@ -62,7 +62,7 @@ export default function ReadersScreen() {
 const styles = StyleSheet.create({
     container: {
         gap: 20,
-        justifyContent: 'flex-start'
+        justifyContent: 'flex-start',
     },
     title: {
         fontFamily: 'inter',
