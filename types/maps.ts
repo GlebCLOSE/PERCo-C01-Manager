@@ -1,0 +1,31 @@
+export const mapPadNames = new Map([
+    [0, 'in1'],
+    [1, 'in2'],
+    [2, 'in3'],
+    [3, 'in4'],
+    [4, 'DUA'],
+    [5, 'DUSt'],
+    [6, 'DUB'],
+    [7, 'FA'],
+    [8, 'Реле 1'],
+    [9, 'Реле 2'],
+    [10, 'OK1'],
+    [11, 'OK2'],
+    [12, 'LdA'],
+    [13, 'LdSt'],
+    [14, 'LdB'],
+    [15, 'Beep'],
+])
+
+export const mapPadTypes = new Map([
+    ['input', 'Вход обычный'],
+    ['remote control input', 'Кнопка ПДУ'],
+    ['pass', 'Сигнал прохода'],
+    ['fire alarm input', 'Вход FireAlarm'],
+    ['remove card input', 'Вход Карта Изъята'],
+    ['output', 'Выход обычный'],
+    ['exdev output', 'Выход управления ИУ'],
+    ['fire alarm output', 'Выход FireAlarm'],
+    ['remove card output', 'Выход Изъять карту'],
+    ['remote control output', 'Выход индикации ПДУ'],
+])

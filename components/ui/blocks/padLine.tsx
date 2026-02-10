@@ -1,50 +1,47 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
+import { mapPadNames, mapPadTypes } from "../../../types/maps"
 
 export interface PadLineProps {
-    name: string,
+    number: number,
     type: string,
     onPress: () => void
 }
 
-export const PadLine: React.FC<PadLineProps> = ({ name = 'in1', type = 'Сигнал прохода', onPress}) => {
+export const PadLine: React.FC<PadLineProps> = ({ number = 0, type = 'Сигнал прохода', onPress}) => {
 
-    let padName = 'Тип входа'
+
+    const name = mapPadNames.get(number)
+    const padName = mapPadTypes.get(type)
+
     let lineStyle: Array<object> = [styles.container]
     let textStyle: Array<object> = [styles.text]
 
     switch(type){
         case 'pass':
-            padName = 'Сигнал прохода'
             lineStyle = [styles.container, styles.containerYellow] 
             textStyle = [styles.text, styles.textYellow]
         break
         case 'remote control input':
-            padName='Кнопка ПДУ'
             lineStyle = [styles.container, styles.containerGreen]
             textStyle = [styles.text, styles.textGreen] 
         break
         case 'input':
-            padName='Вход обычный'
             lineStyle = [styles.container] 
             textStyle = [styles.text]
         break
         case 'fire alarm input':
-            padName='Вход пожарной тревоги'
             lineStyle = [styles.container, styles.containerRed]
             textStyle = [styles.text, styles.textRed] 
         break
         case 'output':
-            padName='Выход обычный'
             lineStyle = [styles.container, styles.containerOrange]
             textStyle = [styles.text, styles.textOrange] 
         break
         case 'exdev output':
-            padName='Выход управления ИУ'
             lineStyle = [styles.container, styles.containerOrange]
             textStyle = [styles.text, styles.textOrange] 
         break
         case 'remote control output':
-            padName='Выход управления ИУ'
             lineStyle = [styles.container, styles.containerLime]
             textStyle = [styles.text, styles.textLime] 
         break                  
@@ -52,9 +49,9 @@ export const PadLine: React.FC<PadLineProps> = ({ name = 'in1', type = 'Сигн
     }
 
     return (
-        <TouchableOpacity style={styles.container} onPress={onPress}>
-            <Text style={[ styles.text, styles.textBold ]}>{name}</Text>
-            <Text style={styles.text}>{type}</Text>
+        <TouchableOpacity style={lineStyle} onPress={onPress}>
+            <Text style={[ textStyle, styles.textBold ]}>{name}</Text>
+            <Text style={textStyle}>{padName}</Text>
         </TouchableOpacity>
     )
 }
