@@ -50,11 +50,13 @@ export default function ReadersScreen() {
                     ItemSeparatorComponent={ItemSeparator}
                     renderItem={({item})=><ReaderLine number={item.number} type={item.type} exdevNumber={item["exdev_number"]} exdevDirNumber={item["exdev_direction"]} onPress={()=>{setActiveReader(item)}}/>}
                 /> 
+                <View style={{width: '100%', justifyContent: 'flex-start', alignItems: 'flex-start', marginTop: 10}}>
+                    <ButtonSquare title='Добавить считыватель' onPress={()=>{}} icon={require('../../../assets/icons/addReader.png')}/>
+                </View>
             </View>
             <ModalChildren title={'Считыватель'} visible={activeReader !== ''} onClose={closeModal}>
                 <ReaderDetails data={activeReader}/>
             </ModalChildren>
-            <ButtonSquare title='Добавить считыватель' onPress={()=>{}} icon={require('../../../assets/icons/addReader.png')}/>
         </View>
     );
 }

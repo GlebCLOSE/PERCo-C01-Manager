@@ -43,27 +43,34 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
             />
             <View style={styles.horizontalBlock}>
                 <DropdownInput 
-                    label='Порт'
+                    label='Ресурс'
                     items={[{label: '1', value: 0}, {label: '2', value: 1}, {label: '3', value: 2}, {label: '4', value: 3}, {label: '5', value: 4}, {label: '6', value: 5}, {label: '7', value: 6}, {label: '8', value: 7} ]}
-                    value={readerPort}
-                    onChange={setReaderPort}
-                    size='s'
-                />
-                <DropdownInput 
-                    label='Номер ИУ'
-                    items={[{label: '1', value: 0}, {label: '2', value: 1}]}
-                    value={exdevNumber}
-                    onChange={setExdevNumber}
+                    value={padResource}
+                    onChange={setPadResource}
                     size='s'
                 />
                 <DropdownInput 
                     label='Направление'
                     items={[{label: '1', value: 0}, {label: '2', value: 1}]}
-                    value={exdevDirection}
-                    onChange={setExdevDirection}
+                    value={padDirection}
+                    onChange={setPadDirection}
                     size='s'
-                />                
+                />           
             </View>
+            <DropdownInput 
+                label='Нормальное состояние'
+                items={[{label: '1', value: 0}, {label: '2', value: 1}]}
+                value={normalState}
+                onChange={setNormalState}
+                size='s'
+            />
+            <InputField 
+                label='Время разблокировки'
+                size='s'
+                placeholder='100 мс'
+                value={debounce}
+                onChangeText={setDebounce}
+            />         
             <Button 
                 title='Сохранить'
                 onPress={()=>{}}
