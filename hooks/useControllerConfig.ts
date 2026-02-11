@@ -251,7 +251,7 @@ export const useControllerConfig = () => {
             return;
         }
 
-        return await sendSetCommand('net', payload);
+        return await sendSetCommand('exdev', payload);
     };
 
 
