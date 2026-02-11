@@ -241,30 +241,17 @@ export const useControllerConfig = () => {
     };
 
     const setExdevConfig = async (exdevParams: Partial<ExdevParams>) => {
-        // 1. Фильтруем undefined и null, оставляя только переданные значения
+    
         const payload = Object.fromEntries(
-            Object.entries(exdevParams).filter(([_, value]) => value !== undefined)
+            Object.entries(exdevParams).filter(([_, v]) => v !== undefined)
         );
 
-        // 2. Проверка на пустоту
         if (Object.keys(payload).length === 0) {
             console.warn("Нет данных для обновления");
             return;
         }
 
-        // 3. Отправка команды
-        try {
-            const response = await sendSetCommand('net', payload);
-            
-            if (response?.answer?.exdev === 'ok') {
-                return response.exdev; // Возвращаем актуальное состояние объекта
-            }
-            
-            return response;
-        } catch (error) {
-            console.error("Ошибка при отправке команды конфигурации ИУ:", error);
-            throw error;
-        }
+        return await sendSetCommand('net', payload);
     };
 
 
