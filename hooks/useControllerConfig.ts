@@ -9,47 +9,47 @@ export interface NetworkParams {
 }
 
 export interface ReaderParams {
-    "number" : 0 | 1,
-    "type" : "Wiegand" | "Barcode" | "Barcode_terminator" | "Barcode-USB_terminator" | "Barcode-USB",
-    "port" : 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
-    "exdev_number" : 0 | 1,
-    "exdev_direction" : 0 | 1
+    "number"?: 0 | 1,
+    "type"?: "Wiegand" | "Barcode" | "Barcode_terminator" | "Barcode-USB_terminator" | "Barcode-USB",
+    "port"?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
+    "exdev_number"?: 0 | 1,
+    "exdev_direction"?: 0 | 1
 }
 
 export interface ExdevParams {
 
-    "number" : 0,
-    "type" : "lock" | "double lock" | "turnstyle" | "gate",
-    "opt_fix" : "card" | "pass",
-    "analysis _time" : number,
-    "unblock_time" : number,
-    "opt_mode" : "potencial" | "pulse",
-    "opt_norm" : "afterclosed" | "afteropened",
-    "impulse_time" : number,
-    "remove_card_time" : number,
-    "wait_command_time" : number
+    "number"?: 0,
+    "type"?: "lock" | "double lock" | "turnstyle" | "gate",
+    "opt_fix"?: "card" | "pass",
+    "analysis_time"?: number,
+    "unblock_time"?: number,
+    "opt_mode"?: "potencial" | "pulse",
+    "opt_norm"?: "afterclosed" | "afteropened",
+    "impulse_time"?: number,
+    "remove_card_time"?: number,
+    "wait_command_time"?: number
 
 }
 
 export interface PadParams {
-    "number" : 0 | 1,
-    "function" : "input" | "remote control input" | "pass" | "fire alarm input" | "remove card input" | 'output' | 'exdev output' | 'remote card output' | 'fire alarm output' | 'remove card output',
-    "resource" : 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
-    "resource_direction" : 0 | 1 | 2 | 3,
-    "normal_state" : 'short' | 'break' | 'not powered' | 'powered',
-    "debounce" : number
+    "number"?: 0 | 1,
+    "function"?: "input" | "remote control input" | "pass" | "fire alarm input" | "remove card input" | 'output' | 'exdev output' | 'remote card output' | 'fire alarm output' | 'remove card output',
+    "resource"?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
+    "resource_direction"?: 0 | 1 | 2 | 3,
+    "normal_state"?: 'short' | 'break' | 'not powered' | 'powered',
+    "debounce"?: number
 }
 
 export interface CrossParams {
-    "number" : number,  //От 0 до 999
-    "source" : "activating input" | "unlocking exdev" | "opening exdev" | "get card" | "command" | "breaking exdev" | "long time opening exdev" |  "cover on" | "activating fire alarm input" | "normalizing fire alarm input"
-    "source_number" : 0 | 1 | 2 | 3 | 4 | 5 | 6,
-    "source_direction" : 0 | 1,
-    "destination" : "activated output" | "mask input" | "normalized output",
-    "destination_number" : 0 | 1 | 2 | 3 | 4 | 5 | 6,
-    "destination_direction" : 0 | 1,
-    "time_criteria" : "work time" | "absolute time" | "after work time",
-    "time_reaction" : 0 // От 0 до 1000000 миллисекунд
+    "number"?: number,  //От 0 до 999
+    "source"?: "activating input" | "unlocking exdev" | "opening exdev" | "get card" | "command" | "breaking exdev" | "long time opening exdev" |  "cover on" | "activating fire alarm input" | "normalizing fire alarm input"
+    "source_number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6,
+    "source_direction"?: 0 | 1,
+    "destination"?: "activated output" | "mask input" | "normalized output",
+    "destination_number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6,
+    "destination_direction"?: 0 | 1,
+    "time_criteria"?: "work time" | "absolute time" | "after work time",
+    "time_reaction"?: 0 // От 0 до 1000000 миллисекунд
 }
 
 
@@ -185,9 +185,9 @@ export const useControllerConfig = () => {
 
 
     //Получаем данные о считывателях, параметр(number либо равен 'all' либо number)
-    const getAllReadersInfo = async (number: 'all' | number) => {
+    const getReaderInfo = async (number: 'all' | number) => {
         if(number==='all'){
-        return await getDataFromController('reader', {})
+            return await getDataFromController('reader', {})
         }
         return await getDataFromController('reader', {'number': number})
     }
@@ -196,11 +196,28 @@ export const useControllerConfig = () => {
 
 
     // Получаем данные о ИУ
-    const getExdevInfo = async (number: number) => {
+    const getExdevInfo = async (number: 'all' | number) => {
+        if(number==='all'){
+            return await getDataFromController('exdev', {})
+        }
         return await getDataFromController('exdev', {'number': number})
     }
 
+    // Данные о физических контактах
+    const getPadInfo = async (number: 'all' | number) => {
+        if(number==='all'){
+            return await getDataFromController('pad', {})
+        }
+        return await getDataFromController('pad', {'number': number})
+    }
 
+    // Данные о внутренних реакциях
+    const getCrossInfo = async (number: 'all' | number) => {
+        if(number==='all'){
+            return await getDataFromController('cross', {})
+        }
+        return await getDataFromController('cross', {'number': number})
+    }
 
 
         //Функция отправки сетевых настроек на контроллер
@@ -216,31 +233,57 @@ export const useControllerConfig = () => {
 
         // Если объект пустой, можно либо прервать выполнение, либо отправить как есть
         if (Object.keys(payload).length === 0) {
-        console.warn("Нет данных для обновления");
-        return;
+            console.warn("Нет данных для обновления");
+            return;
         }
 
         return await sendSetCommand('net', payload);
     };
 
+    const setExdevConfig = async (exdevParams: Partial<ExdevParams>) => {
+        // 1. Фильтруем undefined и null, оставляя только переданные значения
+        const payload = Object.fromEntries(
+            Object.entries(exdevParams).filter(([_, value]) => value !== undefined)
+        );
 
+        // 2. Проверка на пустоту
+        if (Object.keys(payload).length === 0) {
+            console.warn("Нет данных для обновления");
+            return;
+        }
+
+        // 3. Отправка команды
+        try {
+            const response = await sendSetCommand('net', payload);
+            
+            if (response?.answer?.exdev === 'ok') {
+                return response.exdev; // Возвращаем актуальное состояние объекта
+            }
+            
+            return response;
+        } catch (error) {
+            console.error("Ошибка при отправке команды конфигурации ИУ:", error);
+            throw error;
+        }
+    };
 
 
     // Установка заводских сетевых настроек
     const setDefaultNetwork = async () => await sendSetCommand('net', {})
 
 
-    // TODO: функции получения информации: getAllExdevInfo, getAllPadsInfo, getNetworkSettings, getAllCrossInfo
-
 
     // TODO: Функции установки конфигурационных параметров: setExdevConfig, setPadConfig, setReaderConfig, setCrossConfig
-    
+
 
     return {
         setDefaultNetwork,
         setNetworkSettings,
+        setExdevConfig,
         getExdevInfo,
-        getAllReadersInfo,
+        getReaderInfo,
+        getPadInfo,
+        getCrossInfo,
         getState,
 
     }
