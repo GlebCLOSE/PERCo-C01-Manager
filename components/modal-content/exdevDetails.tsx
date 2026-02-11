@@ -4,21 +4,7 @@ import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
 import Checkbox from "expo-checkbox"
-
-interface ExdevParams {
-
-    "number" : 0,
-    "type" : "lock" | "double lock" | "turnstyle" | "gate",
-    "opt_fix" : "card" | "pass",
-    "analysis _time" : number,
-    "unblock_time" : number,
-    "opt_mode" : "potencial" | "pulse",
-    "opt_norm" : "afterclosed" | "afteropened",
-    "impulse_time" : number,
-    "remove_card_time" : number,
-    "wait_command_time" : number
-
-}
+import { ExdevParams } from "../../hooks/useControllerConfig"
 
 interface ExdevDetailsProps {
     data: ExdevParams

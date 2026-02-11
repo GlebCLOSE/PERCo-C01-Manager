@@ -4,15 +4,7 @@ import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
 import { mapPadTypes } from "../../types/maps"
-
-interface PadParams {
-    "number" : 0 | 1,
-    "function" : "input" | "remote control input" | "pass" | "fire alarm input" | "remove card input" | 'output' | 'exdev output' | 'remote card output' | 'fire alarm output' | 'remove card output',
-    "resource" : 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
-    "resource_direction" : 0 | 1 | 2 | 3,
-    "normal_state" : 'short' | 'break' | 'not powered' | 'powered',
-    "debounce" : number
-}
+import { PadParams } from "../../hooks/useControllerConfig"
 
 interface PadDetailsProps {
     data: PadParams

@@ -3,14 +3,7 @@ import { useState } from "react"
 import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
-
-interface ReaderParams {
-    "number" : 0 | 1,
-    "type" : "Wiegand" | "Barcode" | "Barcode_terminator" | "Barcode-USB_terminator" | "Barcode-USB",
-    "port" : 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
-    "exdev_number" : 0 | 1,
-    "exdev_direction" : 0 | 1
-}
+import { ReaderParams } from "../../hooks/useControllerConfig"
 
 interface ReaderDetailsProps {
     data: ReaderParams
