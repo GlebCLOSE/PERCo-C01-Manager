@@ -52,7 +52,7 @@ export interface CrossParams {
     "time_reaction"?: 0 // От 0 до 1000000 миллисекунд
 }
 
-
+type GetType = 'reader' | 'exdev' | 'pad' | 'cross';
 
 export const useControllerConfig = () => {
     const { socket, isConnected } = useController();
@@ -184,40 +184,11 @@ export const useControllerConfig = () => {
 
 
 
-    //Получаем данные о считывателях, параметр(number либо равен 'all' либо number)
-    const getReaderInfo = async (number: 'all' | number) => {
-        if(number==='all'){
-            return await getDataFromController('reader', {})
-        }
-        return await getDataFromController('reader', {'number': number})
-    }
-
-
-
-
-    // Получаем данные о ИУ
-    const getExdevInfo = async (number: 'all' | number) => {
-        if(number==='all'){
-            return await getDataFromController('exdev', {})
-        }
-        return await getDataFromController('exdev', {'number': number})
-    }
-
-    // Данные о физических контактах
-    const getPadInfo = async (number: 'all' | number) => {
-        if(number==='all'){
-            return await getDataFromController('pad', {})
-        }
-        return await getDataFromController('pad', {'number': number})
-    }
-
-    // Данные о внутренних реакциях
-    const getCrossInfo = async (number: 'all' | number) => {
-        if(number==='all'){
-            return await getDataFromController('cross', {})
-        }
-        return await getDataFromController('cross', {'number': number})
-    }
+    //Получаем данные о считывателях, ИУ, физ. контактах, внутр. реакциях
+    const getInfo = async (type: GetType, number: 'all' | number) => {
+        const params = number === 'all' ? {} : { "number": number };
+        return await getDataFromController(type, params);
+    };
 
 
         //Функция отправки сетевых настроек на контроллер
@@ -267,10 +238,7 @@ export const useControllerConfig = () => {
         setDefaultNetwork,
         setNetworkSettings,
         setExdevConfig,
-        getExdevInfo,
-        getReaderInfo,
-        getPadInfo,
-        getCrossInfo,
+        getInfo,
         getState,
 
     }
