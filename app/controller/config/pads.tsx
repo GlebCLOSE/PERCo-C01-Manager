@@ -53,27 +53,24 @@ export default function PadsScreen() {
     const handleGetPadInfo = useCallback(async () => {
         setIsLoading(true);
         try {
-            const padArray: Array<PadParams | null> = []
-            const data1 = await getInfo('pad', 1)
-            for(let i = 0; i < 15 ; i++){
-                const data: any = await getInfo('pad', i)
-                console.log(data.pad)
-                
-                if(data.answer?.pad==='ok'){
-                    padArray.push(data.pad)
-                    console.log(padArray)
-                }
-                setIsLoading(false)
-                setPadList(padArray)
-            }
+            // Теперь data — это массив ответов: [{"answer":..., "pad":...}, {...}]
+            const responses: any = await getInfo('pad', 'all');
+            
+            // Извлекаем только объекты pad из каждого ответа
+            const padArray = responses
+                .map((item: any) => item.pad)
+                .filter((pad: any) => pad !== undefined);
+
+            // Сортируем по номеру
+            padArray.sort((a, b) => a.number - b.number);
+
+            setPadList(padArray);
+        } catch (error) {
+            console.error("Ошибка:", error);
+        } finally {
+            setIsLoading(false);
         }
-        catch (error) {
-            console.log(error)
-        }
-        finally {
-            setIsLoading(false)
-        }
-    },[])
+    }, []);
 
     useFocusEffect(
         useCallback(() => {

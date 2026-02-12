@@ -26,40 +26,54 @@
         };
 
         ws.onmessage = (e) => {
-          
-        if (!e.data || e.data.trim() === "") {
-            console.log("Получено пустое сообщение или пинг от контроллера");
-            return;
-        }
+          if (!e.data || typeof e.data !== 'string' || e.data.trim() === "") {
+              return;
+          }
 
           try {
-            const data = JSON.parse(e.data);
+              // 1. Разделяем склеенные объекты, если они пришли в одном пакете
+              const jsonStrings = e.data
+                  .replace(/}\s*{/g, '}|--|{')
+                  .split('|--|');
 
-            // ШАГ 1: Получение соли от контроллера
-            if (data.event === 'need_auth') {
-              const salt = data.need_auth.salt;
-              const hash = md5(salt + password); // Конкатенация соли и пароля + MD5
+              // 2. Проходим циклом по каждой полученной JSON-строке
+              jsonStrings.forEach((jsonStr) => {
+                  try {
+                      const data = JSON.parse(jsonStr);
 
-              const authPayload = {
-                set: "auth",
-                auth: { hash: hash }
-              };
-              ws.send(JSON.stringify(authPayload));
-            }
+                      // ШАГ 1: Получение соли от контроллера
+                      if (data.event === 'need_auth') {
+                          const salt = data.need_auth.salt;
+                          const hash = md5(salt + password); 
 
-            // ШАГ 2: Проверка ответа авторизации
-            if (data.answer && data.answer.auth) {
-              clearTimeout(timeout);
-              
-              if (data.answer.auth === 'ok') {
-                resolve({ success: true, socket: ws });
-              } else {
-                ws.close();
-                resolve({ success: false, message: 'Неверный пароль доступа' });
-              }
-            }
+                          const authPayload = {
+                              set: "auth",
+                              auth: { hash: hash }
+                          };
+                          ws.send(JSON.stringify(authPayload));
+                      }
+
+                      // ШАГ 2: Проверка ответа авторизации
+                      if (data.answer && data.answer.auth) {
+                          clearTimeout(timeout);
+                          
+                          if (data.answer.auth === 'ok') {
+                              // Здесь важно понимать: если resolve сработает несколько раз, 
+                              // это не вызовет ошибку, но выполнится только первый раз.
+                              resolve({ success: true, socket: ws });
+                          } else {
+                              ws.close();
+                              resolve({ success: false, message: 'Неверный пароль доступа' });
+                          }
+                      }
+                  } catch (singleParseErr) {
+                      // Ошибка парсинга конкретного кусочка (например, если обрезало строку)
+                      console.error("Ошибка парсинга отдельного сегмента:", jsonStr, singleParseErr);
+                  }
+              });
+
           } catch (err) {
-            console.error("Ошибка парсинга JSON:", err);
+              console.error("Общая ошибка обработки сообщения:", err);
           }
         };
 

@@ -115,64 +115,72 @@ export const useControllerConfig = () => {
 
     //---------------------------------------------------------------------------------------------------------------
 
-    // Функция получения данных(например, о конфигурации или о состоянии) с контроллера
-    const getDataFromController = async (getType: string, payload: object) => {
-
+    const getDataFromController = async (getType: string, payload: object, collectAll = false) => {
         if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
-        throw new Error("Нет подключения к контроллеру");
+            throw new Error("Нет подключения к контроллеру");
         }
 
-        let commandPayload = {
-        "get": getType,
-        [getType]: payload
-        };
-
-        if(getType==='state'){
-        commandPayload = {'get': 'state'}
-        }
+        let commandPayload = (getType === 'state') ? { 'get': 'state' } : { "get": getType, [getType]: payload };
 
         return new Promise((resolve, reject) => {
+            const results: any[] = [];
+            let totalTimeout: NodeJS.Timeout;
+            let silenceTimeout: NodeJS.Timeout;
 
-        // Таймаут подключения 
-        const timeout = setTimeout(() => {
-            socket.removeEventListener('message', handleResponse);
-            reject(new Error(`Превышено время ожидания ответа для: ${getType}`));
-        }, 5000);
+            const cleanup = () => {
+                clearTimeout(totalTimeout);
+                clearTimeout(silenceTimeout);
+                socket.removeEventListener('message', handleResponse);
+            };
 
         const handleResponse = (event) => {
             try {
-            console.log(event.data)
-            const data = JSON.parse(event.data)
+                const rawData = event.data;
+                
+                // Разделяем склеенные JSON-объекты. 
+                // Ищем границу между } и { и вставляем разделитель
+                const jsonStrings = rawData
+                    .replace(/}\s*{/g, '}|--|{')
+                    .split('|--|');
 
-            if(data.answer && data.answer[getType]){
+                jsonStrings.forEach(str => {
+                    const data = JSON.parse(str); // Теперь парсим каждый объект отдельно
 
-                clearTimeout(timeout); // Отменяем тайм-аут
-                socket.removeEventListener('message', handleResponse); // Удаляем слушателя
-
-                if(data.answer[getType]==='ok'){
-                console.log('Данные состояния получены')
-                resolve(data)
-                }
-                else {
-                reject(new Error(`Контроллер вернул ошибку для ${getType}: ${data.answer[getType]}`));
-                }
-            }
+                    if (data.answer && data.answer[getType] === 'ok') {
+                        if (!collectAll) {
+                            cleanup();
+                            resolve(data);
+                        } else {
+                            results.push(data);
+                            
+                            // Сбрасываем таймаут тишины
+                            clearTimeout(silenceTimeout);
+                            silenceTimeout = setTimeout(() => {
+                                cleanup();
+                                resolve(results);
+                            }, 500);
+                        }
+                    }
+                });
             } catch (err) {
-            console.error("Ошибка парсинга JSON:", err);
+                console.error("Критическая ошибка парсинга:", err, "Raw data:", event.data);
             }
+        };
 
-        }
+            // Общий таймаут (если контроллер вообще не ответил)
+            totalTimeout = setTimeout(() => {
+                cleanup();
+                if (collectAll && results.length > 0) {
+                    resolve(results); // Если хоть что-то успели собрать
+                } else {
+                    reject(new Error(`Превышено время ожидания ответа для: ${getType}`));
+                }
+            }, 5000);
 
-
-        // Подписываемся на сообщения
-        socket.addEventListener('message', handleResponse);
-
-        // Отправляем команду
-        socket.send(JSON.stringify(commandPayload));
-
+            socket.addEventListener('message', handleResponse);
+            socket.send(JSON.stringify(commandPayload));
         });
-
-    }
+    };
 
     //----------------------------------------------------------------------------------------------------------------
 
@@ -186,8 +194,11 @@ export const useControllerConfig = () => {
 
     //Получаем данные о считывателях, ИУ, физ. контактах, внутр. реакциях
     const getInfo = async (type: GetType, number: 'all' | number) => {
-        const params = number === 'all' ? {} : { "number": number };
-        return await getDataFromController(type, params);
+        const isAll = number === 'all';
+        const params = isAll ? {} : { "number": number };
+        
+        // Передаем true в третий аргумент, если запрашиваем 'all'
+        return await getDataFromController(type, params, isAll);
     };
 
 
