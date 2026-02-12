@@ -1,3 +1,5 @@
+ import md5 from 'md5';
+ 
 export const processControllerAuthorization = (data) => {
     // ШАГ 1: Авторизация
     if (data.event === 'need_auth') {

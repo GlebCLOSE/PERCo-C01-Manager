@@ -1,4 +1,4 @@
- import md5 from 'md5';
+
 import { processControllerAuthorization } from './authorization';
  
  export const attemptConnection = (ip: string, password: string) => {
