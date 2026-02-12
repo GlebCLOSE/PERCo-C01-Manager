@@ -1,4 +1,5 @@
  import md5 from 'md5';
+import { processControllerAuthorization } from './authorization';
  
  export const attemptConnection = (ip: string, password: string) => {
     return new Promise((resolve) => {
@@ -41,31 +42,7 @@
                   try {
                       const data = JSON.parse(jsonStr);
 
-                      // ШАГ 1: Получение соли от контроллера
-                      if (data.event === 'need_auth') {
-                          const salt = data.need_auth.salt;
-                          const hash = md5(salt + password); 
-
-                          const authPayload = {
-                              set: "auth",
-                              auth: { hash: hash }
-                          };
-                          ws.send(JSON.stringify(authPayload));
-                      }
-
-                      // ШАГ 2: Проверка ответа авторизации
-                      if (data.answer && data.answer.auth) {
-                          clearTimeout(timeout);
-                          
-                          if (data.answer.auth === 'ok') {
-                              // Здесь важно понимать: если resolve сработает несколько раз, 
-                              // это не вызовет ошибку, но выполнится только первый раз.
-                              resolve({ success: true, socket: ws });
-                          } else {
-                              ws.close();
-                              resolve({ success: false, message: 'Неверный пароль доступа' });
-                          }
-                      }
+                      processControllerAuthorization(data)
                   } catch (singleParseErr) {
                       // Ошибка парсинга конкретного кусочка (например, если обрезало строку)
                       console.error("Ошибка парсинга отдельного сегмента:", jsonStr, singleParseErr);
