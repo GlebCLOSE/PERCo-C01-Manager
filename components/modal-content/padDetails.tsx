@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
-import { mapPadTypes } from "../../types/maps"
+import { mapPadNames, mapPadTypes } from "../../types/maps"
 import { PadParams } from "../../hooks/useControllerConfig"
 
 interface PadDetailsProps {
@@ -11,12 +11,31 @@ interface PadDetailsProps {
 }
 
 export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
+    console.log(data)
 
     const [padType, setPadType] = useState(data["function"])
-    const [padResource, setPadResource] = useState(data["resource"])
+    const [padResource, setPadResource] = useState(data["resource_number"])
     const [padDirection, setPadDirection] = useState(data["resource_direction"])
     const [normalState, setNormalState] = useState(data["normal_state"])
-    const [debounce, setDebounce] = useState(100)
+    const [debounce, setDebounce] = useState(data["debounce"])
+
+    const getDropdownItems = (number: number) => {
+        if (number >= 0 && number <= 7) {
+            return [
+            { label: 'Разомкнут', value: 'break' },
+            { label: 'Замкнут', value: 'short' }
+            ];
+        } else if (number >= 8 && number <= 15) {
+            return [
+            { label: 'Запитан', value: 'powered' },
+            { label: 'Не запитан', value: 'not powered' }
+            ];
+        }
+        return []; 
+    };
+
+       
+    const dropdownItems = getDropdownItems(data["number"]);
 
     const padTypeList = Array.from(mapPadTypes, ([value, label]) => ({ value, label }))
 
@@ -24,7 +43,7 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.smallText}>Вход/выход №{data["number"] + 1}</Text>
+            <Text style={styles.smallText}>{mapPadNames.get(data["number"])}</Text>
             <View style={styles.hr}></View>
             <DropdownInput 
                 label='Тип физ. контакта'
@@ -51,13 +70,13 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
             </View>
             <DropdownInput 
                 label='Нормальное состояние'
-                items={[{label: '1', value: 0}, {label: '2', value: 1}]}
+                items={dropdownItems}
                 value={normalState}
                 onChange={setNormalState}
                 size='s'
             />
             <InputField 
-                label='Время разблокировки'
+                label='Антидребезг(мс)'
                 size='s'
                 placeholder='100 мс'
                 value={debounce}

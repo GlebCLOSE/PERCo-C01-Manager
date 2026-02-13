@@ -32,12 +32,13 @@ export interface ExdevParams {
 }
 
 export interface PadParams {
-    "number"?: 0 | 1,
+    "number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15,
     "function"?: "input" | "remote control input" | "pass" | "fire alarm input" | "remove card input" | 'output' | 'exdev output' | 'remote card output' | 'fire alarm output' | 'remove card output',
-    "resource"?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
+    "resource_number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
     "resource_direction"?: 0 | 1 | 2 | 3,
     "normal_state"?: 'short' | 'break' | 'not powered' | 'powered',
-    "debounce"?: number
+    "debounce"?: number,
+    "state"?: 0 | 1  
 }
 
 export interface CrossParams {
