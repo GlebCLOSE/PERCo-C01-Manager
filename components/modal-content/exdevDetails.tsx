@@ -11,6 +11,7 @@ interface ExdevDetailsProps {
 }
 
 export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
+    console.log(data)
 
     const [exdevType, setExdevType] = useState(data["type"])
     const [optMode, setOptMode] = useState(data["opt_mode"])
@@ -64,14 +65,14 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
             <DropdownInput 
                 label='Нормализация выхода управления'
                 items={[{label: 'После закрытия', value: "afterclosed"}, {label: 'После открытия', value: "afteropened"}]}
-                value={optMode}
-                onChange={setOptMode}
+                value={optNorm}
+                onChange={setOptNorm}
                 size='s'
             />
             <View style={styles.horizontalBlock}>
                 <Checkbox
                     value={isChecked}
-                    onValueChange={setChecked}
+                    onValueChange={()=>{setChecked(!isChecked); isChecked ? setExdevOptFix("card"): setExdevOptFix("pass")}}
                     color={isChecked ? '#4630EB' : undefined}
                 />
                 <Text style={styles.smallText}>Регистрация прохода по предъявлению ID</Text>
