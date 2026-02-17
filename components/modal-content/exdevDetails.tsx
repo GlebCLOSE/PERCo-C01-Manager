@@ -72,7 +72,7 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
             <View style={styles.horizontalBlock}>
                 <Checkbox
                     value={isChecked}
-                    onValueChange={()=>{setChecked(!isChecked); isChecked ? setExdevOptFix("card"): setExdevOptFix("pass")}}
+                    onValueChange={(newValue)=>{setChecked(newValue); isChecked ? setExdevOptFix("card"): setExdevOptFix("pass")}}
                     color={isChecked ? '#4630EB' : undefined}
                 />
                 <Text style={styles.smallText}>Регистрация прохода по предъявлению ID</Text>
