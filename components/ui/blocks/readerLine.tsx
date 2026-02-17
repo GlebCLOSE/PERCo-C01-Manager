@@ -11,7 +11,7 @@ export const ReaderLine = ({number = 0, type = 'Wiegand', exdevNumber = 1, exdev
             readerIcon = require('../../../assets/icons/reader.png')
             readerInterface = 'Wiegand'
             break;
-        case 'barcode':
+        case 'Barcode':
             readerIcon = require('../../../assets/icons/barcode.png')
             readerInterface = 'Сканер-QR'
             break;
@@ -50,7 +50,7 @@ export const ReaderLine = ({number = 0, type = 'Wiegand', exdevNumber = 1, exdev
                 </View>
                 <View style={styles.block}>
                   <Text>ИУ:</Text>
-                  <Image source={exdevIcon} style={{height: 36, width: 27}}/>
+                  <Image source={exdevIcon} style={{height: 28, width: 21}}/>
                   <Text>{exdevName}</Text>
                   <Text>{exdevDirNumber===0?'Вход': 'Выход'}</Text>
                 </View>

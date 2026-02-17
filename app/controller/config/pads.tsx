@@ -126,5 +126,12 @@ const styles = StyleSheet.create({
     blockButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between'
-    }
+    },
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject, // Растягивает на весь экран
+        backgroundColor: 'rgba(255, 255, 255, 0.21)', // Полупрозрачный фон
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000, // Чтобы быть поверх всех элементов
+    },
 })
