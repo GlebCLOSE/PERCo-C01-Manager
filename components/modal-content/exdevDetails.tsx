@@ -17,8 +17,8 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
     const [optMode, setOptMode] = useState(data["opt_mode"])
     const [optNorm, setOptNorm] = useState(data["opt_norm"])
     const [exdevOptFix, setExdevOptFix] = useState(data["opt_fix"])
-    const [analysisTime, setAnalisysTime] = useState(data["analysis _time"])
-    const [unlockTime, setUnlockTime] = useState(data["analysis _time"])
+    const [analysisTime, setAnalisysTime] = useState(data["analysis_time"])
+    const [unlockTime, setUnlockTime] = useState(data["analysis_time"])
     const [isChecked, setChecked] = useState(false)
 
     const exdevTypeList = [
