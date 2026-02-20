@@ -4,13 +4,15 @@ import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
 import Checkbox from "expo-checkbox"
-import { ExdevParams } from "../../hooks/useControllerConfig"
+import { ExdevParams, useControllerConfig } from "../../hooks/useControllerConfig"
 
 interface ExdevDetailsProps {
     data: ExdevParams
 }
 
 export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
+
+    const { setExdevConfig } = useControllerConfig()
     console.log(data)
 
     const [exdevType, setExdevType] = useState(data["type"])
@@ -27,6 +29,32 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
         {label: 'Турникет', value: 'turnstyle'},
         {label: 'Шлагбаум', value: 'gate'},
     ]
+
+    const numberHandler = (setter: Function) => (text: string) => {
+        const cleaned = text.replace(/[^0-9]/g, '');
+        setter(cleaned);
+    };
+
+    const handleSetExdevParams = async () => {
+        const payload = {
+            'number': data['number'],
+            "type" : exdevType,
+            "opt_fix" : exdevOptFix,
+            "analysis_time" : parseInt(analysisTime),
+            "unblock_time" : parseInt(unlockTime),
+            "opt_mode" : optMode,
+            "opt_norm" : optNorm
+        }
+
+        console.log(payload)
+
+        const result = await setExdevConfig(payload)
+        if(result.answer.exdev==='ok') { 
+            console.log('Succesful')
+            console.log(result)
+            return result
+        }
+    }
 
     return (
         <View style={styles.container}>
@@ -51,15 +79,17 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
                     label='Время анализа ID'
                     size='s'
                     placeholder="1000 мс"
-                    value={analysisTime}
-                    onChangeText={setAnalisysTime}
+                    value={analysisTime ? analysisTime.toString(): ''}
+                    onChangeText={numberHandler(setAnalisysTime)}
+                    keyboardType="number-pad"
                 />
                 <InputField 
                     label='Время разблокировки'
                     size='s'
                     placeholder="1000 мс"
-                    value={unlockTime}
-                    onChangeText={setUnlockTime}
+                    value={unlockTime ? unlockTime.toString(): ''}
+                    onChangeText={numberHandler(setUnlockTime)}
+                    keyboardType="number-pad"
                 />           
             </View>
             <DropdownInput 
@@ -79,7 +109,7 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
             </View>
             <Button 
                 title='Сохранить'
-                onPress={()=>{}}
+                onPress={handleSetExdevParams}
                 size="M"
             />
         </View>
