@@ -237,6 +237,20 @@ export const useControllerConfig = () => {
         return await sendSetCommand('exdev', payload);
     };
 
+    const setPadConfig = async (padParams: Partial<PadParams>) => {
+
+        const payload = Object.fromEntries(
+            Object.entries(padParams).filter(([_, v]) => v !== undefined)
+        );
+
+        if (Object.keys(payload).length === 0) {
+            console.warn("Нет данных для обновления");
+            return;
+        }
+
+        return await sendSetCommand('pad', payload);
+    }
+
 
     // Установка заводских сетевых настроек
     const setDefaultNetwork = async () => await sendSetCommand('net', {})
@@ -250,6 +264,7 @@ export const useControllerConfig = () => {
         setDefaultNetwork,
         setNetworkSettings,
         setExdevConfig,
+        setPadConfig,
         getInfo,
         getState,
 

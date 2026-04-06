@@ -4,7 +4,7 @@ import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
 import { mapPadNames, mapPadTypes } from "../../types/maps"
-import { PadParams } from "../../hooks/useControllerConfig"
+import { PadParams, useControllerConfig } from "../../hooks/useControllerConfig"
 
 interface PadDetailsProps {
     data: PadParams
@@ -12,6 +12,8 @@ interface PadDetailsProps {
 
 export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
     console.log(data)
+
+    const { setPadConfig } = useControllerConfig()
 
     const [padType, setPadType] = useState(data["function"])
     const [padResource, setPadResource] = useState(data["resource_number"])
@@ -40,6 +42,25 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
     const padTypeList = Array.from(mapPadTypes, ([value, label]) => ({ value, label }))
 
     const label = 'вход'
+
+    const handleSetPadSettings = async () => {
+        const payload: PadParams = {
+            number: data["number"],
+            function: padType,
+            resource_number: padResource,
+            resource_direction: padDirection,
+            normal_state: normalState,
+            debounce: debounce
+        }
+
+        const result = await setPadConfig(payload)
+        if(result.answer.exdev==='ok') { 
+            console.log('Succesful')
+            console.log(result)
+            return result
+        }
+
+    }
 
     return (
         <View style={styles.container}>
