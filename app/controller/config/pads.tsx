@@ -7,48 +7,16 @@ import { useState, useCallback } from "react";
 import { useFocusEffect } from 'expo-router';
 import { useControllerConfig } from "../../../hooks/useControllerConfig";
 import { PadParams } from "../../../hooks/useControllerConfig";
+import { IconButton } from "../../../components/ui/elements/buttons/IconButton";
 
 export default function PadsScreen() {
 
     const { getInfo } = useControllerConfig()
-
-    const padList1 = [
-        {
-            'number' : 0,
-            'function' : 'pass',
-            "resource_number" : 0,
-            "resource_direction" : 0,
-            "normal_state" : "short",
-            "debounce" : 50
-        },
-        {
-            'number' : 1,
-            'function' : 'pass',
-            "resource_number" : 1,
-            "resource_direction" : 0,
-            "normal_state" : "short",
-            "debounce" : 50
-        },
-        {
-            'number' : 2,
-            'function' : 'input',
-            "resource_number" : 0,
-            "resource_direction" : 0,
-            "normal_state" : "short",
-            "debounce" : 50
-        },
-        {
-            'number' : 3,
-            'function' : 'input',
-            "resource_number" : 0,
-            "resource_direction" : 0,
-            "normal_state" : "short",
-            "debounce" : 50
-        }
-    ]
     const [activePad, setActivePad] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [padList, setPadList] = useState([])
+    
+    const refreshIcon = require("../../../assets/icons/refresh.png")
 
     const handleGetPadInfo = useCallback(async () => {
         setIsLoading(true);
@@ -92,7 +60,14 @@ export default function PadsScreen() {
     return (
         <>
             <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
-                <Text style={styles.title}>Физические контакты</Text>
+                <View style={styles.titleBlock}>
+                    <Text style={styles.title}>Физические контакты</Text>
+                    <IconButton 
+                        onPress={handleGetPadInfo}
+                        icon={refreshIcon}
+                        hasBorder={false}
+                    />
+                </View>
                 <WarningText text="Необдуманные действия в этом разделе могут привести к некорректной работе контроллера"/>
                 <View>
                     <FlatList
@@ -117,6 +92,11 @@ export default function PadsScreen() {
 };
 
 const styles = StyleSheet.create({
+    titleBlock: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between'
+    },
     title: {
         fontFamily: 'inter',
         fontSize: 24,

@@ -5,6 +5,7 @@ import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
 import { mapPadNames, mapPadTypes } from "../../types/maps"
 import { PadParams, useControllerConfig } from "../../hooks/useControllerConfig"
+import ModalText from "../ui/status/ModalText"
 
 interface PadDetailsProps {
     data: PadParams
@@ -20,6 +21,8 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
     const [padDirection, setPadDirection] = useState(data["resource_direction"])
     const [normalState, setNormalState] = useState(data["normal_state"])
     const [debounce, setDebounce] = useState(data["debounce"])
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [resultMessage, setResultMessage] = useState('');
 
     const getDropdownItems = (number: number) => {
         if (number >= 0 && number <= 7) {
@@ -41,8 +44,6 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
 
     const padTypeList = Array.from(mapPadTypes, ([value, label]) => ({ value, label }))
 
-    const label = 'вход'
-
     const handleSetPadSettings = async () => {
         const payload: PadParams = {
             number: data["number"],
@@ -54,10 +55,16 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
         }
 
         const result = await setPadConfig(payload)
-        if(result.answer.exdev==='ok') { 
+        if(result.answer.pad==='ok') { 
+            setResultMessage('Конфигурация физ. контакта успешно установлена')
+            setIsModalVisible(true)
             console.log('Succesful')
             console.log(result)
             return result
+        }
+        else {
+            setResultMessage('Конфигурацию физ. контакта передать не удалось')
+            setIsModalVisible(true)
         }
 
     }
@@ -105,8 +112,14 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
             />         
             <Button 
                 title='Сохранить'
-                onPress={()=>{}}
+                onPress={()=>handleSetPadSettings()}
                 size="M"
+            />
+            <ModalText
+                title={'Ответ'} 
+                message={resultMessage}
+                visible={isModalVisible}
+                onClose={()=> setIsModalVisible(false)}
             />
         </View>
     )
