@@ -255,16 +255,35 @@ export const useControllerConfig = () => {
     // Установка заводских сетевых настроек
     const setDefaultNetwork = async () => await sendSetCommand('net', {})
 
+    const setReaderConfig = async (readerParams: Partial<ReaderParams>) => {
+        const payload = Object.fromEntries(
+            Object.entries(readerParams).filter(([_, v]) => v !== undefined)
+        );
+        if (Object.keys(payload).length === 0) {
+            console.warn("Нет данных для обновления");
+            return;
+        }
+        return await sendSetCommand('reader', payload);
+    }
 
-
-    // TODO: Функции установки конфигурационных параметров: setExdevConfig, setPadConfig, setReaderConfig, setCrossConfig
-
+    const setCrossConfig = async (crossParams: Partial<CrossParams>) => {
+        const payload = Object.fromEntries(
+            Object.entries(crossParams).filter(([_, v]) => v !== undefined)
+        );
+        if (Object.keys(payload).length === 0) {
+            console.warn("Нет данных для обновления");
+            return;
+        }
+        return await sendSetCommand('cross', payload);
+    }
 
     return {
         setDefaultNetwork,
         setNetworkSettings,
         setExdevConfig,
         setPadConfig,
+        setReaderConfig,
+        setCrossConfig,
         getInfo,
         getState,
 

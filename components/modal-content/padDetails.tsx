@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "react-native"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
@@ -23,6 +23,14 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
     const [debounce, setDebounce] = useState(data["debounce"])
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [resultMessage, setResultMessage] = useState('');
+
+    useEffect(() => {
+        setPadType(data.function);
+        setPadResource(data.resource_number);
+        setPadDirection(data.resource_direction);
+        setNormalState(data.normal_state);
+        setDebounce(String(data.debounce));
+    }, [data]);
 
     const getDropdownItems = (number: number) => {
         if (number >= 0 && number <= 7) {
@@ -51,22 +59,17 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
             resource_number: padResource,
             resource_direction: padDirection,
             normal_state: normalState,
-            debounce: debounce
+            debounce: Number(debounce) || 20
         }
 
-        const result = await setPadConfig(payload)
-        if(result.answer.pad==='ok') { 
-            setResultMessage('Конфигурация физ. контакта успешно установлена')
-            setIsModalVisible(true)
-            console.log('Succesful')
-            console.log(result)
-            return result
-        }
-        else {
-            setResultMessage('Конфигурацию физ. контакта передать не удалось')
-            setIsModalVisible(true)
-        }
-
+        try {
+            const result = await setPadConfig(payload);
+            const isOk = result?.answer?.pad === 'ok';
+            setResultMessage(isOk ? 'Конфигурация успешно установлена' : 'Ошибка при передаче данных');
+            } catch (e) {
+            setResultMessage('Сетевая ошибка');
+            }
+        setIsModalVisible(true);
     }
 
     return (
