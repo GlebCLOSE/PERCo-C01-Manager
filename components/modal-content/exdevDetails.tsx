@@ -5,6 +5,7 @@ import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
 import Checkbox from "expo-checkbox"
 import { ExdevParams, useControllerConfig } from "../../hooks/useControllerConfig"
+import ModalText from "../ui/status/ModalText"
 
 interface ExdevDetailsProps {
     data: ExdevParams
@@ -22,6 +23,8 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
     const [analysisTime, setAnalisysTime] = useState(data["analysis_time"])
     const [unlockTime, setUnlockTime] = useState(data["analysis_time"])
     const [isChecked, setChecked] = useState(false)
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [resultMessage, setResultMessage] = useState('');
 
     const exdevTypeList = [
         {label: 'Односторонний замок', value: 'lock'},
@@ -36,12 +39,13 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
     };
 
     const handleSetExdevParams = async () => {
-        const payload = {
+        try {
+            const payload: ExdevParams = {
             'number': data['number'],
             "type" : exdevType,
             "opt_fix" : exdevOptFix,
-            "analysis_time" : parseInt(analysisTime),
-            "unblock_time" : parseInt(unlockTime),
+            "analysis_time" : Number(analysisTime || 0),
+            "unblock_time" : Number(unlockTime || 0),
             "opt_mode" : optMode,
             "opt_norm" : optNorm
         }
@@ -49,16 +53,24 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
         console.log(payload)
 
         const result = await setExdevConfig(payload)
-        if(result.answer.exdev==='ok') { 
+        if(result?.answer?.exdev==='ok') { 
             console.log('Succesful')
             console.log(result)
-            return result
+            setResultMessage('Конфигурация успешно установлена')
+            setIsModalVisible(true)
+        } else {
+            setResultMessage('Ошибка при передаче данных')
+            setIsModalVisible(true)
+        }
+        } catch (e) {
+            setResultMessage('Сетевая ошибка')
+            setIsModalVisible(true)
         }
     }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.smallText}>ИУ №{data["number"] + 1}</Text>
+            <Text style={styles.smallText}>ИУ №{data["number"] ? data["number"] + 1 : ''}</Text>
             <View style={styles.hr}></View>
             <DropdownInput 
                 label='Тип ИУ'
@@ -107,10 +119,16 @@ export const ExdevDetails: React.FC<ExdevDetailsProps> = ({data}) => {
                 />
                 <Text style={styles.smallText}>Регистрация прохода по предъявлению ID</Text>
             </View>
+            <ModalText
+                title={'Ответ'} 
+                message={resultMessage}
+                visible={isModalVisible}
+                onClose={()=> setIsModalVisible(false)}
+            />
             <Button 
                 title='Сохранить'
                 onPress={handleSetExdevParams}
-                size="M"
+                size="S"
             />
         </View>
     )

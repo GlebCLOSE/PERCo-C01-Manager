@@ -1,7 +1,30 @@
 import { View, Text, StyleSheet } from "react-native"
 import { Button } from "../ui/elements/buttons/Button"
-
+import { useState } from "react";
+import { useControllerConfig } from "../../hooks/useControllerConfig";
+import ModalText from "../ui/status/ModalText";
 export const FactoryModal = () => {
+
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [resultMessage, setResultMessage] = useState('');
+
+    const { setDefaultNetwork } = useControllerConfig();
+
+    const handleSetDefaultNetwork = async () => {
+        try {
+            const result = await setDefaultNetwork();
+            if(result?.answer?.network==='ok') {    
+                setResultMessage('Сброс успешно выполнен')
+                setIsModalVisible(true)
+            } else {
+                setResultMessage('Ошибка при передаче данных')
+                setIsModalVisible(true)
+            }   
+        } catch (e) {
+            setResultMessage('Сетевая ошибка')
+            setIsModalVisible(true)
+        }
+    }
     return (
         <View style={styles.container}>
             <Text style={styles.smallText}>Вы уверены, что хотите сбросить сетевые настройки до заводских? </Text>
@@ -9,9 +32,15 @@ export const FactoryModal = () => {
             <View style={styles.hr}></View>
             <Button 
                 title='Сбросить'
-                onPress={()=>{}}
-                size="M"
+                onPress={()=>handleSetDefaultNetwork()}
+                size="S"
                 isWarn={true}
+            />
+            <ModalText
+                title={'Ответ'} 
+                message={resultMessage}
+                visible={isModalVisible}
+                onClose={()=> setIsModalVisible(false)}
             />
         </View>
     )

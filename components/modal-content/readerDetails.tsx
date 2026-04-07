@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet } from "react-native"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
 import { ReaderParams } from "../../hooks/useControllerConfig"
+import ModalText from "../ui/status/ModalText"
+import { useControllerConfig } from "../../hooks/useControllerConfig"
 
 interface ReaderDetailsProps {
     data: ReaderParams
@@ -11,10 +13,39 @@ interface ReaderDetailsProps {
 
 export const ReaderDetails: React.FC<ReaderDetailsProps> = ({data}) => {
 
+    const { setReaderConfig } = useControllerConfig()
     const [readerType, setReaderType] = useState(data["type"])
     const [readerPort, setReaderPort] = useState(data["port"])
     const [exdevDirection, setExdevDirection] = useState(data["exdev_number"])
     const [exdevNumber, setExdevNumber] = useState(data["exdev_direction"])
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [resultMessage, setResultMessage] = useState('');
+
+    useEffect(() => {
+        setReaderType(data.type);
+        setReaderPort(data.port);
+        setExdevNumber(data.exdev_number);
+        setExdevDirection(data.exdev_direction);
+    }, [data]);
+
+    const handleSetReaderSettings = async () => {
+        const payload: ReaderParams = {
+            number: data["number"],
+            type: readerType,
+            port: readerPort,
+            exdev_number: exdevNumber,
+            exdev_direction: exdevDirection
+        }
+
+        try {
+            const result = await setReaderConfig(payload);
+            const isOk = result?.answer?.reader === 'ok';
+            setResultMessage(isOk ? 'Конфигурация успешно установлена' : 'Ошибка при передаче данных');
+            } catch (e) {
+            setResultMessage('Сетевая ошибка');
+            }
+        setIsModalVisible(true);
+    };
 
     const readerTypeList = [
         {label: 'Wiegand', value: 'Wiegand'},
@@ -58,9 +89,15 @@ export const ReaderDetails: React.FC<ReaderDetailsProps> = ({data}) => {
                     size='s'
                 />                
             </View>
+            <ModalText
+                title={'Ответ'} 
+                message={resultMessage}
+                visible={isModalVisible}
+                onClose={()=> setIsModalVisible(false)}
+            />
             <Button 
                 title='Сохранить'
-                onPress={()=>{}}
+                onPress={()=>handleSetReaderSettings()}
                 size="M"
             />
         </View>
