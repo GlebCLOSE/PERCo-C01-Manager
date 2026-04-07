@@ -15,29 +15,6 @@ export default function ReadersScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const [readerList, setReaderList] = useState([])
 
-    const arrayReaders = [
-        {
-            "number" : 0,
-            "type" : "Wiegand",
-            "port" : 0,
-            "exdev_number" : 0,
-            "exdev_direction" : 0
-        },
-        {
-            "number" : 1,
-            "type" : "Barcode",
-            "port" : 1,
-            "exdev_number" : 0,
-            "exdev_direction" : 1
-        },
-        {
-            "number" : 2,
-            "type" : "Barcode",
-            "port" : 2,
-            "exdev_number" : 0,
-            "exdev_direction" : 1
-        },
-    ]
 
         const handleGetReaderInfo = useCallback(async () => {
             setIsLoading(true);

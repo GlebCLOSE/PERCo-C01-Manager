@@ -4,18 +4,24 @@ import { validateIP } from "../../../utils/validation/validateIP";
 import InputField from "../../../components/ui/elements/input/InputField";
 import { WarningText } from "../../../components/ui/blocks/warningText";
 import ErrorModal from "../../../components/ui/status/ErrorModal";
-import { useControllerCommands } from "../../../hooks/useControllerCommands";
 import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSquare";
 import { Button } from "../../../components/ui/elements/buttons/Button";
 import { ModalChildren } from "../../../components/ui/status/ModalChildren";
 import { FactoryModal } from "../../../components/modal-content/factoryModal";
 import { ServerModal } from "../../../components/modal-content/serverModal";
 import { PasswordModal } from "../../../components/modal-content/passwordModal";
+import { useControllerConfig } from "../../../hooks/useControllerConfig";
 
 export default function NetworkScreen() {
 
-    const [errors, setErrors] = useState({});
+    const [errors, setErrors] = useState<{ip?: string, mask?: string, gateway?: string}>({});
     const [modalType, setModalType] = useState(''); // 'SERVER' | 'PASSWORD' | 'FACTORY' | ''
+    const [ip, setIp] = useState('')
+    const [mask, setMask] = useState('')
+    const [gateway, setGateway] = useState('')
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const { setNetworkSettings } = useControllerConfig();
 
     // Передаём в окно параметр isWarn true только при типе модального окна FACTORY
     const isWarn = modalType === 'FACTORY';
@@ -46,7 +52,7 @@ export default function NetworkScreen() {
     };
 
       const validateForm = () => {
-        const newErrors = {};
+        const newErrors: {ip?: string, mask?: string, gateway?: string} = {};
     
         const ipError = validateIP(ip);
         if (ipError) newErrors.ip = ipError;
@@ -62,18 +68,28 @@ export default function NetworkScreen() {
       };
     
     
-    const [ip, setIp] = useState('')
-    const [mask, setMask] = useState('')
-    const [gateway, setGateway] = useState('')
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
 
-    const handleSet = async () => {
+
+    const handleSetNetworkSettings = async () => {
         if (!validateForm()) {
             return;
         }
 
-    }
+        try {
+            const result = await setNetworkSettings({ip: ip, mask: mask, gateway: gateway});
+            const isOk = result?.answer?.network === 'ok';
+            if(isOk) {
+                setErrorMessage('Сетевые настройки успешно установлены');
+                setIsErrorModalVisible(true);   
+            } else {
+                setErrorMessage('Ошибка при передаче данных');
+                setIsErrorModalVisible(true);
+            }
+        } catch (e) {
+            setErrorMessage('Сетевая ошибка');
+            setIsErrorModalVisible(true);
+        }
+    };
 
     return (
         <>
