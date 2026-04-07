@@ -29,3 +29,10 @@ export const mapPadTypes = new Map([
     ['remove card output', 'Выход Изъять карту'],
     ['remote control output', 'Выход индикации ПДУ'],
 ])
+
+export const mapExdevNames = new Map([
+    ['lock', 'Односторонний замок'],
+    ['double lock', 'Двухсторонний замок'],
+    ['turnstyle', 'Турникет'],
+    ['gate', 'Шлагбаум'],
+])

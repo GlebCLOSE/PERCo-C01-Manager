@@ -1,30 +1,80 @@
 import { View, Text, StyleSheet } from "react-native"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
-import { mapPadTypes } from "../../types/maps"
-import { PadParams } from "../../hooks/useControllerConfig"
+import { mapPadNames, mapPadTypes } from "../../types/maps"
+import { PadParams, useControllerConfig } from "../../hooks/useControllerConfig"
+import ModalText from "../ui/status/ModalText"
 
 interface PadDetailsProps {
     data: PadParams
 }
 
 export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
+    console.log(data)
+
+    const { setPadConfig } = useControllerConfig()
 
     const [padType, setPadType] = useState(data["function"])
-    const [padResource, setPadResource] = useState(data["resource"])
+    const [padResource, setPadResource] = useState(data["resource_number"])
     const [padDirection, setPadDirection] = useState(data["resource_direction"])
     const [normalState, setNormalState] = useState(data["normal_state"])
-    const [debounce, setDebounce] = useState(100)
+    const [debounce, setDebounce] = useState(data["debounce"])
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [resultMessage, setResultMessage] = useState('');
+
+    useEffect(() => {
+        setPadType(data.function);
+        setPadResource(data.resource_number);
+        setPadDirection(data.resource_direction);
+        setNormalState(data.normal_state);
+        setDebounce(String(data.debounce));
+    }, [data]);
+
+    const getDropdownItems = (number: number) => {
+        if (number >= 0 && number <= 7) {
+            return [
+            { label: 'Разомкнут', value: 'break' },
+            { label: 'Замкнут', value: 'short' }
+            ];
+        } else if (number >= 8 && number <= 15) {
+            return [
+            { label: 'Запитан', value: 'powered' },
+            { label: 'Не запитан', value: 'not powered' }
+            ];
+        }
+        return []; 
+    };
+
+       
+    const dropdownItems = getDropdownItems(data["number"]);
 
     const padTypeList = Array.from(mapPadTypes, ([value, label]) => ({ value, label }))
 
-    const label = 'вход'
+    const handleSetPadSettings = async () => {
+        const payload: PadParams = {
+            number: data["number"],
+            function: padType,
+            resource_number: padResource,
+            resource_direction: padDirection,
+            normal_state: normalState,
+            debounce: Number(debounce) || 20
+        }
+
+        try {
+            const result = await setPadConfig(payload);
+            const isOk = result?.answer?.pad === 'ok';
+            setResultMessage(isOk ? 'Конфигурация успешно установлена' : 'Ошибка при передаче данных');
+            } catch (e) {
+            setResultMessage('Сетевая ошибка');
+            }
+        setIsModalVisible(true);
+    }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.smallText}>Вход/выход №{data["number"] + 1}</Text>
+            <Text style={styles.smallText}>{mapPadNames.get(data["number"])}</Text>
             <View style={styles.hr}></View>
             <DropdownInput 
                 label='Тип физ. контакта'
@@ -51,13 +101,13 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
             </View>
             <DropdownInput 
                 label='Нормальное состояние'
-                items={[{label: '1', value: 0}, {label: '2', value: 1}]}
+                items={dropdownItems}
                 value={normalState}
                 onChange={setNormalState}
                 size='s'
             />
             <InputField 
-                label='Время разблокировки'
+                label='Антидребезг(мс)'
                 size='s'
                 placeholder='100 мс'
                 value={debounce}
@@ -65,8 +115,14 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
             />         
             <Button 
                 title='Сохранить'
-                onPress={()=>{}}
+                onPress={()=>handleSetPadSettings()}
                 size="M"
+            />
+            <ModalText
+                title={'Ответ'} 
+                message={resultMessage}
+                visible={isModalVisible}
+                onClose={()=> setIsModalVisible(false)}
             />
         </View>
     )

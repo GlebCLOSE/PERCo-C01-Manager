@@ -32,12 +32,13 @@ export interface ExdevParams {
 }
 
 export interface PadParams {
-    "number"?: 0 | 1,
+    "number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15,
     "function"?: "input" | "remote control input" | "pass" | "fire alarm input" | "remove card input" | 'output' | 'exdev output' | 'remote card output' | 'fire alarm output' | 'remove card output',
-    "resource"?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
+    "resource_number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
     "resource_direction"?: 0 | 1 | 2 | 3,
     "normal_state"?: 'short' | 'break' | 'not powered' | 'powered',
-    "debounce"?: number
+    "debounce"?: number,
+    "state"?: 0 | 1  
 }
 
 export interface CrossParams {
@@ -236,19 +237,53 @@ export const useControllerConfig = () => {
         return await sendSetCommand('exdev', payload);
     };
 
+    const setPadConfig = async (padParams: Partial<PadParams>) => {
+
+        const payload = Object.fromEntries(
+            Object.entries(padParams).filter(([_, v]) => v !== undefined)
+        );
+
+        if (Object.keys(payload).length === 0) {
+            console.warn("Нет данных для обновления");
+            return;
+        }
+
+        return await sendSetCommand('pad', payload);
+    }
+
 
     // Установка заводских сетевых настроек
     const setDefaultNetwork = async () => await sendSetCommand('net', {})
 
+    const setReaderConfig = async (readerParams: Partial<ReaderParams>) => {
+        const payload = Object.fromEntries(
+            Object.entries(readerParams).filter(([_, v]) => v !== undefined)
+        );
+        if (Object.keys(payload).length === 0) {
+            console.warn("Нет данных для обновления");
+            return;
+        }
+        return await sendSetCommand('reader', payload);
+    }
 
-
-    // TODO: Функции установки конфигурационных параметров: setExdevConfig, setPadConfig, setReaderConfig, setCrossConfig
-
+    const setCrossConfig = async (crossParams: Partial<CrossParams>) => {
+        const payload = Object.fromEntries(
+            Object.entries(crossParams).filter(([_, v]) => v !== undefined)
+        );
+        if (Object.keys(payload).length === 0) {
+            console.warn("Нет данных для обновления");
+            return;
+        }
+        return await sendSetCommand('cross', payload);
+    }
 
     return {
         setDefaultNetwork,
         setNetworkSettings,
         setExdevConfig,
+        setPadConfig,
+        setReaderConfig,
+        setCrossConfig,
         getInfo,
         getState,
 
