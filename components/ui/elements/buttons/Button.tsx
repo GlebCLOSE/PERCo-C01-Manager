@@ -1,12 +1,14 @@
 import React from 'react';
 import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-enum Size {
+export enum Size {
   S = 'S',
   M = 'M',
   L = 'L',
   Long = 'Long'
 }
+
+export type ButtonSize = 'S' | 'M' | 'L' | 'Long';
 
 enum BorderRadiusStyle {
   SHARP = 'sharp',      // острые углы
@@ -17,7 +19,7 @@ enum BorderRadiusStyle {
 interface CustomButtonProps {
   title: string;
   onPress: () => void;
-  size: Size;
+  size: ButtonSize;
   isWarn?: boolean;
   borderRadiusStyle?: BorderRadiusStyle; // Новый пропс для стиля скругления
   customStyles?: object;                // Дополнительный пропс для кастомных стилей

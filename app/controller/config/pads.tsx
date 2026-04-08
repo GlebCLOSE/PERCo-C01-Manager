@@ -8,13 +8,17 @@ import { useFocusEffect } from 'expo-router';
 import { useControllerConfig } from "../../../hooks/useControllerConfig";
 import { PadParams } from "../../../hooks/useControllerConfig";
 import { IconButton } from "../../../components/ui/elements/buttons/IconButton";
+import { useController } from "../../../providers/ControllerContext";
+import { useRef } from "react";
 
 export default function PadsScreen() {
 
     const { getInfo } = useControllerConfig()
-    const [activePad, setActivePad] = useState('');
+    const { configRevision } = useController();
+    const lastRevisionRef = useRef<number>(configRevision);
+    const [activePad, setActivePad] = useState<PadParams | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [padList, setPadList] = useState([])
+    const [padList, setPadList] = useState<PadParams[]>([])
     
     const refreshIcon = require("../../../assets/icons/refresh.png")
 
@@ -30,7 +34,7 @@ export default function PadsScreen() {
                 .filter((pad: any) => pad !== undefined);
 
             // Сортируем по номеру
-            padArray.sort((a, b) => a.number - b.number);
+            padArray.sort((a: PadParams, b: PadParams) => (a.number ?? 0) - (b.number ?? 0));
 
             setPadList(padArray);
         } catch (error) {
@@ -38,18 +42,27 @@ export default function PadsScreen() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [getInfo]);
 
     useFocusEffect(
         useCallback(() => {
-            handleGetPadInfo();
+            const isConfigJustChanged = lastRevisionRef.current !== configRevision;
+            lastRevisionRef.current = configRevision;
 
-            return () => {};
-        }, [handleGetPadInfo])
+            // Контроллер может применить конфигурацию не мгновенно:
+            // делаем небольшой "пост-коммит" refetch при изменении конфигурации.
+            const timeout = setTimeout(() => {
+                handleGetPadInfo();
+            }, isConfigJustChanged ? 250 : 0);
+
+            return () => {
+                clearTimeout(timeout);
+            };
+        }, [handleGetPadInfo, configRevision])
     );
 
     const closeModal = () => {
-        setActivePad('')
+        setActivePad(null)
     }
 
     const ItemSeparator = () => (
@@ -66,6 +79,7 @@ export default function PadsScreen() {
                         onPress={handleGetPadInfo}
                         icon={refreshIcon}
                         hasBorder={false}
+                        size="M"
                     />
                 </View>
                 <WarningText text="Необдуманные действия в этом разделе могут привести к некорректной работе контроллера"/>
@@ -73,12 +87,20 @@ export default function PadsScreen() {
                     <FlatList
                         data={padList}
                         style={{gap: 10}}
-                        renderItem={({item})=><PadLine number={item.number} type={item.function}  onPress={()=>{setActivePad(item)}}/>}
+                        renderItem={({item}) => (
+                            <PadLine
+                                number={item.number ?? 0}
+                                type={item.function ?? ''}
+                                onPress={() => {
+                                    setActivePad(item);
+                                }}
+                            />
+                        )}
                         ItemSeparatorComponent={ItemSeparator}
                     /> 
                 </View>
-                <ModalChildren title={'Вход'} visible={activePad !== ''} onClose={closeModal}>
-                    <PadDetails data={activePad}/>
+                <ModalChildren title={'Вход'} visible={activePad !== null} onClose={closeModal}>
+                    {activePad ? <PadDetails data={activePad} /> : null}
                 </ModalChildren>
                 {isLoading && (
                     <View style={styles.loadingOverlay}>

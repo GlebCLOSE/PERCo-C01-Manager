@@ -16,11 +16,11 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
 
     const { setPadConfig } = useControllerConfig()
 
-    const [padType, setPadType] = useState(data["function"])
-    const [padResource, setPadResource] = useState(data["resource_number"])
-    const [padDirection, setPadDirection] = useState(data["resource_direction"])
-    const [normalState, setNormalState] = useState(data["normal_state"])
-    const [debounce, setDebounce] = useState(data["debounce"])
+    const [padType, setPadType] = useState<PadParams["function"]>(data["function"])
+    const [padResource, setPadResource] = useState<PadParams["resource_number"]>(data["resource_number"])
+    const [padDirection, setPadDirection] = useState<PadParams["resource_direction"]>(data["resource_direction"])
+    const [normalState, setNormalState] = useState<PadParams["normal_state"]>(data["normal_state"])
+    const [debounce, setDebounce] = useState<string>(String(data["debounce"] ?? ''))
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [resultMessage, setResultMessage] = useState('');
 
@@ -29,7 +29,7 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
         setPadResource(data.resource_number);
         setPadDirection(data.resource_direction);
         setNormalState(data.normal_state);
-        setDebounce(String(data.debounce));
+        setDebounce(String(data.debounce ?? ''));
     }, [data]);
 
     const getDropdownItems = (number: number) => {
@@ -48,7 +48,7 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
     };
 
        
-    const dropdownItems = getDropdownItems(data["number"]);
+    const dropdownItems = getDropdownItems(data["number"] ?? 0);
 
     const padTypeList = Array.from(mapPadTypes, ([value, label]) => ({ value, label }))
 
@@ -63,7 +63,7 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
         }
 
         try {
-            const result = await setPadConfig(payload);
+            const result: any = await setPadConfig(payload);
             const isOk = result?.answer?.pad === 'ok';
             setResultMessage(isOk ? 'Конфигурация успешно установлена' : 'Ошибка при передаче данных');
             } catch (e) {
@@ -74,7 +74,7 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.smallText}>{mapPadNames.get(data["number"])}</Text>
+            <Text style={styles.smallText}>{mapPadNames.get(data["number"] ?? 0)}</Text>
             <View style={styles.hr}></View>
             <DropdownInput 
                 label='Тип физ. контакта'

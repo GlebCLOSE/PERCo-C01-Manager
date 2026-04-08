@@ -56,62 +56,72 @@ export interface CrossParams {
 type GetType = 'reader' | 'exdev' | 'pad' | 'cross';
 
 export const useControllerConfig = () => {
-    const { socket, isConnected } = useController();
+    const { socket, isConnected, touchConfig } = useController();
 
     // Команда на установку конфигурационных параметров(Set)
     const sendSetCommand = async (setType: string, payload: object) => {
 
-    // 1. Проверка подключения
+        // 1. Проверка подключения
 
-    if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
-        throw new Error("Нет подключения к контроллеру");
-    }
+        if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
+            throw new Error("Нет подключения к контроллеру");
+        }
 
-    const commandPayload = {
-        "set": setType,
-        [setType]: payload
-    };
-
-    // 2. Возвращаем Promise, который разрешится при получении ответа
-    return new Promise((resolve, reject) => {
-
-        // Тайм-аут: если контроллер не ответит за 5 секунд
-        const timeout = setTimeout(() => {
-        socket.removeEventListener('message', handleResponse);
-        reject(new Error(`Превышено время ожидания ответа для: ${setType}`));
-        }, 5000);
-
-        // Функция-обработчик входящих сообщений
-        const handleResponse = (event) => {
-            try {
-            const data = JSON.parse(event.data);
-
-            // Проверяем, есть ли в ответе подтверждение для нашей команды
-            if (data.answer && data.answer[setType]) {
-                clearTimeout(timeout); // Отменяем тайм-аут
-                socket.removeEventListener('message', handleResponse); // Удаляем слушателя
-
-                if (data.answer[setType] === "ok") {
-                console.log(`Команда ${setType} выполнена успешно`);
-                resolve(data); // Возвращаем полные данные ответа (включая обновленные параметры)
-                } else {
-                reject(new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer[setType]}`));
-                }
-            } else {
-                // Это пинг или другое событие. Просто логируем и пропускаем.
-                console.log("Получено стороннее событие или пинг, продолжаем ждать...");
-            }
-            } catch (err) {
-            console.error("Ошибка парсинга JSON:", err);
-            }
+        const commandPayload = {
+            "set": setType,
+            [setType]: payload
         };
 
-        // Подписываемся на сообщения
-        socket.addEventListener('message', handleResponse);
+        // 2. Возвращаем Promise, который разрешится при получении ответа
+        return new Promise((resolve, reject) => {
 
+            // Тайм-аут: если контроллер не ответит за 5 секунд
+            const timeout = setTimeout(() => {
+            socket.removeEventListener('message', handleResponse);
+            reject(new Error(`Превышено время ожидания ответа для: ${setType}`));
+            }, 5000);
+
+            // Функция-обработчик входящих сообщений
+            const handleResponse = (event: MessageEvent) => {
+                try {
+                    const rawData = String(event.data ?? '');
+                    if (!rawData.trim()) return;
+                    
+                    // Разделяем склеенные JSON-объекты. 
+                    // Ищем границу между } и { и вставляем разделитель
+                    const jsonStrings = rawData
+                        .replace(/}\s*{/g, '}|--|{')
+                        .split('|--|');
+                    jsonStrings.forEach((str: string) => {
+                        const s = str.trim();
+                        if (!s) return;
+                        let data: any;
+                        try {
+                            data = JSON.parse(s);
+                        } catch {
+                            return;
+                        }
+                        if (data.answer && data.answer[setType]) {
+                            clearTimeout(timeout); // Отменяем тайм-аут
+                            socket.removeEventListener('message', handleResponse);
+                            if (data.answer[setType] === "ok") {
+                                console.log(`Команда ${setType} выполнена успешно`);
+                                // Сигнализируем экранам, что конфигурация изменилась и данные нужно перечитать.
+                                touchConfig();
+                                resolve(data);
+                            } else {
+                                reject(new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer[setType]}`));
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.error("Ошибка парсинга JSON:", err);
+                }
+            };
+            socket.addEventListener('message', handleResponse);
         // Отправляем команду
-        socket.send(JSON.stringify(commandPayload));
-        });
+            socket.send(JSON.stringify(commandPayload));
+            });
     };
 
     //---------------------------------------------------------------------------------------------------------------
@@ -134,39 +144,47 @@ export const useControllerConfig = () => {
                 socket.removeEventListener('message', handleResponse);
             };
 
-        const handleResponse = (event) => {
-            try {
-                const rawData = event.data;
-                
-                // Разделяем склеенные JSON-объекты. 
-                // Ищем границу между } и { и вставляем разделитель
-                const jsonStrings = rawData
-                    .replace(/}\s*{/g, '}|--|{')
-                    .split('|--|');
+            const handleResponse = (event: MessageEvent) => {
+                try {
+                    const rawData = String(event.data ?? '');
+                    if (!rawData.trim()) return;
+                    
+                    // Разделяем склеенные JSON-объекты. 
+                    // Ищем границу между } и { и вставляем разделитель
+                    const jsonStrings = rawData
+                        .replace(/}\s*{/g, '}|--|{')
+                        .split('|--|');
 
-                jsonStrings.forEach(str => {
-                    const data = JSON.parse(str); // Теперь парсим каждый объект отдельно
-
-                    if (data.answer && data.answer[getType] === 'ok') {
-                        if (!collectAll) {
-                            cleanup();
-                            resolve(data);
-                        } else {
-                            results.push(data);
-                            
-                            // Сбрасываем таймаут тишины
-                            clearTimeout(silenceTimeout);
-                            silenceTimeout = setTimeout(() => {
-                                cleanup();
-                                resolve(results);
-                            }, 500);
+                    jsonStrings.forEach((str: string) => {
+                        const s = str.trim();
+                        if (!s) return;
+                        let data: any;
+                        try {
+                            data = JSON.parse(s); // Теперь парсим каждый объект отдельно
+                        } catch {
+                            return;
                         }
-                    }
-                });
-            } catch (err) {
-                console.error("Критическая ошибка парсинга:", err, "Raw data:", event.data);
-            }
-        };
+
+                        if (data.answer && data.answer[getType] === 'ok') {
+                            if (!collectAll) {
+                                cleanup();
+                                resolve(data);
+                            } else {
+                                results.push(data);
+                                
+                                // Сбрасываем таймаут тишины
+                                clearTimeout(silenceTimeout);
+                                silenceTimeout = setTimeout(() => {
+                                    cleanup();
+                                    resolve(results);
+                                }, 500);
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.error("Критическая ошибка парсинга:", err, "Raw data:", event.data);
+                }
+            };
 
             // Общий таймаут (если контроллер вообще не ответил)
             totalTimeout = setTimeout(() => {

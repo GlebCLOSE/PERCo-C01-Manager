@@ -5,6 +5,8 @@ interface ControllerContextType {
   socket: WebSocket | null;
   isConnected: boolean;
   ipAddress: string | null;
+  configRevision: number;
+  touchConfig: () => void;
   setGlobalSocket: (ws: WebSocket) => void;
   disconnect: () => void;
 }
@@ -20,6 +22,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [ipAddress, setIpAddress] = useState<string | null>(null);
+  const [configRevision, setConfigRevision] = useState<number>(0);
 
   // Очистка при размонтировании
   useEffect(() => {
@@ -62,7 +65,9 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     setIsConnected(true);
   };
 
-  const value = { socket, isConnected, ipAddress, setGlobalSocket, disconnect };
+  const touchConfig = () => setConfigRevision((v) => v + 1);
+
+  const value = { socket, isConnected, ipAddress, configRevision, touchConfig, setGlobalSocket, disconnect };
 
   return (
     <ControllerContext value={value}>
