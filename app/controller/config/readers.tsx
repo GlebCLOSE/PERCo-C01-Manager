@@ -36,7 +36,7 @@ export default function ReadersScreen() {
             } finally {
                 setIsLoading(false);
             }
-        }, []);
+        }, [getInfo]);
     
         useFocusEffect(
             useCallback(() => {

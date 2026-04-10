@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useController } from '../providers/ControllerContext';
 
 export interface NetworkParams {
@@ -59,7 +60,7 @@ export const useControllerConfig = () => {
     const { socket, isConnected, touchConfig } = useController();
 
     // Команда на установку конфигурационных параметров(Set)
-    const sendSetCommand = async (setType: string, payload: object) => {
+    const sendSetCommand = useCallback(async (setType: string, payload: object) => {
 
         // 1. Проверка подключения
 
@@ -122,11 +123,11 @@ export const useControllerConfig = () => {
         // Отправляем команду
             socket.send(JSON.stringify(commandPayload));
             });
-    };
+    }, [isConnected, socket, touchConfig]);
 
     //---------------------------------------------------------------------------------------------------------------
 
-    const getDataFromController = async (getType: string, payload: object, collectAll = false) => {
+    const getDataFromController = useCallback(async (getType: string, payload: object, collectAll = false) => {
         if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
             throw new Error("Нет подключения к контроллеру");
         }
@@ -199,30 +200,28 @@ export const useControllerConfig = () => {
             socket.addEventListener('message', handleResponse);
             socket.send(JSON.stringify(commandPayload));
         });
-    };
+    }, [isConnected, socket]);
 
     //----------------------------------------------------------------------------------------------------------------
 
 
     //Получаем данные о состоянии контроллера
-    const getState = async () => {
-        return await getDataFromController('state', {})
-    }
+    const getState = useCallback(async () => await getDataFromController('state', {}), [getDataFromController]);
 
 
 
     //Получаем данные о считывателях, ИУ, физ. контактах, внутр. реакциях
-    const getInfo = async (type: GetType, number: 'all' | number) => {
+    const getInfo = useCallback(async (type: GetType, number: 'all' | number) => {
         const isAll = number === 'all';
         const params = isAll ? {} : { "number": number };
         
         // Передаем true в третий аргумент, если запрашиваем 'all'
         return await getDataFromController(type, params, isAll);
-    };
+    }, [getDataFromController]);
 
 
         //Функция отправки сетевых настроек на контроллер
-    const setNetworkSettings = async (netParams: NetworkParams) => {
+    const setNetworkSettings = useCallback(async (netParams: NetworkParams) => {
         // Создаем объект только из тех полей, которые были переданы (не undefined)
         const payload: NetworkParams = {};
         
@@ -239,9 +238,9 @@ export const useControllerConfig = () => {
         }
 
         return await sendSetCommand('net', payload);
-    };
+    }, [sendSetCommand]);
 
-    const setExdevConfig = async (exdevParams: Partial<ExdevParams>) => {
+    const setExdevConfig = useCallback(async (exdevParams: Partial<ExdevParams>) => {
     
         const payload = Object.fromEntries(
             Object.entries(exdevParams).filter(([_, v]) => v !== undefined)
@@ -253,9 +252,9 @@ export const useControllerConfig = () => {
         }
 
         return await sendSetCommand('exdev', payload);
-    };
+    }, [sendSetCommand]);
 
-    const setPadConfig = async (padParams: Partial<PadParams>) => {
+    const setPadConfig = useCallback(async (padParams: Partial<PadParams>) => {
 
         const payload = Object.fromEntries(
             Object.entries(padParams).filter(([_, v]) => v !== undefined)
@@ -267,13 +266,13 @@ export const useControllerConfig = () => {
         }
 
         return await sendSetCommand('pad', payload);
-    }
+    }, [sendSetCommand]);
 
 
     // Установка заводских сетевых настроек
-    const setDefaultNetwork = async () => await sendSetCommand('net', {})
+    const setDefaultNetwork = useCallback(async () => await sendSetCommand('net', {}), [sendSetCommand]);
 
-    const setReaderConfig = async (readerParams: Partial<ReaderParams>) => {
+    const setReaderConfig = useCallback(async (readerParams: Partial<ReaderParams>) => {
         const payload = Object.fromEntries(
             Object.entries(readerParams).filter(([_, v]) => v !== undefined)
         );
@@ -282,9 +281,9 @@ export const useControllerConfig = () => {
             return;
         }
         return await sendSetCommand('reader', payload);
-    }
+    }, [sendSetCommand]);
 
-    const setCrossConfig = async (crossParams: Partial<CrossParams>) => {
+    const setCrossConfig = useCallback(async (crossParams: Partial<CrossParams>) => {
         const payload = Object.fromEntries(
             Object.entries(crossParams).filter(([_, v]) => v !== undefined)
         );
@@ -293,7 +292,7 @@ export const useControllerConfig = () => {
             return;
         }
         return await sendSetCommand('cross', payload);
-    }
+    }, [sendSetCommand]);
 
     return {
         setDefaultNetwork,

@@ -47,7 +47,7 @@ export default function ExdevScreen() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [getInfo]);
 
     useFocusEffect(
         useCallback(() => {

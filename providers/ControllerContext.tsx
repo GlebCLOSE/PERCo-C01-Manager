@@ -70,9 +70,9 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
   const value = { socket, isConnected, ipAddress, configRevision, touchConfig, setGlobalSocket, disconnect };
 
   return (
-    <ControllerContext value={value}>
+    <ControllerContext.Provider value={value}>
       {children}
-    </ControllerContext>
+    </ControllerContext.Provider>
   );
 };
 
