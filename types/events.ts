@@ -67,40 +67,40 @@ export const handleEvent = (data: PercoEvent) => {
     let eventName = ''
   switch (data.event) {
     case 'card':
-      eventName = 'Предъявление карты' + data.card.id + ' ИУ ' + data.card.number + ' направление ' + data.card.direction
+      eventName = 'Предъявление карты: ' + data.card.id + ' ИУ ' + (data.card.number + 1) + ' направление ' + (data.card.direction === 0 ? 'Вход' : 'Выход')
       break;
     case 'pass_personal':
-      eventName = 'Проход персональный' + data.pass_personal.id + ' ИУ ' + data.pass_personal.number + ' направление ' + data.pass_personal.direction + ' изъятие карты ' + data.pass_personal.remove_card  
+      eventName = 'Проход по карте:' + data.pass_personal.id + ' ИУ ' + (data.pass_personal.number + 1) + ' направление ' + (data.pass_personal.direction === 0 ? 'Вход' : 'Выход') + ' изъятие карты ' + data.pass_personal.remove_card  
       break;
     case 'pass_impersonal':
-      eventName = 'Проход обезличенный' + data.pass_impersonal.number + ' направление ' + data.pass_impersonal.direction + ' источник команды ' + data.pass_impersonal.command_source
+      eventName = 'Проход обезличенный, ИУ ' + data.pass_impersonal.number + ' направление: ' + (data.pass_impersonal.direction === 0 ? 'Вход' : 'Выход') + ' источник команды ' + data.pass_impersonal.command_source
       break;
     case 'refusal_personal':
-      eventName = 'Отказ прохода персональный' + data.refusal_personal.id + ' ИУ ' + data.refusal_personal.number + ' направление ' + data.refusal_personal.direction + ' изъятие карты ' + data.refusal_personal.remove_card  
+      eventName = 'Отказ прохода по карте: ' + data.refusal_personal.id + ' ИУ ' + (data.refusal_personal.number + 1) + ' направление ' + (data.refusal_personal.direction === 0 ? 'Вход' : 'Выход') + ' изъятие карты ' + data.refusal_personal.remove_card  
       break;
     case 'refusal_impersonal':
-      eventName = 'Отказ прохода обезличенный' + data.refusal_impersonal.number + ' направление ' + data.refusal_impersonal.direction + ' источник команды ' + data.refusal_impersonal.command_source
+      eventName = 'Отказ прохода обезличенный, ИУ ' + data.refusal_impersonal.number + ' направление ' + (data.refusal_impersonal.direction === 0 ? 'Вход' : 'Выход') + ' источник команды ' + data.refusal_impersonal.command_source
       break;
     case 'pass_ban_personal':
-      eventName = 'Блокировка прохода персональный' + data.pass_ban_personal.id + ' ИУ ' + data.pass_ban_personal.number + ' направление ' + data.pass_ban_personal.direction + ' изъятие карты ' + data.pass_ban_personal.remove_card  
+      eventName = 'Блокировка прохода по карте: ' + data.pass_ban_personal.id + ' ИУ ' + (data.pass_ban_personal.number + 1) + ' направление ' + (data.pass_ban_personal.direction === 0 ? 'Вход' : 'Выход') + ' изъятие карты ' + data.pass_ban_personal.remove_card  
       break;
     case 'pass_ban_impersonal':
-      eventName = 'Блокировка прохода обезличенный' + data.pass_ban_impersonal.number + ' направление ' + data.pass_ban_impersonal.direction + ' источник команды ' + data.pass_ban_impersonal.command_source
+      eventName = 'Блокировка прохода обезличенный, ИУ' + data.pass_ban_impersonal.number + ' направление ' + (data.pass_ban_impersonal.direction === 0 ? 'Вход' : 'Выход') + ' источник команды ' + data.pass_ban_impersonal.command_source
       break;
     case 'break':
-      eventName = 'Взлом ИУ' + data.break.number + ' направление ' + data.break.direction
+      eventName = 'Взлом ИУ' + (data.break.number + 1) + ' направление ' + (data.break.direction === 0 ? 'Вход' : 'Выход')
       break;
     case 'exdev_long_open':
-      eventName = 'Недопустимо длительное открытие ИУ' + data.exdev_long_open.number + ' направление ' + data.exdev_long_open.direction
+      eventName = 'Недопустимо длительное открытие ИУ' + (data.exdev_long_open.number + 1) + ' направление ' + (data.exdev_long_open.direction === 0 ? 'Вход' : 'Выход')
       break;
     case 'exdev_unlock':
-      eventName = 'Разблокировка ИУ' + data.exdev_unlock.number + ' направление ' + data.exdev_unlock.direction + ' разблокировка ' + data.exdev_unlock.unlock
+      eventName = 'Разблокировка ИУ' + (data.exdev_unlock.number + 1) + ' направление ' + (data.exdev_unlock.direction === 0 ? 'Вход' : 'Выход') + ' разблокировка ' + data.exdev_unlock.unlock
       break;
     case 'input':
-      eventName = 'Вход' + data.input.number + ' активизация ' + data.input.on + ' функция ' + data.input.function
+      eventName = 'Вход' + (data.input.number + 1)   + ' активизация ' + data.input.on + ' функция ' + data.input.function
       break;
     case 'output':
-      eventName = 'Выход' + data.output.number + ' активизация ' + data.output.on + ' функция ' + data.output.function
+      eventName = 'Выход' + (data.output.number + 1) + ' активизация ' + data.output.on + ' функция ' + data.output.function
       break;
   }
   return eventName
