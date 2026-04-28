@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useController } from '../providers/ControllerContext';
-import { parseIncomingFrames } from '../utils/controller/parseIncoming';
 
 export interface NetworkParams {
   ip?: string,
@@ -58,14 +57,14 @@ export interface CrossParams {
 type GetType = 'reader' | 'exdev' | 'pad' | 'cross';
 
 export const useControllerConfig = () => {
-    const { socket, isConnected, touchConfig } = useController();
+    const { isConnected, touchConfig, sendAndWaitFor, sendAndCollect } = useController();
 
     // Команда на установку конфигурационных параметров(Set)
     const sendSetCommand = useCallback(async (setType: string, payload: object) => {
 
         // 1. Проверка подключения
 
-        if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
+        if (!isConnected) {
             throw new Error("Нет подключения к контроллеру");
         }
 
@@ -74,108 +73,46 @@ export const useControllerConfig = () => {
             [setType]: payload
         };
 
-        // 2. Возвращаем Promise, который разрешится при получении ответа
-        return new Promise((resolve, reject) => {
+        const data = await sendAndWaitFor<any>(
+            commandPayload,
+            (msg: any): msg is any => Boolean(msg?.answer && msg.answer[setType]),
+            5000
+        );
 
-            // Тайм-аут: если контроллер не ответит за 5 секунд
-            const timeout = setTimeout(() => {
-            socket.removeEventListener('message', handleResponse);
-            reject(new Error(`Превышено время ожидания ответа для: ${setType}`));
-            }, 5000);
-
-            // Функция-обработчик входящих сообщений
-            const handleResponse = (event: MessageEvent) => {
-                try {
-                    const rawData = String(event.data ?? '');
-                    if (!rawData.trim()) return;
-
-                    const frames = parseIncomingFrames(rawData);
-                    frames.forEach((data: any) => {
-                        if (data?.answer && data.answer[setType]) {
-                            clearTimeout(timeout); // Отменяем тайм-аут
-                            socket.removeEventListener('message', handleResponse);
-                            if (data.answer[setType] === "ok") {
-                                console.log(`Команда ${setType} выполнена успешно`);
-                                // Сигнализируем экранам, что конфигурация изменилась и данные нужно перечитать.
-                                touchConfig();
-                                resolve(data);
-                            } else {
-                                reject(new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer[setType]}`));
-                            }
-                        }
-                    });
-                } catch (err) {
-                    console.error("Ошибка парсинга JSON:", err);
-                }
-            };
-            socket.addEventListener('message', handleResponse);
-        // Отправляем команду
-            socket.send(JSON.stringify(commandPayload));
-            });
-    }, [isConnected, socket, touchConfig]);
+        if (data.answer?.[setType] === "ok") {
+            console.log(`Команда ${setType} выполнена успешно`);
+            touchConfig();
+            return data;
+        }
+        throw new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer?.[setType]}`);
+    }, [isConnected, sendAndWaitFor, touchConfig]);
 
     //---------------------------------------------------------------------------------------------------------------
 
     const getDataFromController = useCallback(async (getType: string, payload: object, collectAll = false) => {
-        if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
+        if (!isConnected) {
             throw new Error("Нет подключения к контроллеру");
         }
 
         let commandPayload = (getType === 'state') ? { 'get': 'state' } : { "get": getType, [getType]: payload };
 
-        return new Promise((resolve, reject) => {
-            const results: any[] = [];
-            let totalTimeout: NodeJS.Timeout;
-            let silenceTimeout: NodeJS.Timeout;
+        if (!collectAll) {
+            const data = await sendAndWaitFor<any>(
+                commandPayload,
+                (msg: any): msg is any => Boolean(msg?.answer && msg.answer[getType]),
+                5000
+            );
+            if (data.answer?.[getType] === 'ok') return data;
+            throw new Error(`Контроллер вернул ошибку для ${getType}: ${data.answer?.[getType]}`);
+        }
 
-            const cleanup = () => {
-                clearTimeout(totalTimeout);
-                clearTimeout(silenceTimeout);
-                socket.removeEventListener('message', handleResponse);
-            };
-
-            const handleResponse = (event: MessageEvent) => {
-                try {
-                    const rawData = String(event.data ?? '');
-                    if (!rawData.trim()) return;
-
-                    const frames = parseIncomingFrames(rawData);
-                    frames.forEach((data: any) => {
-                        if (data?.answer && data.answer[getType] === 'ok') {
-                            if (!collectAll) {
-                                cleanup();
-                                resolve(data);
-                            } else {
-                                results.push(data);
-                                
-                                // Сбрасываем таймаут тишины
-                                clearTimeout(silenceTimeout);
-                                silenceTimeout = setTimeout(() => {
-                                    cleanup();
-                                    resolve(results);
-                                }, 500);
-                            }
-                        }
-                    });
-                } catch (err) {
-                    console.error("Критическая ошибка парсинга:", err, "Raw data:", event.data);
-                }
-            };
-
-            // Общий таймаут (если контроллер вообще не ответил)
-            totalTimeout = setTimeout(() => {
-                cleanup();
-                if (collectAll && results.length > 0) {
-                    resolve(results); // Если хоть что-то успели собрать
-                } else {
-                    reject(new Error(`Превышено время ожидания ответа для: ${getType}`));
-                }
-            }, 5000);
-
-            socket.addEventListener('message', handleResponse);
-            socket.send(JSON.stringify(commandPayload));
-        });
-    }, [isConnected, socket]);
+        const results = await sendAndCollect<any>(
+            commandPayload,
+            (msg: any): msg is any => Boolean(msg?.answer && msg.answer[getType] === 'ok'),
+            { totalTimeoutMs: 5000, silenceMs: 500 }
+        );
+        return results;
+    }, [isConnected, sendAndCollect, sendAndWaitFor]);
 
     //----------------------------------------------------------------------------------------------------------------
 

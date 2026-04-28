@@ -1,12 +1,13 @@
 import { View, Text, StyleSheet } from "react-native"
 import { handleEvent, PercoEvent } from "../../../types/events"
 
-export const EventLine = ({event}: {event: PercoEvent}) => {
+export const EventLine = ({ event, receivedAt }: { event: PercoEvent; receivedAt: number }) => {
 
 
     const name = handleEvent(event)
-    const date = '2026-04-10'
-    const time = '12:00:00'
+    const dt = new Date(receivedAt)
+    const date = dt.toLocaleDateString()
+    const time = dt.toLocaleTimeString()
 
     //Определение стилей в зависимости от типа события
     let lineStyle: Array<object> = [styles.container]
