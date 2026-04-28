@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect, ReactNode, useRe
 import { parseIncomingFrames } from '../utils/controller/parseIncoming';
 import type { PercoEvent } from '../types/events';
 import { RequestManager, type MessageMatcher } from '../utils/controller/requestManager';
+import { clearEventsDb, getRecentEventsFromDb, initEventsDb, insertEventToDb } from '../utils/controller/eventsDb';
 
 // Описываем интерфейс состояния контекста
 interface ControllerContextType {
@@ -38,6 +39,22 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
   const requestManagerRef = useRef(new RequestManager());
   const recentEventKeysRef = useRef<Map<string, number>>(new Map());
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await initEventsDb();
+        const loaded = await getRecentEventsFromDb(500);
+        if (!cancelled && loaded.length) setEvents(loaded);
+      } catch (e) {
+        console.error('Failed to init events DB', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Очистка при размонтировании
   useEffect(() => {
     return () => {
@@ -56,7 +73,10 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     requestManagerRef.current.reset();
   };
 
-  const clearEvents = useCallback(() => setEvents([]), []);
+  const clearEvents = useCallback(() => {
+    setEvents([]);
+    void clearEventsDb().catch((e) => console.error('Failed to clear events DB', e));
+  }, []);
 
   const sendAndWaitFor = useCallback(
     async <T,>(payload: unknown, match: MessageMatcher<T>, timeoutMs = 5000): Promise<T> => {
@@ -142,6 +162,10 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
             if (next.length > 500) return next.slice(next.length - 500);
             return next;
           });
+
+          void insertEventToDb(msg as PercoEvent, receivedAt).catch((err) =>
+            console.error('Failed to persist event', err)
+          );
         }
       }
     };
