@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useController } from '../providers/ControllerContext';
+import { parseIncomingFrames } from '../utils/controller/parseIncoming';
 
 export interface NetworkParams {
   ip?: string,
@@ -87,22 +88,10 @@ export const useControllerConfig = () => {
                 try {
                     const rawData = String(event.data ?? '');
                     if (!rawData.trim()) return;
-                    
-                    // Разделяем склеенные JSON-объекты. 
-                    // Ищем границу между } и { и вставляем разделитель
-                    const jsonStrings = rawData
-                        .replace(/}\s*{/g, '}|--|{')
-                        .split('|--|');
-                    jsonStrings.forEach((str: string) => {
-                        const s = str.trim();
-                        if (!s) return;
-                        let data: any;
-                        try {
-                            data = JSON.parse(s);
-                        } catch {
-                            return;
-                        }
-                        if (data.answer && data.answer[setType]) {
+
+                    const frames = parseIncomingFrames(rawData);
+                    frames.forEach((data: any) => {
+                        if (data?.answer && data.answer[setType]) {
                             clearTimeout(timeout); // Отменяем тайм-аут
                             socket.removeEventListener('message', handleResponse);
                             if (data.answer[setType] === "ok") {
@@ -149,24 +138,10 @@ export const useControllerConfig = () => {
                 try {
                     const rawData = String(event.data ?? '');
                     if (!rawData.trim()) return;
-                    
-                    // Разделяем склеенные JSON-объекты. 
-                    // Ищем границу между } и { и вставляем разделитель
-                    const jsonStrings = rawData
-                        .replace(/}\s*{/g, '}|--|{')
-                        .split('|--|');
 
-                    jsonStrings.forEach((str: string) => {
-                        const s = str.trim();
-                        if (!s) return;
-                        let data: any;
-                        try {
-                            data = JSON.parse(s); // Теперь парсим каждый объект отдельно
-                        } catch {
-                            return;
-                        }
-
-                        if (data.answer && data.answer[getType] === 'ok') {
+                    const frames = parseIncomingFrames(rawData);
+                    frames.forEach((data: any) => {
+                        if (data?.answer && data.answer[getType] === 'ok') {
                             if (!collectAll) {
                                 cleanup();
                                 resolve(data);

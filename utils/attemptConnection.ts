@@ -1,4 +1,5 @@
  import md5 from 'md5';
+ import { parseIncomingFrames } from './controller/parseIncoming';
  
  export const attemptConnection = (ip: string, password: string) => {
     return new Promise((resolve) => {
@@ -20,6 +21,7 @@
             if (!isResolved) {
             isResolved = true;
             // Сразу после открытия шлем команду верификации
+            if (!ws) return;
             ws.send(JSON.stringify({ "set": "verify_acl", "verify_acl": [{}] }));
             resolve({ success: true, socket: ws });
             }
@@ -31,44 +33,36 @@
           }
 
           try {
-              // 1. Разделяем склеенные объекты, если они пришли в одном пакете
-              const jsonStrings = e.data
-                  .replace(/}\s*{/g, '}|--|{')
-                  .split('|--|');
+              const frames = parseIncomingFrames(e.data);
+              frames.forEach((data) => {
+                  if (!data || typeof data !== 'object') return;
 
-              // 2. Проходим циклом по каждой полученной JSON-строке
-              jsonStrings.forEach((jsonStr) => {
-                  try {
-                      const data = JSON.parse(jsonStr);
+                  // ШАГ 1: Получение соли от контроллера
+                  if (data.event === 'need_auth') {
+                      const salt = data.need_auth?.salt;
+                      if (typeof salt !== 'string') return;
 
-                      // ШАГ 1: Получение соли от контроллера
-                      if (data.event === 'need_auth') {
-                          const salt = data.need_auth.salt;
-                          const hash = md5(salt + password); 
+                      const hash = md5(salt + password); 
+                      const authPayload = {
+                          set: "auth",
+                          auth: { hash: hash }
+                      };
+                      ws?.send(JSON.stringify(authPayload));
+                  }
 
-                          const authPayload = {
-                              set: "auth",
-                              auth: { hash: hash }
-                          };
-                          ws.send(JSON.stringify(authPayload));
+                  // ШАГ 2: Проверка ответа авторизации
+                  if (data.answer && data.answer.auth) {
+                      clearTimeout(timeout);
+                      
+                      if (data.answer.auth === 'ok') {
+                          // Здесь важно понимать: если resolve сработает несколько раз, 
+                          // это не вызовет ошибку, но выполнится только первый раз.
+                          if (!ws) return;
+                          resolve({ success: true, socket: ws });
+                      } else {
+                          ws?.close();
+                          resolve({ success: false, message: 'Неверный пароль доступа' });
                       }
-
-                      // ШАГ 2: Проверка ответа авторизации
-                      if (data.answer && data.answer.auth) {
-                          clearTimeout(timeout);
-                          
-                          if (data.answer.auth === 'ok') {
-                              // Здесь важно понимать: если resolve сработает несколько раз, 
-                              // это не вызовет ошибку, но выполнится только первый раз.
-                              resolve({ success: true, socket: ws });
-                          } else {
-                              ws.close();
-                              resolve({ success: false, message: 'Неверный пароль доступа' });
-                          }
-                      }
-                  } catch (singleParseErr) {
-                      // Ошибка парсинга конкретного кусочка (например, если обрезало строку)
-                      console.error("Ошибка парсинга отдельного сегмента:", jsonStr, singleParseErr);
                   }
               });
 
