@@ -1,13 +1,28 @@
 import { Text, StyleSheet, ScrollView } from "react-native";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import InputField from "../../components/ui/elements/input/InputField";
 import DropdownInput from "../../components/ui/elements/input/DropdownInput";
 import { Button } from "../../components/ui/elements/buttons/Button";
 import { useControllerCommands } from "../../hooks/useControllerCommands";
 import ErrorModal from '../../components/ui/status/ErrorModal'
 import ModalText from "../../components/ui/status/ModalText";
+import { useTheme } from "../../providers/ThemeContext";
+import type { AppPalette } from "../../constants/theme";
+
+function createStyles(_p: AppPalette) {
+    return StyleSheet.create({
+    text: {
+        fontFamily: 'inter',
+        fontSize: 24,
+        fontWeight: '400',
+        color: _p.sectionHeading,
+    },
+});
+}
 
 export default function CommandsScreen() {
+    const { palette } = useTheme();
+    const styles = useMemo(() => createStyles(palette), [palette]);
 
     const { setAccessMode, toggleExdevAction, requestDeviceState, declineAccessAction, isConnected } = useControllerCommands()
     const [selectedValue, setSelectedValue] = useState('acm');
@@ -134,12 +149,3 @@ export default function CommandsScreen() {
         </ScrollView>
     );
 }
-
-const styles = StyleSheet.create({
-    text: {
-        fontFamily: 'inter',
-        fontSize: 24,
-        fontWeight: '400',
-        color: '#1A2253'
-    }
-})

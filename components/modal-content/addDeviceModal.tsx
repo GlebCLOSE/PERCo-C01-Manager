@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet, Alert, ScrollView } from "react-native";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "../ui/elements/buttons/Button";
+import { useTheme } from "../../providers/ThemeContext";
+import type { AppPalette } from "../../constants/theme";
 import InputField from "../ui/elements/input/InputField";
 import IPAddressInput from "../ui/elements/input/IPAddressInput";
 import { saveDevice } from "../../storage/deviceStorage";
@@ -12,7 +14,37 @@ export type AddDeviceModalProps = {
   onSaved: () => void | Promise<void>;
 };
 
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    scroll: {
+      width: "100%",
+      maxHeight: 400,
+      marginTop: 8,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
+    container: {
+      width: "100%",
+      gap: 7,
+    },
+    smallText: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.modalFormInk,
+      fontWeight: "300",
+    },
+    hr: {
+      height: 1,
+      backgroundColor: p.modalFormRule,
+    },
+  });
+}
+
 export const AddDeviceModal = ({ onSaved }: AddDeviceModalProps) => {
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
   const [name, setName] = useState("");
   const [ip, setIp] = useState("");
   const [password, setPassword] = useState("");
@@ -90,28 +122,3 @@ export const AddDeviceModal = ({ onSaved }: AddDeviceModalProps) => {
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  scroll: {
-    width: "100%",
-    maxHeight: 400,
-    marginTop: 8,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  container: {
-    width: "100%",
-    gap: 7,
-  },
-  smallText: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#000670",
-    fontWeight: "300",
-  },
-  hr: {
-    height: 1,
-    backgroundColor: "#000670",
-  },
-});

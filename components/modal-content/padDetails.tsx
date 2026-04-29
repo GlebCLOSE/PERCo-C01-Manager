@@ -1,20 +1,49 @@
 import { View, Text, StyleSheet } from "react-native"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
 import { mapPadNames, mapPadTypes } from "../../types/maps"
 import { PadParams, useControllerConfig } from "../../hooks/useControllerConfig"
 import ModalText from "../ui/status/ModalText"
+import { useTheme } from "../../providers/ThemeContext"
+import type { AppPalette } from "../../constants/theme"
 
 interface PadDetailsProps {
     data: PadParams
 }
 
-export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
-    console.log(data)
+function createStyles(p: AppPalette) {
+    return StyleSheet.create({
+        container: {
+            width: '100%',
+            gap: 7,
+        },
+        smallText: {
+            fontFamily: 'inter',
+            fontSize: 12,
+            color: p.modalFormInk,
+            fontWeight: '300',
+        },
+        bold: {
+            fontWeight: '800',
+        },
+        hr: {
+            height: 1,
+            backgroundColor: p.modalFormRule,
+        },
+        horizontalBlock: {
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+        },
+    });
+}
 
+export const PadDetails: React.FC<PadDetailsProps> = ({ data }) => {
     const { setPadConfig } = useControllerConfig()
+    const { palette } = useTheme()
+    const styles = useMemo(() => createStyles(palette), [palette])
 
     const [padType, setPadType] = useState<PadParams["function"]>(data["function"])
     const [padResource, setPadResource] = useState<PadParams["resource_number"]>(data["resource_number"])
@@ -35,19 +64,19 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
     const getDropdownItems = (number: number) => {
         if (number >= 0 && number <= 7) {
             return [
-            { label: 'Разомкнут', value: 'break' },
-            { label: 'Замкнут', value: 'short' }
+                { label: 'Разомкнут', value: 'break' },
+                { label: 'Замкнут', value: 'short' }
             ];
         } else if (number >= 8 && number <= 15) {
             return [
-            { label: 'Запитан', value: 'powered' },
-            { label: 'Не запитан', value: 'not powered' }
+                { label: 'Запитан', value: 'powered' },
+                { label: 'Не запитан', value: 'not powered' }
             ];
         }
-        return []; 
+        return [];
     };
 
-       
+
     const dropdownItems = getDropdownItems(data["number"] ?? 0);
 
     const padTypeList = Array.from(mapPadTypes, ([value, label]) => ({ value, label }))
@@ -63,12 +92,14 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
         }
 
         try {
-            const result: any = await setPadConfig(payload);
-            const isOk = result?.answer?.pad === 'ok';
+            const result: unknown = await setPadConfig(payload);
+            const isOk = result && typeof result === 'object' && result !== null
+                ? (result as { answer?: { pad?: string } }).answer?.pad === 'ok'
+                : false;
             setResultMessage(isOk ? 'Конфигурация успешно установлена' : 'Ошибка при передаче данных');
-            } catch (e) {
+        } catch {
             setResultMessage('Сетевая ошибка');
-            }
+        }
         setIsModalVisible(true);
     }
 
@@ -76,7 +107,7 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
         <View style={styles.container}>
             <Text style={styles.smallText}>{mapPadNames.get(data["number"] ?? 0)}</Text>
             <View style={styles.hr}></View>
-            <DropdownInput 
+            <DropdownInput
                 label='Тип физ. контакта'
                 items={padTypeList}
                 value={padType}
@@ -84,71 +115,46 @@ export const PadDetails: React.FC<PadDetailsProps> = ({data}) => {
                 size='s'
             />
             <View style={styles.horizontalBlock}>
-                <DropdownInput 
+                <DropdownInput
                     label='Ресурс'
-                    items={[{label: '1', value: 0}, {label: '2', value: 1}, {label: '3', value: 2}, {label: '4', value: 3}, {label: '5', value: 4}, {label: '6', value: 5}, {label: '7', value: 6}, {label: '8', value: 7} ]}
+                    items={[{ label: '1', value: 0 }, { label: '2', value: 1 }, { label: '3', value: 2 }, { label: '4', value: 3 }, { label: '5', value: 4 }, { label: '6', value: 5 }, { label: '7', value: 6 }, { label: '8', value: 7 }]}
                     value={padResource}
                     onChange={setPadResource}
                     size='s'
                 />
-                <DropdownInput 
+                <DropdownInput
                     label='Направление'
-                    items={[{label: '1', value: 0}, {label: '2', value: 1}]}
+                    items={[{ label: '1', value: 0 }, { label: '2', value: 1 }]}
                     value={padDirection}
                     onChange={setPadDirection}
                     size='s'
-                />           
+                />
             </View>
-            <DropdownInput 
+            <DropdownInput
                 label='Нормальное состояние'
                 items={dropdownItems}
                 value={normalState}
                 onChange={setNormalState}
                 size='s'
             />
-            <InputField 
+            <InputField
                 label='Антидребезг(мс)'
                 size='s'
                 placeholder='100 мс'
                 value={debounce}
                 onChangeText={setDebounce}
-            />         
-            <Button 
+            />
+            <Button
                 title='Сохранить'
-                onPress={()=>handleSetPadSettings()}
+                onPress={() => handleSetPadSettings()}
                 size="M"
             />
             <ModalText
-                title={'Ответ'} 
+                title={'Ответ'}
                 message={resultMessage}
                 visible={isModalVisible}
-                onClose={()=> setIsModalVisible(false)}
+                onClose={() => setIsModalVisible(false)}
             />
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    container: { 
-        width: '100%',
-        gap: 7 
-    },
-    smallText: {
-        fontFamily: 'inter',
-        fontSize: 12,
-        color: '#000670',
-        fontWeight: '300'
-    },
-    bold: {
-        fontWeight: '800'
-    },
-    hr: {
-        height: 1,
-        backgroundColor: '#000670'
-    },
-    horizontalBlock: {
-        width: '100%',
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    }
-})

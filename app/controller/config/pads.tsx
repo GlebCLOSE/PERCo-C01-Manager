@@ -1,19 +1,58 @@
-import { Text, StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
+import { Text, StyleSheet, View, FlatList } from "react-native";
+import { InlineLoading } from "../../../components/ui/status/InlineLoading";
 import { WarningText } from "../../../components/ui/blocks/warningText";
 import { PadLine } from "../../../components/ui/blocks/padLine";
 import { PadDetails } from "../../../components/modal-content/padDetails";
 import { ModalChildren } from "../../../components/ui/status/ModalChildren";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useFocusEffect } from 'expo-router';
 import { useControllerConfig } from "../../../hooks/useControllerConfig";
 import { PadParams } from "../../../hooks/useControllerConfig";
 import { IconButton } from "../../../components/ui/elements/buttons/IconButton";
 import { useController } from "../../../providers/ControllerContext";
-import { useRef } from "react";
+import { useTheme } from "../../../providers/ThemeContext";
+import type { AppPalette } from "../../../constants/theme";
+
+function createStyles(p: AppPalette) {
+    return StyleSheet.create({
+        headerBlock: {
+            gap: 10,
+            marginBottom: 10,
+        },
+        listContent: {
+            flexGrow: 1,
+            paddingBottom: 16,
+        },
+        titleBlock: {
+            flexDirection: 'row',
+            width: '100%',
+            justifyContent: 'space-between'
+        },
+        title: {
+            fontFamily: 'inter',
+            fontSize: 24,
+            fontWeight: '400',
+            color: p.sectionHeading,
+        },
+        blockButtons: {
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+        },
+        loadingOverlay: {
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: p.loadingOverlayBg,
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+        },
+    });
+}
 
 export default function PadsScreen() {
 
     const { getInfo } = useControllerConfig()
+    const { palette } = useTheme();
+    const styles = useMemo(() => createStyles(palette), [palette]);
     const { configRevision } = useController();
     const lastRevisionRef = useRef<number>(configRevision);
     const [activePad, setActivePad] = useState<PadParams | null>(null);
@@ -109,43 +148,9 @@ export default function PadsScreen() {
             </ModalChildren>
             {isLoading && (
                 <View style={styles.loadingOverlay}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                    <Text style={{ marginTop: 10, color: '#fff' }}>Загрузка данных...</Text>
+                    <InlineLoading />
                 </View>
             )}
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    headerBlock: {
-        gap: 10,
-        marginBottom: 10,
-    },
-    listContent: {
-        flexGrow: 1,
-        paddingBottom: 16,
-    },
-    titleBlock: {
-        flexDirection: 'row',
-        width: '100%',
-        justifyContent: 'space-between'
-    },
-    title: {
-        fontFamily: 'inter',
-        fontSize: 24,
-        fontWeight: '400',
-        color: '#1A2253'
-    },
-    blockButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    },
-    loadingOverlay: {
-        ...StyleSheet.absoluteFillObject, // Растягивает на весь экран
-        backgroundColor: 'rgba(255, 255, 255, 0.21)', // Полупрозрачный фон
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000, // Чтобы быть поверх всех элементов
-    },
-})

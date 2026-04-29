@@ -12,9 +12,42 @@ import {
 import { LogModal } from "../../components/modal-content/logModal";
 import { EventDetailModal } from "../../components/modal-content/eventDetailModal";
 import { shortEventLabel, type PercoEvent } from "../../types/events";
+import { useTheme } from "../../providers/ThemeContext";
+import type { AppPalette } from "../../constants/theme";
+
+function createStyles(p: AppPalette) {
+    return StyleSheet.create({
+        title: {
+            flexDirection: 'row',
+            width: '100%',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+        },
+        blockButtons: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+        },
+        textTitle: {
+            fontFamily: 'inter',
+            fontSize: 24,
+            fontWeight: '400',
+            color: p.sectionHeading,
+        },
+        clear: {
+            fontFamily: 'inter',
+            fontSize: 14,
+            color: p.textSecondary,
+            textDecorationLine: 'underline',
+        },
+    });
+}
 
 
 export default function EventsScreen() {
+
+    const { palette } = useTheme();
+    const themed = useMemo(() => createStyles(palette), [palette]);
+
 
     const [detailSelection, setDetailSelection] = useState<{
         event: PercoEvent;
@@ -82,11 +115,11 @@ export default function EventsScreen() {
     );
     return (
         <View style={{ flex: 1, width: '100%', gap: 10 }}>
-            <View style={styles.title}>
-                <Text style={styles.textTitle}>События</Text>
-                <Text style={styles.clear} onPress={clearEvents}>Очистить</Text>
+            <View style={themed.title}>
+                <Text style={themed.textTitle}>События</Text>
+                <Text style={themed.clear} onPress={clearEvents}>Очистить</Text>
             </View>
-            <View style={styles.blockButtons}>
+            <View style={themed.blockButtons}>
                 <ButtonSquare title='Статистика по событиям' onPress={()=>{setModalType('STATS')}} icon={require('../../assets/icons/Stats.png')} />
                 <ButtonSquare title='Фильтр событий' onPress={()=>{setModalType('FILTER')}} icon={require('../../assets/icons/Filter.png')} />
                 <ButtonSquare title='Лог для разработчика' onPress={()=>{setModalType('LOG')}} icon={require('../../assets/icons/log.png')} isYellow={true} />
@@ -128,31 +161,3 @@ export default function EventsScreen() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    title: {
-        flexDirection: 'row',
-        width: '100%',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-    },
-    blockButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    },
-    textTitle: {
-        fontFamily: 'inter',
-        fontSize: 24,
-        fontWeight: '400',
-        color: '#1A2253'
-    },
-    clear: {
-        fontFamily: 'inter',
-        fontSize: 14,
-        color: '#1A2253',
-        textDecorationLine: 'underline'
-    },
-    container: {
-        gap: 20,    
-    },
-})

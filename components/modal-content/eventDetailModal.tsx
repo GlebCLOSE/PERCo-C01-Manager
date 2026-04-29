@@ -1,19 +1,103 @@
 import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { useMemo } from "react";
 import {
   handleEvent,
   getEventDetailRows,
   type PercoEvent,
 } from "../../types/events";
+import { useTheme } from "../../providers/ThemeContext";
+import type { AppPalette } from "../../constants/theme";
 
 export type EventDetailModalProps = {
   event: PercoEvent;
   receivedAt: number;
 };
 
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    scroll: {
+      width: "100%",
+      maxHeight: 420,
+      marginTop: 8,
+    },
+    scrollInner: {
+      gap: 10,
+      paddingBottom: 8,
+    },
+    block: {
+      gap: 4,
+      width: "100%",
+    },
+    label: {
+      fontFamily: "inter",
+      fontSize: 11,
+      color: p.modalMuted,
+      fontWeight: "500",
+      textTransform: "uppercase",
+    },
+    value: {
+      fontFamily: "inter",
+      fontSize: 14,
+      color: p.glassModalHeading,
+      fontWeight: "400",
+    },
+    timeValue: {
+      fontFamily: "inter",
+      fontSize: 16,
+      color: p.glassModalHeading,
+      fontWeight: "700",
+    },
+    sectionTitle: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.sectionHeading,
+      fontWeight: "700",
+    },
+    fullText: {
+      fontFamily: "inter",
+      fontSize: 13,
+      color: p.glassModalBody,
+      fontWeight: "400",
+      lineHeight: 20,
+    },
+    hr: {
+      height: 1,
+      backgroundColor: p.modalFormRule,
+      width: "100%",
+    },
+    row: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
+      paddingVertical: 4,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: p.modalFormRule,
+    },
+    paramLabel: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.modalMuted,
+      minWidth: 120,
+      fontWeight: "500",
+    },
+    paramValue: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.modalFormInk,
+      flex: 1,
+      fontWeight: "400",
+      minWidth: "50%",
+    },
+  });
+}
+
 export const EventDetailModal = ({
   event,
   receivedAt,
 }: EventDetailModalProps) => {
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
   const dt = new Date(receivedAt);
   const dateStr = dt.toLocaleDateString(undefined, {
     weekday: "short",
@@ -58,79 +142,3 @@ export const EventDetailModal = ({
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  scroll: {
-    width: "100%",
-    maxHeight: 420,
-    marginTop: 8,
-  },
-  scrollInner: {
-    gap: 10,
-    paddingBottom: 8,
-  },
-  block: {
-    gap: 4,
-    width: "100%",
-  },
-  label: {
-    fontFamily: "inter",
-    fontSize: 11,
-    color: "#000670aa",
-    fontWeight: "500",
-    textTransform: "uppercase",
-  },
-  value: {
-    fontFamily: "inter",
-    fontSize: 14,
-    color: "#000670",
-    fontWeight: "400",
-  },
-  timeValue: {
-    fontFamily: "inter",
-    fontSize: 16,
-    color: "#000670",
-    fontWeight: "700",
-  },
-  sectionTitle: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#000670",
-    fontWeight: "700",
-  },
-  fullText: {
-    fontFamily: "inter",
-    fontSize: 13,
-    color: "#000670",
-    fontWeight: "400",
-    lineHeight: 20,
-  },
-  hr: {
-    height: 1,
-    backgroundColor: "#00067044",
-    width: "100%",
-  },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    paddingVertical: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#00067022",
-  },
-  paramLabel: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#000670b0",
-    minWidth: 120,
-    fontWeight: "500",
-  },
-  paramValue: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#000670",
-    flex: 1,
-    fontWeight: "400",
-    minWidth: "50%",
-  },
-});

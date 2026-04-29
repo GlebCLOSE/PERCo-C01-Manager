@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTheme } from '../../../../providers/ThemeContext';
+import type { AppPalette } from '../../../../constants/theme';
 
 export enum Size {
   S = 'S',
@@ -10,10 +12,10 @@ export enum Size {
 
 export type ButtonSize = 'S' | 'M' | 'L' | 'Long';
 
-enum BorderRadiusStyle {
-  SHARP = 'sharp',      // острые углы
-  ROUNDED = 'rounded',  // стандартное скругление
-  CIRCLE = 'circle'     // максимальное скругление (почти круг)
+export enum BorderRadiusStyle {
+  SHARP = 'sharp',
+  ROUNDED = 'rounded',
+  CIRCLE = 'circle'
 }
 
 interface CustomButtonProps {
@@ -21,9 +23,63 @@ interface CustomButtonProps {
   onPress: () => void;
   size: ButtonSize;
   isWarn?: boolean;
-  borderRadiusStyle?: BorderRadiusStyle; // Новый пропс для стиля скругления
-  customStyles?: object;                // Дополнительный пропс для кастомных стилей
-  customTextStyles?: object;            // Пропс для кастомных стилей текста кнопки
+  borderRadiusStyle?: BorderRadiusStyle;
+  customStyles?: object;
+  customTextStyles?: object;
+}
+
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    button: {
+      backgroundColor: p.primaryButton,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 20,
+      boxShadow: p.buttonInsetShadow,
+    },
+    buttonWarn: {
+      backgroundColor: p.primaryButtonDanger,
+    },
+    buttonSmall: {
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      fontSize: 11
+    },
+    buttonMedium: {
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      fontSize: 24
+    },
+    buttonLarge: {
+      paddingVertical: 19,
+      paddingHorizontal: 35,
+      fontSize: 32
+    },
+    buttonLong: {
+      width: '100%',
+      paddingVertical: 10,
+      paddingHorizontal: 25,
+      justifyContent: 'flex-start',
+      fontSize: 24,
+      borderWidth: 1,
+      borderColor: p.borderOnPrimary,
+    },
+    buttonText: {
+      color: p.textOnPrimary,
+      fontWeight: 'normal',
+      textAlign: 'center'
+    },
+    textSmall: {
+      fontSize: 10
+    },
+    textMedium: {
+      fontSize: 16
+    },
+    textLarge: {
+      fontSize: 20
+    }
+  });
 }
 
 export const Button: React.FC<CustomButtonProps> = ({
@@ -35,12 +91,14 @@ export const Button: React.FC<CustomButtonProps> = ({
   customStyles = {},
   customTextStyles = {}
 }) => {
-  // Коэффициенты скругления: [размер][стиль]
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
   const radiusCoefficients = {
     [Size.S]: {
-      [BorderRadiusStyle.SHARP]: 0.3,   // 30 % от половины высоты
-      [BorderRadiusStyle.ROUNDED]: 0.5,  // 50 %
-      [BorderRadiusStyle.CIRCLE]: 0.8       // 80 %
+      [BorderRadiusStyle.SHARP]: 0.3,
+      [BorderRadiusStyle.ROUNDED]: 0.5,
+      [BorderRadiusStyle.CIRCLE]: 0.8
     },
     [Size.M]: {
       [BorderRadiusStyle.SHARP]: 0.4,
@@ -59,7 +117,6 @@ export const Button: React.FC<CustomButtonProps> = ({
     },
   };
 
-  // Базовые стили для размеров
   const sizeStyles = {
     [Size.S]: styles.buttonSmall,
     [Size.M]: styles.buttonMedium,
@@ -67,17 +124,16 @@ export const Button: React.FC<CustomButtonProps> = ({
     [Size.Long]: styles.buttonLong
   };
 
-  // Базовые стили для текста внутри кнопки
   const textSizeStyles = {
     [Size.S]: styles.textSmall,
     [Size.M]: styles.textMedium,
     [Size.L]: styles.textLarge,
     [Size.Long]: styles.textLarge
-  }
+  };
 
-  const baseTextStyle = textSizeStyles[size]
+  const baseTextStyle = textSizeStyles[size];
   const baseStyle = sizeStyles[size];
-  const halfHeight = baseStyle.paddingVertical; // Половина высоты кнопки
+  const halfHeight = baseStyle.paddingVertical;
   const coefficient = radiusCoefficients[size][borderRadiusStyle];
   const borderRadius = halfHeight * coefficient;
 
@@ -86,9 +142,9 @@ export const Button: React.FC<CustomButtonProps> = ({
       style={[
         styles.button,
         baseStyle,
-        isWarn&&styles.buttonWarn,
+        isWarn && styles.buttonWarn,
         { borderRadius },
-        customStyles // Пользовательские стили (переопределяют всё)
+        customStyles
       ]}
       onPress={onPress}
     >
@@ -96,59 +152,7 @@ export const Button: React.FC<CustomButtonProps> = ({
         styles.buttonText,
         baseTextStyle,
         customTextStyles
-        ]}>{title}</Text>
+      ]}>{title}</Text>
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: '#0375BB',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 20,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25), inset -3px -3px 15px rgba(0, 0, 0, 0.25)',
-  },
-  buttonWarn: {
-    backgroundColor: '#BB0306',
-  },
-  buttonSmall: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    fontSize: 11
-  },
-  buttonMedium: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    fontSize: 24
-  },
-  buttonLarge: {
-    paddingVertical: 19,
-    paddingHorizontal: 35,
-    fontSize: 32
-  },
-  buttonLong: {
-    width: '100%',
-    paddingVertical: 10,
-    paddingHorizontal: 25,
-    justifyContent: 'flex-start',
-    fontSize: 24,
-    borderWidth: 1,
-    borderColor: '#ffffff94',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontWeight: 'normal',
-    textAlign: 'center'
-  },
-  textSmall: {
-    fontSize: 10
-  },
-  textMedium: {
-    fontSize: 16
-  },
-  textLarge: {
-    fontSize: 20
-  }
-});

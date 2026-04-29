@@ -2,6 +2,8 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useMemo } from "react";
 import { useController } from "../../providers/ControllerContext";
 import type { PercoEvent } from "../../types/events";
+import { useTheme } from "../../providers/ThemeContext";
+import type { AppPalette } from "../../constants/theme";
 
 const LABELS: Record<PercoEvent["event"], string> = {
   card: "Предъявление карты",
@@ -18,8 +20,72 @@ const LABELS: Record<PercoEvent["event"], string> = {
   output: "Выход (сигнал)",
 };
 
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    wrap: {
+      width: "100%",
+      maxHeight: 360,
+      gap: 8,
+      marginTop: 8,
+    },
+    summary: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.modalFormInk,
+      fontWeight: "300",
+    },
+    summaryBold: {
+      fontWeight: "700",
+    },
+    hr: {
+      height: 1,
+      backgroundColor: p.modalFormRule,
+      width: "100%",
+    },
+    scroll: {
+      width: "100%",
+    },
+    scrollContent: {
+      gap: 6,
+      paddingBottom: 8,
+    },
+    empty: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.glassModalBody,
+      fontStyle: "italic",
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      gap: 12,
+      paddingVertical: 4,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: p.modalFormRule,
+    },
+    rowLabel: {
+      flex: 1,
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.glassModalHeading,
+      fontWeight: "400",
+    },
+    rowCount: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.glassModalHeading,
+      fontWeight: "700",
+      minWidth: 28,
+      textAlign: "right",
+    },
+  });
+}
+
 export const StatsModal = () => {
   const { events } = useController();
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   const rows = useMemo(() => {
     const counts = new Map<PercoEvent["event"], number>();
@@ -62,63 +128,3 @@ export const StatsModal = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  wrap: {
-    width: "100%",
-    maxHeight: 360,
-    gap: 8,
-    marginTop: 8,
-  },
-  summary: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#000670",
-    fontWeight: "300",
-  },
-  summaryBold: {
-    fontWeight: "700",
-  },
-  hr: {
-    height: 1,
-    backgroundColor: "#000670",
-    width: "100%",
-  },
-  scroll: {
-    width: "100%",
-  },
-  scrollContent: {
-    gap: 6,
-    paddingBottom: 8,
-  },
-  empty: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#00067099",
-    fontStyle: "italic",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 12,
-    paddingVertical: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#00067033",
-  },
-  rowLabel: {
-    flex: 1,
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#000670",
-    fontWeight: "400",
-  },
-  rowCount: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#000670",
-    fontWeight: "700",
-    minWidth: 28,
-    textAlign: "right",
-  },
-});

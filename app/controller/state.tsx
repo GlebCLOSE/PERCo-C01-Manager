@@ -1,19 +1,70 @@
-import { Text, View, StyleSheet, ActivityIndicator } from "react-native";
-import { ExdevState } from "../../components/ui/blocks/exdevState";
-import { StateField } from "../../components/ui/elements/stateField";
-import { useState, useCallback } from "react";
-import { useControllerCommands } from "../../hooks/useControllerCommands";
-import ErrorModal from "../../components/ui/status/ErrorModal";
-import { Button } from "../../components/ui/elements/buttons/Button";
+import { Text, View, StyleSheet } from 'react-native';
+import { InlineLoading } from '../../components/ui/status/InlineLoading';
+import { ExdevState } from '../../components/ui/blocks/exdevState';
+import { StateField } from '../../components/ui/elements/stateField';
+import { useState, useCallback, useMemo } from 'react';
+import { useControllerCommands } from '../../hooks/useControllerCommands';
+import ErrorModal from '../../components/ui/status/ErrorModal';
+import { Button } from '../../components/ui/elements/buttons/Button';
 import { useFocusEffect } from 'expo-router';
+import { useTheme } from '../../providers/ThemeContext';
+import type { AppPalette } from '../../constants/theme';
+
+function createStyles(p: AppPalette) {
+    return StyleSheet.create({
+        title: {
+            flexDirection: 'row',
+            width: '100%',
+            justifyContent: 'space-between',
+        },
+        block: {
+            width: '100%',
+            gap: 10,
+            flexDirection: 'column',
+        },
+        textL: {
+            fontSize: 24,
+            fontFamily: 'inter',
+            fontWeight: '300',
+            color: p.sectionHeading,
+        },
+        textM: {
+            fontSize: 16,
+            fontFamily: 'inter',
+            fontWeight: '300',
+            color: p.textSecondary,
+        },
+        loadingOverlay: {
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: p.loadingOverlayBg,
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+        },
+    });
+}
 
 export default function StateScreen() {
-
-    const [type, setType] = useState('')
-    const [acm, setAcm] = useState('')
-    const [status, setStatus] = useState('')
-    const [pass, setPass] = useState('')
-    const [exdevs, setExdevs] = useState([{"number": 1, "type": "turnstyle", "physical_state" : ["",""], "unlock_state" : ["",""], "access_mode" : ["",""]}, {"number": 2, "type": "turnstyle", "physical_state" : ["",""], "unlock_state" : ["",""], "access_mode" : ["",""]}])
+    const [type, setType] = useState('');
+    const [acm, setAcm] = useState('');
+    const [status, setStatus] = useState('');
+    const [pass, setPass] = useState('');
+    const [exdevs, setExdevs] = useState([
+        {
+            number: 1,
+            type: 'turnstyle',
+            physical_state: ['', ''],
+            unlock_state: ['', ''],
+            access_mode: ['', ''],
+        },
+        {
+            number: 2,
+            type: 'turnstyle',
+            physical_state: ['', ''],
+            unlock_state: ['', ''],
+            access_mode: ['', ''],
+        },
+    ]);
 
     const [coverOn, setCoverOn] = useState('нет данных');
     const [ipMode, setIpMode] = useState('нет данных');
@@ -23,31 +74,27 @@ export default function StateScreen() {
     const [stateData, setStateData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
 
-    const { getState, getExdevInfo } = useControllerCommands()
+    const { palette } = useTheme();
+    const styles = useMemo(() => createStyles(palette), [palette]);
+
+    const { getState, getExdevInfo } = useControllerCommands();
 
     const handleGetState = useCallback(async () => {
         setIsLoading(true);
         try {
-            // 1. Получаем данные от контроллера
-            const data: any = await getState(); 
+            const data: any = await getState();
 
             if (data.answer?.state === 'ok') {
                 const state = data.state;
-                
-                // alert('Данные о состоянии получены успешно');
-                
-                const exdevArray: any[] = [{},{}]
+
+                const exdevArray: any[] = [{}, {}];
 
                 for (let i = 0; i < 2; i++) {
-                    // 2. Получаем данные номера и типа исполнительного устройства
                     const exdevInfo: any = await getExdevInfo(i);
-                    
+
                     exdevArray[i].number = i;
-                    // 3. Теперь обращение к ['type'] будет работать
                     exdevArray[i].type = exdevInfo.exdev['type'];
-                    
-                    
-                    // Проверьте, что state.exdev[i] существует, прежде чем брать индексы [0]
+
                     exdevArray[i].acm = state.exdev[i]['access_state']?.[0];
                     exdevArray[i].status = state.exdev[i]['unlock_state']?.[0];
                     exdevArray[i].pass = state.exdev[i]['physical_state']?.[0];
@@ -55,10 +102,8 @@ export default function StateScreen() {
 
                 setExdevs(exdevArray);
 
-                // Общие параметры контроллера
                 setCoverOn(state['cover_on'] ? 'Открыта' : 'Закрыта');
 
-                // Логика IP Mode
                 if (state['ip_mode'] === true) {
                     setIpMode('DHCP Mode');
                 } else if (state['ip_default'] === true) {
@@ -67,43 +112,42 @@ export default function StateScreen() {
                     setIpMode('Пользовательский режим');
                 }
 
-                setVoltage((state['value_suply'] / 1000) + ' В');
+                setVoltage(state['value_suply'] / 1000 + ' В');
             }
         } catch (error) {
-            console.error(error); 
+            console.error(error);
             setErrorMessage('Произошла непредвиденная ошибка при получении данных');
             setIsErrorModalVisible(true);
         } finally {
-            setIsLoading(false); // Выключаем спиннер в любом случае
+            setIsLoading(false);
         }
-    }, []); 
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
             handleGetState();
-
             return () => {};
-        }, [handleGetState])
+        }, [handleGetState]),
     );
 
-    const exdevStates = exdevs.map((el)=>{ 
+    const exdevStates = exdevs.map((el: any) => {
         return (
-        <ExdevState
-            key={el.number}
-            number={el.number} 
-            type={el.type} 
-            acm={el.acm} 
-            status={el.status} 
-            pass={el.pass} 
-         />
-        )
-    })
+            <ExdevState
+                key={el.number}
+                number={el.number}
+                type={el.type}
+                acm={el.acm}
+                status={el.status}
+                pass={el.pass}
+            />
+        );
+    });
 
     return (
         <View style={{ flex: 1, width: '100%', gap: 16 }}>
             <View style={styles.title}>
                 <Text style={styles.textL}>Состояние</Text>
-                <Button title='Обновить' onPress={handleGetState} size='S'/>
+                <Button title="Обновить" onPress={handleGetState} size="S" />
             </View>
             <View style={styles.block}>
                 <Text style={styles.textM}>Исполнительные устройства</Text>
@@ -111,60 +155,20 @@ export default function StateScreen() {
             </View>
             <View style={styles.block}>
                 <Text style={styles.textM}>Контроллер</Text>
-                <StateField 
-                    title={'Верхняя крышка'}
-                    value={coverOn}
-                />
-                <StateField 
-                    title={'Режим XP1'}
-                    value={ipMode}
-                />
-                <StateField 
-                    title={'Напряжение'}
-                    value={voltage}
-                />
+                <StateField title={'Верхняя крышка'} value={coverOn} />
+                <StateField title={'Режим XP1'} value={ipMode} />
+                <StateField title={'Напряжение'} value={voltage} />
                 <ErrorModal
                     visible={isErrorModalVisible}
                     message={errorMessage}
                     onClose={() => setIsErrorModalVisible(false)}
                 />
             </View>
-            {isLoading && (
+            {isLoading ? (
                 <View style={styles.loadingOverlay}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                    <Text style={{ marginTop: 10, color: '#fff' }}>Загрузка данных...</Text>
+                    <InlineLoading />
                 </View>
-            )}
+            ) : null}
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    title: {
-        flexDirection: 'row',
-        width: '100%',
-        justifyContent: 'space-between'
-    },
-    block: {
-        width: '100%',
-        gap: 10,
-        flexDirection: 'column'
-    },
-    textL: {
-        fontSize: 24,
-        fontFamily: 'inter',
-        fontWeight: '300'
-    },
-    textM: {
-        fontSize: 16,
-        fontFamily: 'inter',
-        fontWeight: '300'
-    },
-    loadingOverlay: {
-        ...StyleSheet.absoluteFillObject, // Растягивает на весь экран
-        backgroundColor: 'rgba(255, 255, 255, 0.21)', // Полупрозрачный фон
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000, // Чтобы быть поверх всех элементов
-    },
-})

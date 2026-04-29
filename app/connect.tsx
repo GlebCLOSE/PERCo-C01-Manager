@@ -1,6 +1,6 @@
-import { TextInput, View, Text, Image } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { Button } from '../components/ui/elements/buttons/Button';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import InputField from '../components/ui/elements/input/InputField';
@@ -9,27 +9,63 @@ import ErrorModal from '../components/ui/status/ErrorModal';
 import { attemptConnection } from '../utils/attemptConnection';
 import { useController } from '../providers/ControllerContext';
 import { saveDevice } from '../storage/deviceStorage';
+import { useTheme } from '../providers/ThemeContext';
+import type { AppPalette } from '../constants/theme';
 
 import { validateIP } from '../utils/validation/validateIP';
-import { validateDeviceName } from '../utils/validation/validateDeviceName'
+import { validateDeviceName } from '../utils/validation/validateDeviceName';
 import { validatePassword } from '../utils/validation/validatePassword';
-import Checkbox from 'expo-checkbox'
+import Checkbox from 'expo-checkbox';
+
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      gap: 10,
+    },
+    head: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'stretch',
+    },
+    title: {
+      fontSize: 24,
+      marginBottom: 30,
+      fontWeight: '300',
+      color: p.screenTitle,
+    },
+    checkbox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      width: '100%',
+      gap: 10,
+    },
+    text: {
+      fontSize: 20,
+      fontFamily: 'inter',
+      fontWeight: '400',
+      color: p.screenMutedText,
+    },
+  });
+}
 
 export default function ConnectForm() {
   const [ip, setIp] = useState('');
   const [password, setPassword] = useState('');
   const [deviceName, setDeviceName] = useState('');
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isChecked, setChecked] = useState(false);
-  const router = useRouter()
-  const { setGlobalSocket, isConnected } = useController();
+  const router = useRouter();
+  const { setGlobalSocket } = useController();
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
-
-  // Общая функция валидации формы
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
 
     const ipError = validateIP(ip);
     if (ipError) newErrors.ip = ipError;
@@ -49,32 +85,32 @@ export default function ConnectForm() {
       return;
     }
 
-      
-    // Если чекбокс "Запомнить устройство" отмечен - сохранить устройство
-    if(isChecked){
-      saveDevice(deviceName, ip, password)
+    if (isChecked) {
+      saveDevice(deviceName, ip, password);
     }
 
-
     try {
-      
-      const connectionResult = await attemptConnection(ip, password);
+      const connectionResult = (await attemptConnection(ip, password)) as {
+        success: boolean;
+        socket?: WebSocket;
+        message?: string;
+      };
 
-      if(connectionResult.success) {
-        setGlobalSocket(connectionResult.socket)
+      if (connectionResult.success && connectionResult.socket) {
+        setGlobalSocket(connectionResult.socket);
       }
 
       if (!connectionResult.success) {
-        // Показываем модальное окно с ошибкой
-        setErrorMessage(connectionResult.message || 'Не удалось подключиться к контроллеру C01');
+        setErrorMessage(
+          connectionResult.message ||
+            'Не удалось подключиться к контроллеру C01',
+        );
         setIsErrorModalVisible(true);
         return;
       }
 
-      // Успешное подключение — переход на экран управления
       router.push('/controller');
-    } catch (error) {
-      // Обработка сетевых ошибок и других исключений
+    } catch {
       setErrorMessage('Произошла непредвиденная ошибка при подключении');
       setIsErrorModalVisible(true);
     }
@@ -83,10 +119,9 @@ export default function ConnectForm() {
   return (
     <View style={styles.container}>
       <View style={styles.head}>
-        <Image source={require('../assets/status/connecting.png')}></Image>
+        <Image source={require('../assets/status/connecting.png')} />
         <Text style={styles.title}>Подключение к контроллеру</Text>
       </View>
-      {/* Поле IP‑адреса */}
       <IPAddressInput
         label="IP‑адрес"
         placeholder="192.168.1.1"
@@ -116,16 +151,12 @@ export default function ConnectForm() {
         <Checkbox
           value={isChecked}
           onValueChange={setChecked}
-          color={isChecked ? '#4630EB' : undefined}
+          color={isChecked ? palette.checkboxChecked : undefined}
         />
         <Text style={styles.text}>Запомнить устройство</Text>
       </View>
 
-      <Button
-        title="Подключиться"
-        onPress={handleConnect}
-        size={'M'}
-      />
+      <Button title="Подключиться" onPress={handleConnect} size={'M'} />
       <ErrorModal
         visible={isErrorModalVisible}
         message={errorMessage}
@@ -134,66 +165,3 @@ export default function ConnectForm() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    gap: 10
-  },
-  head: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'stretch'
-  },
-  block: {
-    gap: 5,
-    alignSelf: 'stretch'
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 30,
-    fontWeight: '300'
-  },
-  label: {
-    fontSize: 20,
-    fontStyle: 'normal',
-    color: '#1a225381'
-  },
-  placeholder: {
-    color: '#999999'
-  },
-  input: {
-    height: 50,
-    borderColor: '#1a225381',
-    borderWidth: 1,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    backgroundColor: '#96ced43d',
-    fontSize: 20,
-    alignSelf: 'stretch'
-  },
-  inputError: {
-    borderColor: 'red',
-    backgroundColor: '#ffe6e6'
-  },
-  errorText: {
-    color: 'red',
-    marginBottom: 10,
-    fontSize: 12,
-    alignSelf: 'stretch'
-  },
-  checkbox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    gap: 10
-  },
-  text: {
-    fontSize: 20,
-    fontFamily: 'inter',
-    fontWeight: '400',
-    color: '#1a225381',
-  }
-});

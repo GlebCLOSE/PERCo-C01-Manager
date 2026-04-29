@@ -1,19 +1,48 @@
 import { View, Text, StyleSheet } from "react-native"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
 import DropdownInput from "../ui/elements/input/DropdownInput"
 import { ReaderParams } from "../../hooks/useControllerConfig"
 import ModalText from "../ui/status/ModalText"
 import { useControllerConfig } from "../../hooks/useControllerConfig"
+import { useTheme } from "../../providers/ThemeContext"
+import type { AppPalette } from "../../constants/theme"
 
 interface ReaderDetailsProps {
     data: ReaderParams
 }
 
-export const ReaderDetails: React.FC<ReaderDetailsProps> = ({data}) => {
+function createStyles(p: AppPalette) {
+    return StyleSheet.create({
+        container: {
+            width: '100%',
+            gap: 7
+        },
+        smallText: {
+            fontFamily: 'inter',
+            fontSize: 12,
+            color: p.modalFormInk,
+            fontWeight: '300'
+        },
+        hr: {
+            height: 1,
+            backgroundColor: p.modalFormRule
+        },
+        horizontalBlock: {
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+        }
+    })
+}
+
+export const ReaderDetails: React.FC<ReaderDetailsProps> = ({ data }) => {
 
     const { setReaderConfig } = useControllerConfig()
+    const { palette } = useTheme()
+    const styles = useMemo(() => createStyles(palette), [palette])
+
     const [readerType, setReaderType] = useState(data["type"])
     const [readerPort, setReaderPort] = useState(data["port"])
     const [exdevDirection, setExdevDirection] = useState(data["exdev_number"])
@@ -41,25 +70,25 @@ export const ReaderDetails: React.FC<ReaderDetailsProps> = ({data}) => {
             const result = await setReaderConfig(payload);
             const isOk = result?.answer?.reader === 'ok';
             setResultMessage(isOk ? 'Конфигурация успешно установлена' : 'Ошибка при передаче данных');
-            } catch (e) {
+        } catch {
             setResultMessage('Сетевая ошибка');
-            }
+        }
         setIsModalVisible(true);
     };
 
     const readerTypeList = [
-        {label: 'Wiegand', value: 'Wiegand'},
-        {label: 'Сканер штрих-кода(RS-232)(без перевода строк)', value: 'Barcode'},
-        {label: 'Сканер штрих-кода(USB)(без перевода строк)', value: 'Barcode-USB'},
-        {label: 'Сканер штрих-кода(USB)', value: 'Barcode_terminator'},
-        {label: 'Сканер штрих-кода(USB)', value: "Barcode-USB_terminator"}
+        { label: 'Wiegand', value: 'Wiegand' },
+        { label: 'Сканер штрих-кода(RS-232)(без перевода строк)', value: 'Barcode' },
+        { label: 'Сканер штрих-кода(USB)(без перевода строк)', value: 'Barcode-USB' },
+        { label: 'Сканер штрих-кода(USB)', value: 'Barcode_terminator' },
+        { label: 'Сканер штрих-кода(USB)', value: "Barcode-USB_terminator" }
     ]
 
     return (
         <View style={styles.container}>
-            <Text style={styles.smallText}>Считыватель №{data["number"] + 1}</Text>
+            <Text style={styles.smallText}>Считыватель №{(data["number"] ?? 0) + 1}</Text>
             <View style={styles.hr}></View>
-            <DropdownInput 
+            <DropdownInput
                 label='Тип считывателя'
                 items={readerTypeList}
                 value={readerType}
@@ -67,64 +96,39 @@ export const ReaderDetails: React.FC<ReaderDetailsProps> = ({data}) => {
                 size='s'
             />
             <View style={styles.horizontalBlock}>
-                <DropdownInput 
+                <DropdownInput
                     label='Порт'
-                    items={[{label: '1', value: 0}, {label: '2', value: 1}, {label: '3', value: 2}, {label: '4', value: 3}, {label: '5', value: 4}, {label: '6', value: 5}, {label: '7', value: 6}, {label: '8', value: 7} ]}
+                    items={[{ label: '1', value: 0 }, { label: '2', value: 1 }, { label: '3', value: 2 }, { label: '4', value: 3 }, { label: '5', value: 4 }, { label: '6', value: 5 }, { label: '7', value: 6 }, { label: '8', value: 7 }]}
                     value={readerPort}
                     onChange={setReaderPort}
                     size='s'
                 />
-                <DropdownInput 
+                <DropdownInput
                     label='Номер ИУ'
-                    items={[{label: '1', value: 0}, {label: '2', value: 1}]}
+                    items={[{ label: '1', value: 0 }, { label: '2', value: 1 }]}
                     value={exdevNumber}
                     onChange={setExdevNumber}
                     size='s'
                 />
-                <DropdownInput 
+                <DropdownInput
                     label='Направление'
-                    items={[{label: '1', value: 0}, {label: '2', value: 1}]}
+                    items={[{ label: '1', value: 0 }, { label: '2', value: 1 }]}
                     value={exdevDirection}
                     onChange={setExdevDirection}
                     size='s'
-                />                
+                />
             </View>
             <ModalText
-                title={'Ответ'} 
+                title={'Ответ'}
                 message={resultMessage}
                 visible={isModalVisible}
-                onClose={()=> setIsModalVisible(false)}
+                onClose={() => setIsModalVisible(false)}
             />
-            <Button 
+            <Button
                 title='Сохранить'
-                onPress={()=>handleSetReaderSettings()}
+                onPress={() => handleSetReaderSettings()}
                 size="M"
             />
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    container: { 
-        width: '100%',
-        gap: 7 
-    },
-    smallText: {
-        fontFamily: 'inter',
-        fontSize: 12,
-        color: '#000670',
-        fontWeight: '300'
-    },
-    bold: {
-        fontWeight: '800'
-    },
-    hr: {
-        height: 1,
-        backgroundColor: '#000670'
-    },
-    horizontalBlock: {
-        width: '100%',
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    }
-})

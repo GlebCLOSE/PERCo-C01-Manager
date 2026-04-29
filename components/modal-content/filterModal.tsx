@@ -1,6 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { Button } from "../ui/elements/buttons/Button";
 import type { PercoEvent } from "../../types/events";
+import { useMemo } from "react";
+import { useTheme } from "../../providers/ThemeContext";
+import type { AppPalette } from "../../constants/theme";
 
 export const EVENT_TYPE_KEYS: PercoEvent["event"][] = [
   "card",
@@ -32,6 +35,69 @@ const LABELS: Record<PercoEvent["event"], string> = {
   output: "Выход (сигнал)",
 };
 
+function createStyles(p: AppPalette) {
+  const chipOffBg =
+    p.scheme === "dark" ? "rgba(255, 255, 255, 0.06)" : "#f0f4fa";
+  const chipOnBg = p.scheme === "dark" ? "rgba(100, 140, 255, 0.15)" : "#adc4ff50";
+  return StyleSheet.create({
+    wrap: {
+      width: "100%",
+      maxHeight: 400,
+      gap: 8,
+      marginTop: 8,
+    },
+    hint: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.modalFormInk,
+      fontWeight: "300",
+    },
+    actions: {
+      flexDirection: "row",
+      gap: 10,
+      justifyContent: "flex-start",
+      flexWrap: "wrap",
+    },
+    hr: {
+      height: 1,
+      backgroundColor: p.modalFormRule,
+      width: "100%",
+    },
+    scroll: {
+      width: "100%",
+    },
+    scrollContent: {
+      gap: 8,
+      paddingBottom: 8,
+    },
+    chip: {
+      borderWidth: 1,
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+    },
+    chipOn: {
+      backgroundColor: chipOnBg,
+      borderColor: p.cardBorder,
+    },
+    chipOff: {
+      backgroundColor: chipOffBg,
+      borderColor: p.modalFormRule,
+    },
+    chipText: {
+      fontFamily: "inter",
+      fontSize: 12,
+      fontWeight: "500",
+    },
+    chipTextOn: {
+      color: p.glassModalHeading,
+    },
+    chipTextOff: {
+      color: p.glassModalBody,
+    },
+  });
+}
+
 export type FilterModalProps = {
   enabled: ReadonlySet<PercoEvent["event"]>;
   onToggle: (key: PercoEvent["event"]) => void;
@@ -45,6 +111,9 @@ export const FilterModal = ({
   onSelectAll,
   onClearAll,
 }: FilterModalProps) => {
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
   return (
     <View style={styles.wrap}>
       <Text style={styles.hint}>
@@ -75,61 +144,3 @@ export const FilterModal = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  wrap: {
-    width: "100%",
-    maxHeight: 400,
-    gap: 8,
-    marginTop: 8,
-  },
-  hint: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#000670",
-    fontWeight: "300",
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 10,
-    justifyContent: "flex-start",
-    flexWrap: "wrap",
-  },
-  hr: {
-    height: 1,
-    backgroundColor: "#000670",
-    width: "100%",
-  },
-  scroll: {
-    width: "100%",
-  },
-  scrollContent: {
-    gap: 8,
-    paddingBottom: 8,
-  },
-  chip: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-  },
-  chipOn: {
-    backgroundColor: "#adc4ff50",
-    borderColor: "#00047080",
-  },
-  chipOff: {
-    backgroundColor: "#f5f5f5",
-    borderColor: "#00000022",
-  },
-  chipText: {
-    fontFamily: "inter",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  chipTextOn: {
-    color: "#000670",
-  },
-  chipTextOff: {
-    color: "#00067088",
-  },
-});

@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, FlatList } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "expo-router";
 import { Button } from "../components/ui/elements/buttons/Button";
 import { RememberedDevice } from "../components/ui/blocks/rememberedDevice";
@@ -7,9 +7,80 @@ import { Device } from "../types/device";
 import { getDevices, removeDevice } from "../storage/deviceStorage";
 import { ModalChildren } from "../components/ui/status/ModalChildren";
 import { AddDeviceModal } from "../components/modal-content/addDeviceModal";
+import { useTheme } from "../providers/ThemeContext";
+import type { AppPalette } from "../constants/theme";
+
+function createStyles(_p: AppPalette) {
+  return StyleSheet.create({
+    window: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: _p.listWindowBorder,
+      backgroundColor: _p.rememberedPaneBg,
+      borderRadius: 10,
+      overflow: "hidden",
+    },
+    header: {
+      backgroundColor: _p.listSelectedBg,
+      width: "100%",
+      minHeight: 34,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 7,
+      paddingVertical: 7,
+      gap: 10,
+    },
+    headerText: {
+      flex: 1,
+      fontSize: 16,
+      color: _p.listSelectedText,
+    },
+    headerButton: {
+      backgroundColor: "#ffffff2a",
+      borderWidth: 1,
+      borderColor: "#ffffff55",
+      paddingHorizontal: 12,
+    },
+    headerButtonText: {
+      color: "#ffffff",
+    },
+    list: {
+      flex: 1,
+      flexDirection: "column",
+      width: "100%",
+      padding: 7,
+      gap: 7,
+    },
+    footer: {
+      width: "100%",
+      paddingHorizontal: 7,
+      paddingTop: 4,
+      paddingBottom: 10,
+      backgroundColor: _p.rememberedFooterBg,
+      borderTopWidth: 1,
+      borderTopColor: _p.listWindowBorder,
+    },
+    addDeviceButton: {
+      width: "100%",
+      alignSelf: "stretch",
+    },
+    emptyText: {
+      fontSize: 14,
+      color: _p.textSecondary,
+      textAlign: "center",
+    },
+    emptyList: {
+      flexGrow: 1,
+      justifyContent: "center",
+    },
+  });
+}
 
 export default function RememberedScreen() {
   const router = useRouter();
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
   const [devices, setDevices] = useState<Device[]>([]);
   const [addModalVisible, setAddModalVisible] = useState(false);
 
@@ -90,67 +161,3 @@ export default function RememberedScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  window: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#00067033",
-    backgroundColor: "#e8f8ff73",
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  header: {
-    backgroundColor: "#0A3A99",
-    width: "100%",
-    minHeight: 34,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 7,
-    paddingVertical: 7,
-    gap: 10,
-  },
-  headerText: {
-    flex: 1,
-    fontSize: 16,
-    color: "#ffffffe0",
-  },
-  headerButton: {
-    backgroundColor: "#ffffff2a",
-    borderWidth: 1,
-    borderColor: "#ffffff55",
-    paddingHorizontal: 12,
-  },
-  headerButtonText: {
-    color: "#ffffff",
-  },
-  list: {
-    flex: 1,
-    flexDirection: "column",
-    width: "100%",
-    padding: 7,
-    gap: 7,
-  },
-  footer: {
-    width: "100%",
-    paddingHorizontal: 7,
-    paddingTop: 4,
-    paddingBottom: 10,
-    backgroundColor: "#e8f8ff73",
-    borderTopWidth: 1,
-    borderTopColor: "#00067022",
-  },
-  addDeviceButton: {
-    width: "100%",
-    alignSelf: "stretch",
-  },
-  emptyText: {
-    fontSize: 14,
-    color: "#00067099",
-    textAlign: "center",
-  },
-  emptyList: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-});

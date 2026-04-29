@@ -1,19 +1,83 @@
-import React, { Children } from 'react';
+import React, { useMemo } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { IconButton } from '../elements/buttons/IconButton';
 import { BlurView } from 'expo-blur';
+import { useTheme } from '../../../providers/ThemeContext';
+import type { AppPalette } from '../../../constants/theme';
 
 interface ErrorModalProps {
   title: string;
   visible: boolean;
   isWarn?: boolean;
   onClose: () => void;
-  children?: React.ReactNode; 
+  children?: React.ReactNode;
 }
 
-export const ModalChildren = ({ title, visible, isWarn=false, onClose, children }: ErrorModalProps) => {
-   
-  const iconClose = require('../../../assets/icons/close.png')
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    modalOverlay: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: p.overlayStrong,
+    },
+    modalWrapper: {
+      width: '90%',
+      backgroundColor: p.modalGlass,
+      borderRadius: 20,
+      borderColor: p.modalGlassBorder,
+      borderWidth: 1,
+      overflow: 'hidden',
+    },
+    wrapperWarn: {
+      backgroundColor: p.modalGlassWarn,
+      borderRadius: 20,
+      borderColor: p.modalGlassBorder,
+    },
+    modalContainer: {
+      padding: 20,
+      borderRadius: 20,
+      alignItems: 'center',
+    },
+    modalTitle: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: p.glassModalHeading,
+    },
+    titleWarn: {
+      color: p.modalTitleWarn,
+    },
+    modalMessage: {
+      fontSize: 14,
+      marginBottom: 20,
+      textAlign: 'center',
+      color: p.modalBodyMuted,
+    },
+    closeButton: {
+      backgroundColor: p.modalActionBlue,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 5,
+    },
+    closeButtonText: {
+      color: p.textOnPrimary,
+      fontWeight: 'bold',
+    },
+  });
+}
+
+export const ModalChildren = ({
+  title,
+  visible,
+  isWarn = false,
+  onClose,
+  children,
+}: ErrorModalProps) => {
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
+  const iconClose = require('../../../assets/icons/close.png');
+
   return (
     <Modal
       animationType="fade"
@@ -22,17 +86,31 @@ export const ModalChildren = ({ title, visible, isWarn=false, onClose, children 
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalWrapper, isWarn&&styles.wrapperWarn]}>
-          <BlurView 
-            intensity={60}
-            tint="light"
+        <View style={[styles.modalWrapper, isWarn && styles.wrapperWarn]}>
+          <BlurView
+            intensity={68}
+            tint={palette.blurTint}
             experimentalBlurMethod={'dimezisBlurView'}
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.modalContainer}>
-            <View style={{flexDirection: 'row', width:'100%', justifyContent:'space-between', alignItems: 'center'}}>
-                <Text style={[styles.modalTitle, isWarn&&styles.titleWarn]}>{title}</Text>
-                <IconButton hasBorder={false} onPress={onClose} size={'s'} icon={iconClose}/>
+            <View
+              style={{
+                flexDirection: 'row',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={[styles.modalTitle, isWarn && styles.titleWarn]}>
+                {title}
+              </Text>
+              <IconButton
+                hasBorder={false}
+                onPress={onClose}
+                size={'s'}
+                icon={iconClose}
+              />
             </View>
             {children}
           </View>
@@ -40,55 +118,4 @@ export const ModalChildren = ({ title, visible, isWarn=false, onClose, children 
       </View>
     </Modal>
   );
-}
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalWrapper: {
-    width: '90%',
-    backgroundColor: '#ffffffb4',
-    borderRadius: 20,
-    borderColor: '#ffffff86',
-    borderWidth: 1,
-    overflow: 'hidden'
-  },
-  wrapperWarn: {
-    backgroundColor: '#fff1e99c',
-    borderRadius: 20,
-    borderColor: '#ffffff86',
-  },
-  modalContainer: {
-    padding: 20,
-    borderRadius: 20,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#000670e1',
-  },
-  titleWarn: {
-    color: '#580000e1',
-  },
-  modalMessage: {
-    fontSize: 14,
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#4d4d4d',
-  },
-  closeButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  closeButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-});
+};

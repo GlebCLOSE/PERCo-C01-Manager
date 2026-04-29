@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { PercoEvent, shortEventLabel } from "../../../types/events"
+import { semanticLineColors as c } from "../../../constants/theme"
 
 type EventLineProps = {
     event: PercoEvent
@@ -104,9 +105,9 @@ export const EventLine = ({ event, receivedAt, onPress }: EventLineProps) => {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#adc4ff31',
+        backgroundColor: c.padDefaultBg,
         borderWidth: 1,
-        borderColor: '#00047060',
+        borderColor: c.padDefaultBorder,
         width: '100%',
         alignItems: 'flex-start',
         justifyContent: 'flex-start',
@@ -115,49 +116,49 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         borderRadius: 5,
         gap: 20,
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25), inset -3px -3px 15px rgba(0, 0, 0, 0.25)'
+        boxShadow: c.padDefaultShadow,
     },
     containerYellow: {
-        borderColor: '#ab7500c0',
-        backgroundColor: '#fff7b29d'
+        borderColor: c.yellowBorder,
+        backgroundColor: c.yellowBg,
     },
     textYellow: {
-        color: '#ab7500c0'
+        color: c.yellowText,
     },
     containerGreen: {
-        borderColor: '#254426a6',
-        backgroundColor: '#a3eca7a8'
+        borderColor: c.greenBorder,
+        backgroundColor: c.greenBg,
     },
     textGreen: {
-        color: '#254426c2'
+        color: c.greenText,
     },
     containerOrange: {
-        borderColor: '#ab7500c0',
-        backgroundColor: '#ffcd82ad'
+        borderColor: c.orangeBorder,
+        backgroundColor: c.orangeBg,
     },
     textOrange: {
-        color: '#ab7500da'
+        color: c.orangeText,
     },
     containerRed: {
-        borderColor: '#a70707bd',
-        backgroundColor: '#ff3f3f8e'
+        borderColor: c.redBorder,
+        backgroundColor: c.redBg,
     },
     textRed: {
-        color: '#7c0707d2'
+        color: c.redText,
     },
     containerBlue: {
-        borderColor: '#32117Ac0',
-        backgroundColor: '#82DCFF9d'
+        borderColor: c.blueBorder,
+        backgroundColor: c.blueBg,
     },
     textBlue: {
-        color: '#32117Ac0'
+        color: c.blueText,
     },
     containerLime: {
-        borderColor: '#457A11c0',
-        backgroundColor: '#85f1a7ab'
+        borderColor: c.limeBorder,
+        backgroundColor: c.limeBg,
     },
     textLime: {
-        color: '#457A11c0'
+        color: c.limeText,
     },
     date: {
         flexDirection: 'column',
@@ -167,9 +168,11 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 14,
         fontWeight: 'bold',
+        color: c.defaultTextMuted,
     },
     textDate: {
         fontSize: 10,
         fontWeight: 'light',
+        color: c.defaultTextMuted,
     },
 })
