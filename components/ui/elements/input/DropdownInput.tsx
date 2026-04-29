@@ -1,8 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, type TextStyle } from 'react-native';
+import { View, Text, StyleSheet, Image, type TextStyle } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { useTheme } from '../../../../providers/ThemeContext';
 import type { AppPalette } from '../../../../constants/theme';
+
+const arrowDropdownLight = require('../../../../assets/icons/arrow-dropdown-blue.png');
+const arrowDropdownDark = require('../../../../assets/icons/dark-theme/arrow-dropdown-white.png');
 
 interface DropdownItem {
   label: string;
@@ -68,13 +71,37 @@ const DropdownInput: React.FC<Props> = ({
   const isSmall = size === 's';
   const labelFontSize = isSmall ? 14 : 20;
 
+  const CHEVRON_SIZE = isSmall ? 12 : 14;
+
   const dynamicPickerStyles = {
     inputIOS: ps.commonInput,
     inputAndroid: ps.commonInput,
     inputIOSContainer: ps.heightContainer,
     inputAndroidContainer: ps.heightContainer,
     placeholder: ps.placeholderText,
+    iconContainer: {
+      justifyContent: 'center' as const,
+      alignSelf: 'center' as const,
+      height: 41,
+      paddingRight: 10,
+      marginTop: 0,
+    },
   };
+
+  const DropdownChevron = useMemo(() => {
+    const source = palette.scheme === 'dark' ? arrowDropdownDark : arrowDropdownLight;
+    return function Chevron(props: { testID?: string }) {
+      return (
+        <View testID={props.testID}>
+          <Image
+            source={source}
+            style={{ width: CHEVRON_SIZE + 10, height: CHEVRON_SIZE }}
+            resizeMode="contain"
+          />
+        </View>
+      );
+    };
+  }, [palette.scheme, CHEVRON_SIZE]);
 
   return (
     <View style={dropdownContainerStyle}>
@@ -89,6 +116,7 @@ const DropdownInput: React.FC<Props> = ({
         placeholder={placeholder ? { label: placeholder as string, value: null } : {}}
         style={dynamicPickerStyles}
         useNativeAndroidPickerStyle={false}
+        Icon={DropdownChevron}
       />
     </View>
   );
