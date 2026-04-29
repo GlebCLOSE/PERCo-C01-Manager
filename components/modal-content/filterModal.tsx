@@ -27,7 +27,7 @@ const LABELS: Record<PercoEvent["event"], string> = {
   pass_ban_impersonal: "Блокировка прохода обезличенный",
   break: "Взлом ИУ",
   exdev_long_open: "Длительное открытие ИУ",
-  exdev_unlock: "Разблокировка ИУ",
+  exdev_unlock: "Блокировка / разблокировка ИУ",
   input: "Вход (сигнал)",
   output: "Выход (сигнал)",
 };

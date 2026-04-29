@@ -1,15 +1,18 @@
-import { View, Text, StyleSheet } from "react-native"
-import { handleEvent, PercoEvent } from "../../../types/events"
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
+import { PercoEvent, shortEventLabel } from "../../../types/events"
 
-export const EventLine = ({ event, receivedAt }: { event: PercoEvent; receivedAt: number }) => {
+type EventLineProps = {
+    event: PercoEvent
+    receivedAt: number
+    onPress?: () => void
+}
 
+export const EventLine = ({ event, receivedAt, onPress }: EventLineProps) => {
 
-    const name = handleEvent(event)
+    const shortTitle = shortEventLabel(event)
     const dt = new Date(receivedAt)
     const date = dt.toLocaleDateString()
     const time = dt.toLocaleTimeString()
-
-    //Определение стилей в зависимости от типа события
     let lineStyle: Array<object> = [styles.container]
     let textStyle: Array<object> = [styles.text]
     switch(event.event){
@@ -50,8 +53,13 @@ export const EventLine = ({ event, receivedAt }: { event: PercoEvent; receivedAt
             textStyle = [styles.text, styles.textYellow]
         break
         case 'exdev_unlock':
-            lineStyle = [styles.container, styles.containerGreen]
-            textStyle = [styles.text, styles.textGreen]
+            if (!event.exdev_unlock.unlock) {
+                lineStyle = [styles.container, styles.containerYellow]
+                textStyle = [styles.text, styles.textYellow]
+            } else {
+                lineStyle = [styles.container, styles.containerGreen]
+                textStyle = [styles.text, styles.textGreen]
+            }
         break
         case 'input':
             lineStyle = [styles.container, styles.containerYellow]
@@ -63,13 +71,33 @@ export const EventLine = ({ event, receivedAt }: { event: PercoEvent; receivedAt
         break
     }
 
-    return (
-        <View style={lineStyle}>
+    const content = (
+        <>
             <View style={styles.date}>
                 <Text style={styles.textDate}>{date}</Text>
                 <Text style={styles.textDate}>{time}</Text>
             </View>
-            <Text style={textStyle}>{name}</Text>
+            <Text style={textStyle} numberOfLines={2}>{shortTitle}</Text>
+        </>
+    )
+
+    if (onPress) {
+        return (
+            <TouchableOpacity
+              style={lineStyle}
+              onPress={onPress}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityHint="Показать подробности события"
+            >
+                {content}
+            </TouchableOpacity>
+        )
+    }
+
+    return (
+        <View style={lineStyle}>
+            {content}
         </View>
     )
 }
@@ -136,6 +164,7 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     text: {
+        flex: 1,
         fontSize: 14,
         fontWeight: 'bold',
     },

@@ -62,6 +62,123 @@ export type PercoEvent =
       } 
     };
 
+/** Краткая подпись типа события для списка (одна строка). */
+export const shortEventLabel = (data: PercoEvent): string => {
+  switch (data.event) {
+    case 'card':
+      return 'Предъявление карты';
+    case 'pass_personal':
+      return 'Проход по карте';
+    case 'pass_impersonal':
+      return 'Проход обезличенный';
+    case 'refusal_personal':
+      return 'Отказ по карте';
+    case 'refusal_impersonal':
+      return 'Отказ обезличенный';
+    case 'pass_ban_personal':
+      return 'Блокировка по карте';
+    case 'pass_ban_impersonal':
+      return 'Блокировка обезличенная';
+    case 'break':
+      return 'Взлом ИУ';
+    case 'exdev_long_open':
+      return 'Долгое открытие ИУ';
+    case 'exdev_unlock':
+      return data.exdev_unlock.unlock ? 'Разблокировка ИУ' : 'Блокировка ИУ';
+    case 'input':
+      return 'Входной сигнал';
+    case 'output':
+      return 'Выходной сигнал';
+  }
+};
+
+export type EventDetailRow = { label: string; value: string };
+
+/** Структурированные поля для экрана деталей (ИУ, направление, ID и т.д.). */
+export const getEventDetailRows = (data: PercoEvent): EventDetailRow[] => {
+  const dir = (d: 0 | 1) => (d === 0 ? 'Вход' : 'Выход');
+
+  switch (data.event) {
+    case 'card':
+      return [
+        { label: 'ИУ', value: String(data.card.number + 1) },
+        { label: 'Направление', value: dir(data.card.direction) },
+        { label: 'Идентификатор карты', value: data.card.id },
+      ];
+    case 'pass_personal':
+      return [
+        { label: 'ИУ', value: String(data.pass_personal.number + 1) },
+        { label: 'Направление', value: dir(data.pass_personal.direction) },
+        { label: 'Идентификатор карты', value: data.pass_personal.id },
+        { label: 'Изъятие карты', value: data.pass_personal.remove_card ? 'Да' : 'Нет' },
+      ];
+    case 'pass_impersonal':
+      return [
+        { label: 'ИУ', value: String(data.pass_impersonal.number + 1) },
+        { label: 'Направление', value: dir(data.pass_impersonal.direction) },
+        { label: 'Источник команды', value: data.pass_impersonal.command_source },
+      ];
+    case 'refusal_personal':
+      return [
+        { label: 'ИУ', value: String(data.refusal_personal.number + 1) },
+        { label: 'Направление', value: dir(data.refusal_personal.direction) },
+        { label: 'Идентификатор карты', value: data.refusal_personal.id },
+        { label: 'Изъятие карты', value: data.refusal_personal.remove_card ? 'Да' : 'Нет' },
+      ];
+    case 'refusal_impersonal':
+      return [
+        { label: 'ИУ', value: String(data.refusal_impersonal.number + 1) },
+        { label: 'Направление', value: dir(data.refusal_impersonal.direction) },
+        { label: 'Источник команды', value: data.refusal_impersonal.command_source },
+      ];
+    case 'pass_ban_personal':
+      return [
+        { label: 'ИУ', value: String(data.pass_ban_personal.number + 1) },
+        { label: 'Направление', value: dir(data.pass_ban_personal.direction) },
+        { label: 'Идентификатор карты', value: data.pass_ban_personal.id },
+        { label: 'Изъятие карты', value: data.pass_ban_personal.remove_card ? 'Да' : 'Нет' },
+        { label: 'Источник команды', value: data.pass_ban_personal.command_source },
+      ];
+    case 'pass_ban_impersonal':
+      return [
+        { label: 'ИУ', value: String(data.pass_ban_impersonal.number + 1) },
+        { label: 'Направление', value: dir(data.pass_ban_impersonal.direction) },
+        { label: 'Источник команды', value: data.pass_ban_impersonal.command_source },
+      ];
+    case 'break':
+      return [
+        { label: 'ИУ', value: String(data.break.number + 1) },
+        { label: 'Направление', value: dir(data.break.direction) },
+      ];
+    case 'exdev_long_open':
+      return [
+        { label: 'ИУ', value: String(data.exdev_long_open.number + 1) },
+        { label: 'Направление', value: dir(data.exdev_long_open.direction) },
+      ];
+    case 'exdev_unlock':
+      return [
+        { label: 'ИУ', value: String(data.exdev_unlock.number + 1) },
+        { label: 'Направление', value: dir(data.exdev_unlock.direction) },
+        {
+          label: 'Действие',
+          value: data.exdev_unlock.unlock ? 'Разблокировка' : 'Блокировка',
+        },
+      ];
+    case 'input':
+      return [
+        { label: 'Вход №', value: String(data.input.number + 1) },
+        { label: 'Состояние', value: data.input.on ? 'Активизация' : 'Нормализация' },
+        { label: 'Функция', value: data.input.function },
+      ];
+    case 'output':
+      return [
+        { label: 'Выход №', value: String(data.output.number + 1) },
+        { label: 'Состояние', value: data.output.on ? 'Активизация' : 'Нормализация' },
+        { label: 'Функция', value: data.output.function },
+      ];
+  }
+};
+
 // Пример использования (Type Guard)
 export const handleEvent = (data: PercoEvent) => {
     let eventName = ''
@@ -94,7 +211,16 @@ export const handleEvent = (data: PercoEvent) => {
       eventName = 'Недопустимо длительное открытие ИУ' + (data.exdev_long_open.number + 1) + ' направление ' + (data.exdev_long_open.direction === 0 ? 'Вход' : 'Выход')
       break;
     case 'exdev_unlock':
-      eventName = 'Разблокировка ИУ' + (data.exdev_unlock.number + 1) + ' направление ' + (data.exdev_unlock.direction === 0 ? 'Вход' : 'Выход') + ' разблокировка ' + data.exdev_unlock.unlock
+      {
+        const u = data.exdev_unlock;
+        const kind = u.unlock ? 'Разблокировка' : 'Блокировка';
+        eventName =
+          kind +
+          ' ИУ' +
+          (u.number + 1) +
+          ' направление ' +
+          (u.direction === 0 ? 'Вход' : 'Выход');
+      }
       break;
     case 'input':
       eventName = 'Вход' + (data.input.number + 1)   + ' активизация ' + data.input.on + ' функция ' + data.input.function

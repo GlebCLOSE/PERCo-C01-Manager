@@ -10,10 +10,16 @@ import {
     EVENT_TYPE_KEYS,
 } from "../../components/modal-content/filterModal";
 import { LogModal } from "../../components/modal-content/logModal";
-import type { PercoEvent } from "../../types/events";
+import { EventDetailModal } from "../../components/modal-content/eventDetailModal";
+import { shortEventLabel, type PercoEvent } from "../../types/events";
 
 
 export default function EventsScreen() {
+
+    const [detailSelection, setDetailSelection] = useState<{
+        event: PercoEvent;
+        receivedAt: number;
+    } | null>(null);
 
     const [modalType, setModalType] = useState(''); // 'STATS' | 'FILTER' | 'LOG' | ''
 
@@ -87,9 +93,35 @@ export default function EventsScreen() {
             </View>
             <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
                 {visibleEvents.slice().reverse().map((e, idx) => (
-                    <EventLine key={`${e.receivedAt}-${idx}`} event={e.event} receivedAt={e.receivedAt} />
+                    <EventLine
+                        key={`${e.receivedAt}-${idx}`}
+                        event={e.event}
+                        receivedAt={e.receivedAt}
+                        onPress={() =>
+                            setDetailSelection({
+                                event: e.event,
+                                receivedAt: e.receivedAt,
+                            })
+                        }
+                    />
                 ))}
             </ScrollView>
+            <ModalChildren
+                title={
+                    detailSelection
+                        ? shortEventLabel(detailSelection.event)
+                        : ""
+                }
+                visible={detailSelection !== null}
+                onClose={() => setDetailSelection(null)}
+            >
+                {detailSelection ? (
+                    <EventDetailModal
+                        event={detailSelection.event}
+                        receivedAt={detailSelection.receivedAt}
+                    />
+                ) : null}
+            </ModalChildren>
             <ModalChildren title={modalTitle} visible={modalType !== ''} onClose={closeModal} isWarn={isWarn}>
                 {renderModalContent()}
             </ModalChildren>
