@@ -1,7 +1,7 @@
 import { Text, ScrollView, View, StyleSheet } from "react-native";
 import { useState } from "react";
 import { validateIP } from "../../../utils/validation/validateIP";
-import InputField from "../../../components/ui/elements/input/InputField";
+import IPAddressInput from "../../../components/ui/elements/input/IPAddressInput";
 import { WarningText } from "../../../components/ui/blocks/warningText";
 import ErrorModal from "../../../components/ui/status/ErrorModal";
 import { ButtonSquare } from "../../../components/ui/elements/buttons/buttonSquare";
@@ -92,7 +92,6 @@ export default function NetworkScreen() {
     };
 
     return (
-        <>
             <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
                 <Text style={styles.title}>Сетевые настройки</Text>
                 <View style={styles.blockButtons}>
@@ -101,29 +100,26 @@ export default function NetworkScreen() {
                     <ButtonSquare title='Сброс до заводских' onPress={()=>{setModalType('FACTORY')}} icon={require('../../../assets/icons/factory.png')} isYellow={true} />
                 </View>
                 <WarningText text="При замене IP-адреса потеряется связь с контроллером. Потребуется повторное подключение"/>
-                <InputField
+                <IPAddressInput
                 label="IP‑адрес"
                 placeholder="192.168.1.144"
                 value={ip}
                 onChangeText={setIp}
                 error={errors.ip}
-                keyboardType="numeric"
                 />
-                <InputField
+                <IPAddressInput
                 label="Маска подсети"
                 placeholder="255.0.0.0"
                 value={mask}
                 onChangeText={setMask}
                 error={errors.mask}
-                keyboardType="numeric"
                 />
-                <InputField
+                <IPAddressInput
                 label="Шлюз"
                 placeholder="192.168.1.1"
                 value={gateway}
                 onChangeText={setGateway}
                 error={errors.gateway}
-                keyboardType="numeric"
                 />
                 <Button title='Отправить' onPress={()=>{}} size='M'/>
                 <ErrorModal
@@ -135,7 +131,6 @@ export default function NetworkScreen() {
                     {renderModalContent()}
                 </ModalChildren>
             </ScrollView>
-        </>
     );
 }
 

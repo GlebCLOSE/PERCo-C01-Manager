@@ -1,6 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, type TextStyle } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+
+/** Тёмно-синий текст выбранного значения в строке выпадающего списка. */
+const FIELD_TEXT_COLOR = '#1A2253';
+
+/** Текст плейсхолдера («выберите…»): тот же синий тон, прозрачнее значения поля */
+const PLACEHOLDER_TEXT_COLOR = 'rgba(26, 34, 83, 0.28)';
 
 // Описываем интерфейс элемента списка
 interface DropdownItem {
@@ -28,6 +34,7 @@ const DropdownInput: React.FC<Props> = ({ size='m', label, items, placeholder, o
     inputAndroid: pickerSelectStyles.commonInput,
     inputIOSContainer: pickerSelectStyles.heightContainer,
     inputAndroidContainer: pickerSelectStyles.heightContainer,
+    placeholder: pickerSelectStyles.placeholderText,
   };
 
   return (
@@ -62,19 +69,23 @@ const pickerSelectStyles = {
   heightContainer: {
     height: 41,
   },
+  placeholderText: {
+    color: PLACEHOLDER_TEXT_COLOR,
+    fontSize: 20,
+  } satisfies TextStyle,
   commonInput: {
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#1a225381',
     borderRadius: 8,
-    color: 'black',
+    color: FIELD_TEXT_COLOR,
     paddingRight: 30,
     backgroundColor: '#c3dde03d',
     height: 41,
     fontSize: 20,
     paddingVertical: 0,
     textAlignVertical: 'center',
-  },
+  } satisfies TextStyle,
 };
 
 export default DropdownInput;

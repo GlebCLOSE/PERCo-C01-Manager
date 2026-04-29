@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, Alert, ScrollView } from "react-native";
 import { useState } from "react";
 import { Button } from "../ui/elements/buttons/Button";
 import InputField from "../ui/elements/input/InputField";
+import IPAddressInput from "../ui/elements/input/IPAddressInput";
 import { saveDevice } from "../../storage/deviceStorage";
 import { validateIP } from "../../utils/validation/validateIP";
 import { validateDeviceName } from "../../utils/validation/validateDeviceName";
@@ -67,13 +68,12 @@ export const AddDeviceModal = ({ onSaved }: AddDeviceModalProps) => {
           onChangeText={setName}
           error={errors.name}
         />
-        <InputField
+        <IPAddressInput
           label="IP-адрес"
           size="s"
           placeholder="192.168.1.1"
           value={ip}
           onChangeText={setIp}
-          keyboardType="decimal-pad"
           error={errors.ip}
         />
         <InputField

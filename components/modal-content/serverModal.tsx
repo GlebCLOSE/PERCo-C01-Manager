@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native"
 import { useState } from "react"
 import { Button } from "../ui/elements/buttons/Button"
-import InputField from "../ui/elements/input/InputField"
+import IPAddressInput from "../ui/elements/input/IPAddressInput"
 
 export const ServerModal = () => {
 
@@ -11,7 +11,7 @@ export const ServerModal = () => {
         <View style={styles.container}>
             <Text style={styles.smallText}>Укажите IP-адрес сервера, для настройки обратного подключения от контроллера к серверу.</Text>
             <View style={styles.hr}></View>
-            <InputField 
+            <IPAddressInput 
                 label='IP-адрес сервера'
                 size='s'
                 placeholder="192.168.1.1"

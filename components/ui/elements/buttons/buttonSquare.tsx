@@ -15,7 +15,7 @@ export const ButtonSquare: React.FC<CustomButtonProps> = ({ title, onPress, icon
     style={[styles.button, isYellow && styles.buttonYellow]}
     onPress={onPress}
     >
-        <Image source={icon} style={{height: 34, width: 34}}/>
+        <Image source={icon} style={{height: 34, width: 34}} resizeMode='contain'/>
         <Text style={[styles.buttonText, isYellow && styles.textYellow]}>{title}</Text>
     </TouchableOpacity>
   );

@@ -1,6 +1,11 @@
 import React from 'react';
 import { TextInput, View, Text, StyleSheet } from 'react-native';
 
+/** Тёмно-синий введённый текст — как в интерфейсе приложения. */
+const FIELD_TEXT_COLOR = '#1A2253';
+/** Подсказка-пример в поле: тот же синий тон, заметно прозрачнее основного текста */
+const PLACEHOLDER_TEXT_COLOR = 'rgba(26, 34, 83, 0.28)';
+
 interface InputFieldProps {
   size?: 's' | 'm' |undefined;
   label: string;
@@ -42,7 +47,7 @@ export default function InputField({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#010f5e3d"
+        placeholderTextColor={PLACEHOLDER_TEXT_COLOR}
         secureTextEntry={secureTextEntry}
         multiline={multiline}
         numberOfLines={numberOfLines}
@@ -83,6 +88,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#96ced43d',
     fontSize: 20,
+    color: FIELD_TEXT_COLOR,
     alignSelf: 'stretch',
     paddingVertical: 0,
     textAlignVertical: 'center',
@@ -95,6 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#96ced43d',
     fontSize: 20,
+    color: FIELD_TEXT_COLOR,
     alignSelf: 'stretch',
     paddingVertical: 0,
     textAlignVertical: 'center',

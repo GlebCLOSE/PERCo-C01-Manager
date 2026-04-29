@@ -82,7 +82,7 @@ export default function ExdevScreen() {
             <ModalChildren title={exdevTitle} visible={activeExdev !== ''} onClose={closeModal}>
                 <ExdevDetails data={activeExdev}/>
             </ModalChildren>
-            <ButtonSquare title='Добавить считыватель' onPress={()=>{}} icon={require('../../../assets/icons/addReader.png')}/>
+            <ButtonSquare title='Добавить ИУ' onPress={()=>{}} icon={require('../../../assets/icons/addiu.png')}/>
             {isLoading && (
                 <View style={styles.loadingOverlay}>
                     <ActivityIndicator size="large" color="#0000ff" />

@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface MyComponentProps {
@@ -11,13 +11,9 @@ export const Main: React.FC<MyComponentProps> = ({ children }) => {
     <LinearGradient
       colors={['#DDE3F2', '#F6F9FF', '#CFD8EE']}
       style={styles.background}
-    >
-      <View style={styles.container}>
-        {children}
-      </View>
-    </LinearGradient>
+    ><View style={styles.container}>{children}</View></LinearGradient>
   );
-}
+};
 
 const styles = StyleSheet.create({
   background: {

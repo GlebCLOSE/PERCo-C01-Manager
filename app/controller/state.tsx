@@ -100,7 +100,7 @@ export default function StateScreen() {
     })
 
     return (
-        <>
+        <View style={{ flex: 1, width: '100%', gap: 16 }}>
             <View style={styles.title}>
                 <Text style={styles.textL}>Состояние</Text>
                 <Button title='Обновить' onPress={handleGetState} size='S'/>
@@ -135,7 +135,7 @@ export default function StateScreen() {
                     <Text style={{ marginTop: 10, color: '#fff' }}>Загрузка данных...</Text>
                 </View>
             )}
-        </>
+        </View>
     );
 }
 

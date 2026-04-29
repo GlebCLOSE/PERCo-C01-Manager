@@ -1,4 +1,4 @@
-import { Text, StyleSheet, ScrollView, View, FlatList, ActivityIndicator } from "react-native";
+import { Text, StyleSheet, View, FlatList, ActivityIndicator } from "react-native";
 import { WarningText } from "../../../components/ui/blocks/warningText";
 import { PadLine } from "../../../components/ui/blocks/padLine";
 import { PadDetails } from "../../../components/modal-content/padDetails";
@@ -66,54 +66,66 @@ export default function PadsScreen() {
     }
 
     const ItemSeparator = () => (
-        <View style={{ height: 10, backgroundColor: 'transparent' }} /> // Adjust height for vertical gap
+        <View style={{ height: 10, backgroundColor: 'transparent' }} />
     );
 
+    const listHeader = (
+        <View style={styles.headerBlock}>
+            <View style={styles.titleBlock}>
+                <Text style={styles.title}>Физические контакты</Text>
+                <IconButton
+                    onPress={handleGetPadInfo}
+                    icon={refreshIcon}
+                    hasBorder={false}
+                    size="M"
+                />
+            </View>
+            <WarningText text="Необдуманные действия в этом разделе могут привести к некорректной работе контроллера" />
+        </View>
+    );
 
     return (
-        <>
-            <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
-                <View style={styles.titleBlock}>
-                    <Text style={styles.title}>Физические контакты</Text>
-                    <IconButton 
-                        onPress={handleGetPadInfo}
-                        icon={refreshIcon}
-                        hasBorder={false}
-                        size="M"
+        <View style={{ flex: 1 }}>
+            <FlatList
+                data={padList}
+                keyExtractor={(item, index) =>
+                    item.number !== undefined ? `pad-${item.number}` : `pad-i-${index}`
+                }
+                ListHeaderComponent={listHeader}
+                contentContainerStyle={styles.listContent}
+                renderItem={({ item }) => (
+                    <PadLine
+                        number={item.number ?? 0}
+                        type={item.function ?? ''}
+                        onPress={() => {
+                            setActivePad(item);
+                        }}
                     />
-                </View>
-                <WarningText text="Необдуманные действия в этом разделе могут привести к некорректной работе контроллера"/>
-                <View>
-                    <FlatList
-                        data={padList}
-                        style={{gap: 10}}
-                        renderItem={({item}) => (
-                            <PadLine
-                                number={item.number ?? 0}
-                                type={item.function ?? ''}
-                                onPress={() => {
-                                    setActivePad(item);
-                                }}
-                            />
-                        )}
-                        ItemSeparatorComponent={ItemSeparator}
-                    /> 
-                </View>
-                <ModalChildren title={'Вход'} visible={activePad !== null} onClose={closeModal}>
-                    {activePad ? <PadDetails data={activePad} /> : null}
-                </ModalChildren>
-                {isLoading && (
-                    <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color="#0000ff" />
-                        <Text style={{ marginTop: 10, color: '#fff' }}>Загрузка данных...</Text>
-                    </View>
                 )}
-            </ScrollView>
-        </>
+                ItemSeparatorComponent={ItemSeparator}
+            />
+            <ModalChildren title={'Вход'} visible={activePad !== null} onClose={closeModal}>
+                {activePad ? <PadDetails data={activePad} /> : null}
+            </ModalChildren>
+            {isLoading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#0000ff" />
+                    <Text style={{ marginTop: 10, color: '#fff' }}>Загрузка данных...</Text>
+                </View>
+            )}
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    headerBlock: {
+        gap: 10,
+        marginBottom: 10,
+    },
+    listContent: {
+        flexGrow: 1,
+        paddingBottom: 16,
+    },
     titleBlock: {
         flexDirection: 'row',
         width: '100%',

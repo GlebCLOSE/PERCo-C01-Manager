@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import InputField from '../components/ui/elements/input/InputField';
+import IPAddressInput from '../components/ui/elements/input/IPAddressInput';
 import ErrorModal from '../components/ui/status/ErrorModal';
 import { attemptConnection } from '../utils/attemptConnection';
 import { useController } from '../providers/ControllerContext';
@@ -86,13 +87,12 @@ export default function ConnectForm() {
         <Text style={styles.title}>Подключение к контроллеру</Text>
       </View>
       {/* Поле IP‑адреса */}
-      <InputField
+      <IPAddressInput
         label="IP‑адрес"
         placeholder="192.168.1.1"
         value={ip}
         onChangeText={setIp}
         error={errors.ip}
-        keyboardType="numeric"
       />
 
       <InputField

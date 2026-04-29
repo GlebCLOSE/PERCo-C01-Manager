@@ -81,7 +81,7 @@ export default function EventsScreen() {
         [events, enabledEventTypes]
     );
     return (
-        <>
+        <View style={{ flex: 1, width: '100%', gap: 10 }}>
             <View style={styles.title}>
                 <Text style={styles.textTitle}>События</Text>
                 <Text style={styles.clear} onPress={clearEvents}>Очистить</Text>
@@ -125,7 +125,7 @@ export default function EventsScreen() {
             <ModalChildren title={modalTitle} visible={modalType !== ''} onClose={closeModal} isWarn={isWarn}>
                 {renderModalContent()}
             </ModalChildren>
-        </>
+        </View>
     );
 }
 

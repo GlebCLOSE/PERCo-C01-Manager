@@ -9,11 +9,9 @@ export const Header: React.FC = () => {
     <LinearGradient
       colors={['#1A2253', '#0F1987', '#008CC8']}
       style={styles.header}
-    >
-        <Text style={styles.headerText}>C01 Manager</Text>
-    </LinearGradient>
+    ><Text style={styles.headerText}>C01 Manager</Text></LinearGradient>
   );
-}
+};
 
 const styles = StyleSheet.create({
   header: {
