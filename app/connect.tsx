@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    gap: 20
+    gap: 10
   },
   head: {
     flexDirection: 'row',
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     marginBottom: 30,
-    fontWeight: 'normal'
+    fontWeight: '300'
   },
   label: {
     fontSize: 20,

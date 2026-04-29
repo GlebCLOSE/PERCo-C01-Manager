@@ -21,25 +21,18 @@ interface Props {
 const DropdownInput: React.FC<Props> = ({ size='m', label, items, placeholder, onChange, value }) => {
 
   const isSmall = size === 's';
-  const fontSize = isSmall ? 14 : 20;
-  const padding = isSmall ? 8 : 12;
+  const labelFontSize = isSmall ? 14 : 20;
 
   const dynamicPickerStyles = {
-    inputIOS: {
-      ...pickerSelectStyles.commonInput,
-      fontSize,
-      paddingVertical: padding,
-    },
-    inputAndroid: {
-      ...pickerSelectStyles.commonInput,
-      fontSize,
-      paddingVertical: padding,
-    },
+    inputIOS: pickerSelectStyles.commonInput,
+    inputAndroid: pickerSelectStyles.commonInput,
+    inputIOSContainer: pickerSelectStyles.heightContainer,
+    inputAndroidContainer: pickerSelectStyles.heightContainer,
   };
 
   return (
     <View style={styles.container}>
-      {label && <Text style={[styles.label, {fontSize: fontSize}]}>{label}</Text>}
+      {label && <Text style={[styles.label, { fontSize: labelFontSize }]}>{label}</Text>}
       
       <RNPickerSelect
         onValueChange={onChange}
@@ -66,8 +59,10 @@ const styles = StyleSheet.create({
 
 // Стилизация самого выпадающего списка
 const pickerSelectStyles = {
+  heightContainer: {
+    height: 41,
+  },
   commonInput: {
-    paddingVertical: 10,
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#1a225381',
@@ -75,6 +70,10 @@ const pickerSelectStyles = {
     color: 'black',
     paddingRight: 30,
     backgroundColor: '#c3dde03d',
+    height: 41,
+    fontSize: 20,
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
 };
 

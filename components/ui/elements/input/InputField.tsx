@@ -76,25 +76,28 @@ const styles = StyleSheet.create({
     color: '#999999'
   },
   input: {
-    height: 50,
+    height: 41,
     borderColor: '#1a225381',
     borderWidth: 1,
     paddingHorizontal: 15,
     borderRadius: 8,
     backgroundColor: '#96ced43d',
     fontSize: 20,
-    alignSelf: 'stretch'
+    alignSelf: 'stretch',
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
   inputSmall: {
-    height: 37,
+    height: 41,
     borderColor: '#1a225381',
     borderWidth: 1,
     paddingHorizontal: 10,
-    paddingVertical: 5,
     borderRadius: 8,
     backgroundColor: '#96ced43d',
-    fontSize: 14,
-    alignSelf: 'stretch'
+    fontSize: 20,
+    alignSelf: 'stretch',
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
   inputError: {
     borderColor: 'red',
