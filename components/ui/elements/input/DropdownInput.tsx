@@ -69,7 +69,9 @@ const DropdownInput: React.FC<Props> = ({
   const isSmall = size === 's';
   const labelFontSize = isSmall ? 14 : 20;
 
-  const CHEVRON_SIZE = isSmall ? 12 : 14;
+  /** Было ~12×22 / 14×24; уменьшено в 1.5 раза для компактности */
+  const chevronHeight = Math.round((isSmall ? 12 : 14) / 1.5);
+  const chevronWidth = Math.round(((isSmall ? 12 : 14) + 10) / 1.5);
 
   const dynamicPickerStyles = {
     inputIOS: ps.commonInput,
@@ -81,8 +83,10 @@ const DropdownInput: React.FC<Props> = ({
       justifyContent: 'center' as const,
       alignSelf: 'center' as const,
       height: 41,
-      paddingRight: 10,
+      paddingRight: 8,
       marginTop: 0,
+      /** Иначе Android: прозрачный Picker поверх поля не получает hit по зоне иконки */
+      pointerEvents: 'none' as const,
     },
   };
 
@@ -90,16 +94,16 @@ const DropdownInput: React.FC<Props> = ({
     const source = themedIcon('arrowDropdown', scheme);
     return function Chevron(props: { testID?: string }) {
       return (
-        <View testID={props.testID}>
+        <View testID={props.testID} pointerEvents="none">
           <Image
             source={source}
-            style={{ width: CHEVRON_SIZE + 10, height: CHEVRON_SIZE }}
+            style={{ width: chevronWidth, height: chevronHeight }}
             resizeMode="contain"
           />
         </View>
       );
     };
-  }, [scheme, CHEVRON_SIZE]);
+  }, [scheme, chevronWidth, chevronHeight]);
 
   return (
     <View style={dropdownContainerStyle}>
@@ -114,6 +118,8 @@ const DropdownInput: React.FC<Props> = ({
         placeholder={placeholder ? { label: placeholder as string, value: null } : {}}
         style={dynamicPickerStyles}
         useNativeAndroidPickerStyle={false}
+        /** На Android без этого TouchableOpacity с пустым onPress перехватывает жесты до Picker */
+        fixAndroidTouchableBug
         Icon={DropdownChevron}
       />
     </View>
