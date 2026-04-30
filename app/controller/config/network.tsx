@@ -13,6 +13,7 @@ import { PasswordModal } from '../../../components/modal-content/passwordModal';
 import { useControllerConfig } from '../../../hooks/useControllerConfig';
 import { useTheme } from '../../../providers/ThemeContext';
 import type { AppPalette } from '../../../constants/theme';
+import { themedIcon } from '../../../constants/themedIcons';
 
 function createStyles(_p: AppPalette) {
     return StyleSheet.create({
@@ -30,8 +31,12 @@ function createStyles(_p: AppPalette) {
 }
 
 export default function NetworkScreen() {
-    const { palette } = useTheme();
+    const { palette, scheme } = useTheme();
     const styles = useMemo(() => createStyles(palette), [palette]);
+
+    const serversIcon = useMemo(() => themedIcon('servers', scheme), [scheme]);
+    const passwordIcon = useMemo(() => themedIcon('password', scheme), [scheme]);
+    const factoryIcon = useMemo(() => themedIcon('factory', scheme), [scheme]);
 
     const [errors, setErrors] = useState<{
         ip?: string;
@@ -116,17 +121,17 @@ export default function NetworkScreen() {
                 <ButtonSquare
                     title="Указать IP сервера"
                     onPress={() => setModalType('SERVER')}
-                    icon={require('../../../assets/icons/servers.png')}
+                    icon={serversIcon}
                 />
                 <ButtonSquare
                     title="Сменить пароль"
                     onPress={() => setModalType('PASSWORD')}
-                    icon={require('../../../assets/icons/password.png')}
+                    icon={passwordIcon}
                 />
                 <ButtonSquare
                     title="Сброс до заводских"
                     onPress={() => setModalType('FACTORY')}
-                    icon={require('../../../assets/icons/factory.png')}
+                    icon={factoryIcon}
                     isYellow={true}
                 />
             </View>

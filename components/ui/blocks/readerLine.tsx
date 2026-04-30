@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { IconButton } from '../elements/buttons/IconButton';
 import { useTheme } from '../../../providers/ThemeContext';
 import type { AppPalette } from '../../../constants/theme';
+import { themedIcon } from '../../../constants/themedIcons';
 
 function createStyles(p: AppPalette) {
   return StyleSheet.create({
@@ -49,8 +50,12 @@ export const ReaderLine = ({
   exdevDirNumber?: number;
   onPress: () => void;
 }) => {
-  const { palette } = useTheme();
+  const { palette, scheme } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const settingsIcon = useMemo(
+    () => themedIcon('settings', scheme),
+    [scheme],
+  );
 
   let readerIcon = require('../../../assets/icons/reader.png');
   let readerInterface = 'no-info';
@@ -66,7 +71,6 @@ export const ReaderLine = ({
       break;
   }
 
-  const settingsIcon = require('../../../assets/icons/settings.png');
   let exdevName = 'Замок';
   let exdevIcon = require('../../../assets/icons/lock.png');
   switch (type) {

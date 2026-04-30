@@ -10,6 +10,7 @@ import { useControllerConfig } from '../../../hooks/useControllerConfig';
 import { mapExdevNames } from '../../../types/maps';
 import { useTheme } from '../../../providers/ThemeContext';
 import type { AppPalette } from '../../../constants/theme';
+import { themedIcon } from '../../../constants/themedIcons';
 import type { ExdevParams } from '../../../hooks/useControllerConfig';
 
 function createStyles(p: AppPalette) {
@@ -42,8 +43,10 @@ function createStyles(p: AppPalette) {
 
 export default function ExdevScreen() {
     const { getInfo } = useControllerConfig();
-    const { palette } = useTheme();
+    const { palette, scheme } = useTheme();
     const styles = useMemo(() => createStyles(palette), [palette]);
+
+    const addiuIcon = useMemo(() => themedIcon('addiu', scheme), [scheme]);
 
     const [activeExdev, setActiveExdev] = useState<ExdevParams | ''>('');
     const [isLoading, setIsLoading] = useState(false);
@@ -114,7 +117,7 @@ export default function ExdevScreen() {
             <ModalChildren title={exdevTitle} visible={activeExdev !== ''} onClose={closeModal}>
                 {activeExdev !== '' ? <ExdevDetails data={activeExdev} /> : null}
             </ModalChildren>
-            <ButtonSquare title="Добавить ИУ" onPress={() => {}} icon={require('../../../assets/icons/addiu.png')} />
+            <ButtonSquare title="Добавить ИУ" onPress={() => {}} icon={addiuIcon} />
             {isLoading ? (
                 <View style={styles.loadingOverlay}>
                     <InlineLoading />

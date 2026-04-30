@@ -9,6 +9,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useControllerConfig } from '../../../hooks/useControllerConfig';
 import { useTheme } from '../../../providers/ThemeContext';
 import type { AppPalette } from '../../../constants/theme';
+import { themedIcon } from '../../../constants/themedIcons';
 import type { ReaderParams } from '../../../hooks/useControllerConfig';
 
 function createStyles(p: AppPalette) {
@@ -41,8 +42,13 @@ function createStyles(p: AppPalette) {
 
 export default function ReadersScreen() {
     const { getInfo } = useControllerConfig();
-    const { palette } = useTheme();
+    const { palette, scheme } = useTheme();
     const styles = useMemo(() => createStyles(palette), [palette]);
+
+    const addReaderIcon = useMemo(
+        () => themedIcon('addReader', scheme),
+        [scheme],
+    );
 
     const [activeReader, setActiveReader] = useState<ReaderParams | ''>('');
     const [isLoading, setIsLoading] = useState(false);
@@ -111,7 +117,7 @@ export default function ReadersScreen() {
                     <ButtonSquare
                         title="Добавить считыватель"
                         onPress={() => {}}
-                        icon={require('../../../assets/icons/addReader.png')}
+                        icon={addReaderIcon}
                     />
                 </View>
             </View>

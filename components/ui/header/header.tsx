@@ -3,7 +3,6 @@ import {
   Text,
   StyleSheet,
   View,
-  Modal,
   TouchableOpacity,
   Image,
   Linking,
@@ -14,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Constants from 'expo-constants';
 import { useTheme } from '../../../providers/ThemeContext';
 import type { AppPalette } from '../../../constants/theme';
+import { ModalChildren } from '../status/ModalChildren';
 
 const APP_DISPLAY_NAME = 'C01 Manager';
 const APP_DESCRIPTION =
@@ -64,42 +64,11 @@ function createStyles(p: AppPalette) {
       flexShrink: 1,
       marginRight: 8,
     },
-    modalBackdrop: {
-      flex: 1,
-      backgroundColor: p.modalBackdrop,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 24,
-    },
-    modalCard: {
+    aboutModalBody: {
       width: '100%',
-      maxWidth: 400,
-      maxHeight: '85%',
-      backgroundColor: p.modalSurface,
-      borderRadius: 14,
-      paddingVertical: 16,
-      paddingHorizontal: 18,
-      boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.25)',
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 12,
-      paddingBottom: 10,
-      borderBottomWidth: 1,
-      borderBottomColor: p.modalBorderSubtle,
-    },
-    modalTitle: {
-      fontSize: 20,
-      fontWeight: '700',
-      color: p.modalTitle,
-      fontFamily: 'inter',
-    },
-    closeHint: {
-      fontSize: 22,
-      color: p.modalMuted,
-      paddingHorizontal: 4,
+      alignSelf: 'stretch',
+      marginTop: 8,
+      maxHeight: 420,
     },
     modalScroll: {
       flexGrow: 0,
@@ -180,63 +149,43 @@ export const Header: React.FC = () => {
         </View>
       </LinearGradient>
 
-      <Modal
+      <ModalChildren
+        title="О приложении"
         visible={aboutVisible}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setAboutVisible(false)}
+        onClose={() => setAboutVisible(false)}
       >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setAboutVisible(false)}
-        >
-          <Pressable
-            style={styles.modalCard}
-            onPress={(e) => e.stopPropagation()}
+        <View style={styles.aboutModalBody}>
+          <ScrollView
+            style={styles.modalScroll}
+            showsVerticalScrollIndicator={false}
           >
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>О приложении</Text>
-              <TouchableOpacity
-                onPress={() => setAboutVisible(false)}
-                accessibilityRole="button"
-                accessibilityLabel="Закрыть"
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Text style={styles.closeHint}>✕</Text>
-              </TouchableOpacity>
+            <InfoRow
+              label="Название"
+              value={APP_DISPLAY_NAME}
+              palette={palette}
+            />
+            <InfoRow label="Версия" value={appVersion} palette={palette} />
+            <InfoRow
+              label="Описание"
+              value={APP_DESCRIPTION}
+              multiline
+              palette={palette}
+            />
+            <View style={styles.row}>
+              <Text style={styles.label}>GitHub</Text>
+              <Pressable onPress={() => Linking.openURL(GITHUB_URL)}>
+                <Text style={styles.link}>{GITHUB_URL}</Text>
+              </Pressable>
             </View>
-            <ScrollView
-              style={styles.modalScroll}
-              showsVerticalScrollIndicator={false}
-            >
-              <InfoRow
-                label="Название"
-                value={APP_DISPLAY_NAME}
-                palette={palette}
-              />
-              <InfoRow label="Версия" value={appVersion} palette={palette} />
-              <InfoRow
-                label="Описание"
-                value={APP_DESCRIPTION}
-                multiline
-                palette={palette}
-              />
-              <View style={styles.row}>
-                <Text style={styles.label}>GitHub</Text>
-                <Pressable onPress={() => Linking.openURL(GITHUB_URL)}>
-                  <Text style={styles.link}>{GITHUB_URL}</Text>
-                </Pressable>
-              </View>
-              <InfoRow
-                label="Разработчик"
-                value={DEVELOPER_NAME}
-                isLast
-                palette={palette}
-              />
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
+            <InfoRow
+              label="Разработчик"
+              value={DEVELOPER_NAME}
+              isLast
+              palette={palette}
+            />
+          </ScrollView>
+        </View>
+      </ModalChildren>
     </>
   );
 };

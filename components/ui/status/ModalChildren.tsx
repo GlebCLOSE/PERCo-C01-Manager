@@ -4,6 +4,7 @@ import { IconButton } from '../elements/buttons/IconButton';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../../../providers/ThemeContext';
 import type { AppPalette } from '../../../constants/theme';
+import { themedIcon } from '../../../constants/themedIcons';
 
 interface ErrorModalProps {
   title: string;
@@ -73,10 +74,10 @@ export const ModalChildren = ({
   onClose,
   children,
 }: ErrorModalProps) => {
-  const { palette } = useTheme();
+  const { palette, scheme } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
-  const iconClose = require('../../../assets/icons/close.png');
+  const iconClose = useMemo(() => themedIcon('close', scheme), [scheme]);
 
   return (
     <Modal

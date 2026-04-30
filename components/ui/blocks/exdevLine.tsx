@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { IconButton } from '../elements/buttons/IconButton';
 import { useTheme } from '../../../providers/ThemeContext';
 import type { AppPalette } from '../../../constants/theme';
+import { themedIcon } from '../../../constants/themedIcons';
 
 interface ExdevLineProps {
   number: number;
@@ -47,10 +48,13 @@ export const ExdevLine: React.FC<ExdevLineProps> = ({
   type = 'lock',
   onPress,
 }) => {
-  const { palette } = useTheme();
+  const { palette, scheme } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
-  const settingsIcon = require('../../../assets/icons/settings.png');
+  const settingsIcon = useMemo(
+    () => themedIcon('settings', scheme),
+    [scheme],
+  );
   let exdevName = 'Замок';
   let exdevIcon = require('../../../assets/icons/lock.png');
   switch (type) {

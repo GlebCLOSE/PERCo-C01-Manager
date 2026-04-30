@@ -12,6 +12,7 @@ import { IconButton } from "../../../components/ui/elements/buttons/IconButton";
 import { useController } from "../../../providers/ControllerContext";
 import { useTheme } from "../../../providers/ThemeContext";
 import type { AppPalette } from "../../../constants/theme";
+import { themedIcon } from "../../../constants/themedIcons";
 
 function createStyles(p: AppPalette) {
     return StyleSheet.create({
@@ -51,7 +52,7 @@ function createStyles(p: AppPalette) {
 export default function PadsScreen() {
 
     const { getInfo } = useControllerConfig()
-    const { palette } = useTheme();
+    const { palette, scheme } = useTheme();
     const styles = useMemo(() => createStyles(palette), [palette]);
     const { configRevision } = useController();
     const lastRevisionRef = useRef<number>(configRevision);
@@ -59,7 +60,7 @@ export default function PadsScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const [padList, setPadList] = useState<PadParams[]>([])
     
-    const refreshIcon = require("../../../assets/icons/refresh.png")
+    const refreshIcon = useMemo(() => themedIcon('refresh', scheme), [scheme]);
 
     const handleGetPadInfo = useCallback(async () => {
         setIsLoading(true);

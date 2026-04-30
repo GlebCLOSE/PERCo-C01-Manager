@@ -3,9 +3,7 @@ import { View, Text, StyleSheet, Image, type TextStyle } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { useTheme } from '../../../../providers/ThemeContext';
 import type { AppPalette } from '../../../../constants/theme';
-
-const arrowDropdownLight = require('../../../../assets/icons/arrow-dropdown-blue.png');
-const arrowDropdownDark = require('../../../../assets/icons/dark-theme/arrow-dropdown-white.png');
+import { themedIcon } from '../../../../constants/themedIcons';
 
 interface DropdownItem {
   label: string;
@@ -64,7 +62,7 @@ const DropdownInput: React.FC<Props> = ({
   onChange,
   value,
 }) => {
-  const { palette } = useTheme();
+  const { palette, scheme } = useTheme();
   const labelStyles = useMemo(() => createLabelStyles(palette), [palette]);
   const ps = useMemo(() => pickerStyles(palette), [palette]);
 
@@ -89,7 +87,7 @@ const DropdownInput: React.FC<Props> = ({
   };
 
   const DropdownChevron = useMemo(() => {
-    const source = palette.scheme === 'dark' ? arrowDropdownDark : arrowDropdownLight;
+    const source = themedIcon('arrowDropdown', scheme);
     return function Chevron(props: { testID?: string }) {
       return (
         <View testID={props.testID}>
@@ -101,7 +99,7 @@ const DropdownInput: React.FC<Props> = ({
         </View>
       );
     };
-  }, [palette.scheme, CHEVRON_SIZE]);
+  }, [scheme, CHEVRON_SIZE]);
 
   return (
     <View style={dropdownContainerStyle}>

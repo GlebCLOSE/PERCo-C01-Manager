@@ -14,6 +14,7 @@ import { EventDetailModal } from "../../components/modal-content/eventDetailModa
 import { shortEventLabel, type PercoEvent } from "../../types/events";
 import { useTheme } from "../../providers/ThemeContext";
 import type { AppPalette } from "../../constants/theme";
+import { themedIcon } from "../../constants/themedIcons";
 
 function createStyles(p: AppPalette) {
     return StyleSheet.create({
@@ -45,8 +46,12 @@ function createStyles(p: AppPalette) {
 
 export default function EventsScreen() {
 
-    const { palette } = useTheme();
+    const { palette, scheme } = useTheme();
     const themed = useMemo(() => createStyles(palette), [palette]);
+
+    const statsIcon = useMemo(() => themedIcon('stats', scheme), [scheme]);
+    const filterIcon = useMemo(() => themedIcon('filter', scheme), [scheme]);
+    const logIcon = useMemo(() => themedIcon('log', scheme), [scheme]);
 
 
     const [detailSelection, setDetailSelection] = useState<{
@@ -120,9 +125,9 @@ export default function EventsScreen() {
                 <Text style={themed.clear} onPress={clearEvents}>Очистить</Text>
             </View>
             <View style={themed.blockButtons}>
-                <ButtonSquare title='Статистика по событиям' onPress={()=>{setModalType('STATS')}} icon={require('../../assets/icons/Stats.png')} />
-                <ButtonSquare title='Фильтр событий' onPress={()=>{setModalType('FILTER')}} icon={require('../../assets/icons/Filter.png')} />
-                <ButtonSquare title='Лог для разработчика' onPress={()=>{setModalType('LOG')}} icon={require('../../assets/icons/log.png')} isYellow={true} />
+                <ButtonSquare title='Статистика по событиям' onPress={()=>{setModalType('STATS')}} icon={statsIcon} />
+                <ButtonSquare title='Фильтр событий' onPress={()=>{setModalType('FILTER')}} icon={filterIcon} />
+                <ButtonSquare title='Лог для разработчика' onPress={()=>{setModalType('LOG')}} icon={logIcon} isYellow={true} />
             </View>
             <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
                 {visibleEvents.slice().reverse().map((e, idx) => (
