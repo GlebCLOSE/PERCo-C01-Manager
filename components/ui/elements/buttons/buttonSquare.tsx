@@ -10,6 +10,14 @@ interface CustomButtonProps {
   isYellow?: boolean;
 }
 
+function imageRemountKey(source: ImageSourcePropType, scheme: string): string {
+  if (typeof source === 'number') {
+    return `${scheme}:${source}`;
+  }
+  const r = Image.resolveAssetSource(source);
+  return `${scheme}:${r.uri}`;
+}
+
 function createStyles(p: AppPalette) {
   return StyleSheet.create({
     button: {
@@ -52,13 +60,22 @@ export const ButtonSquare: React.FC<CustomButtonProps> = ({
 }) => {
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const iconKey = useMemo(
+    () => imageRemountKey(icon, palette.scheme),
+    [icon, palette.scheme],
+  );
 
   return (
     <TouchableOpacity
       style={[styles.button, isYellow && styles.buttonYellow]}
       onPress={onPress}
     >
-      <Image source={icon} style={{ height: 34, width: 34 }} resizeMode="contain" />
+      <Image
+        key={iconKey}
+        source={icon}
+        style={{ height: 34, width: 34 }}
+        resizeMode="contain"
+      />
       <Text style={[styles.buttonText, isYellow && styles.textYellow]}>{title}</Text>
     </TouchableOpacity>
   );

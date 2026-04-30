@@ -43,15 +43,15 @@ export interface PadParams {
 }
 
 export interface CrossParams {
-    "number"?: number,  //От 0 до 999
-    "source"?: "activating input" | "unlocking exdev" | "opening exdev" | "get card" | "command" | "breaking exdev" | "long time opening exdev" |  "cover on" | "activating fire alarm input" | "normalizing fire alarm input"
+    "number"?: number,
+    "source"?: "activating input" | "unlocking exdev" | "opening exdev" | "get card" | "command" | "breaking exdev" | "long time opening exdev" | "cover on" | "activating fire alarm input" | "normalizing fire alarm input",
     "source_number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6,
     "source_direction"?: 0 | 1,
-    "destination"?: "activated output" | "mask input" | "normalized output",
+    "destination"?: "mask input" | "activated output" | "normalized output",
     "destination_number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6,
     "destination_direction"?: 0 | 1,
     "time_criteria"?: "work time" | "absolute time" | "after work time",
-    "time_reaction"?: 0 // От 0 до 1000000 миллисекунд
+    "time_reaction"?: number
 }
 
 type GetType = 'reader' | 'exdev' | 'pad' | 'cross';
@@ -94,7 +94,19 @@ export const useControllerConfig = () => {
             throw new Error("Нет подключения к контроллеру");
         }
 
-        let commandPayload = (getType === 'state') ? { 'get': 'state' } : { "get": getType, [getType]: payload };
+        let commandPayload: Record<string, unknown>;
+        if (getType === 'state') {
+            commandPayload = { get: 'state' };
+        } else if (getType === 'cross') {
+            const n = (payload as { number?: number }).number;
+            if (!collectAll && typeof n === 'number') {
+                commandPayload = { get: 'cross', number: n };
+            } else {
+                commandPayload = { get: 'cross', cross: payload };
+            }
+        } else {
+            commandPayload = { get: getType, [getType]: payload };
+        }
 
         if (!collectAll) {
             const data = await sendAndWaitFor<any>(

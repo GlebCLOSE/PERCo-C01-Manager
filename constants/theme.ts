@@ -41,6 +41,13 @@ export interface AppPalette {
   modalGlassBorder: string;
   modalTitleStrong: string;
   modalTitleWarn: string;
+  /** Основной текст описания в предупреждающем модале (LOG, сброс и т.п.) */
+  modalWarnBody: string;
+  modalWarnBodyMuted: string;
+  modalWarnRule: string;
+  modalWarnCodeBg: string;
+  modalWarnCodeText: string;
+  modalWarnCodeBorder: string;
   modalBodyMuted: string;
   modalActionBlue: string;
   iosBlueTint: string;
@@ -158,6 +165,12 @@ export function createLightPalette(): AppPalette {
     modalGlassBorder: 'rgba(255, 255, 255, 0.62)',
     modalTitleStrong: '#4e6088',
     modalTitleWarn: '#580000e1',
+    modalWarnBody: '#580000',
+    modalWarnBodyMuted: '#58000099',
+    modalWarnRule: '#580000',
+    modalWarnCodeBg: '#fff8f0',
+    modalWarnCodeText: '#1a1a1a',
+    modalWarnCodeBorder: '#58000033',
     modalBodyMuted: '#697591',
     modalActionBlue: '#007AFF',
     iosBlueTint: '#007AFF',
@@ -239,6 +252,12 @@ export function createDarkPalette(): AppPalette {
     modalGlassBorder: 'rgba(200, 210, 255, 0.22)',
     modalTitleStrong: '#eef1ff',
     modalTitleWarn: '#ffb0b0',
+    modalWarnBody: '#f5e6d8',
+    modalWarnBodyMuted: 'rgba(245, 228, 212, 0.72)',
+    modalWarnRule: 'rgba(255, 190, 150, 0.45)',
+    modalWarnCodeBg: 'rgba(22, 18, 14, 0.92)',
+    modalWarnCodeText: '#ebe4dc',
+    modalWarnCodeBorder: 'rgba(255, 170, 110, 0.28)',
     modalBodyMuted: '#cdd6ea',
     modalActionBlue: '#4da3ff',
     iosBlueTint: '#4da3ff',

@@ -1,11 +1,68 @@
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useMemo } from "react";
 import { useController } from "../../providers/ControllerContext";
+import { useTheme } from "../../providers/ThemeContext";
+import type { AppPalette } from "../../constants/theme";
 
 const PREVIEW_LIMIT = 80;
 
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    wrap: {
+      width: "100%",
+      maxHeight: 420,
+      gap: 8,
+      marginTop: 8,
+    },
+    warn: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.modalWarnBody,
+      fontWeight: "300",
+    },
+    hr: {
+      height: 1,
+      backgroundColor: p.modalWarnRule,
+      width: "100%",
+    },
+    scroll: {
+      width: "100%",
+    },
+    scrollContent: {
+      gap: 12,
+      paddingBottom: 8,
+    },
+    empty: {
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.modalWarnBodyMuted,
+      fontStyle: "italic",
+    },
+    block: {
+      gap: 4,
+    },
+    meta: {
+      fontFamily: "inter",
+      fontSize: 10,
+      color: p.modalWarnBodyMuted,
+    },
+    json: {
+      fontFamily: "monospace",
+      fontSize: 10,
+      color: p.modalWarnCodeText,
+      backgroundColor: p.modalWarnCodeBg,
+      borderWidth: 1,
+      borderColor: p.modalWarnCodeBorder,
+      borderRadius: 6,
+      padding: 8,
+    },
+  });
+}
+
 export const LogModal = () => {
   const { events } = useController();
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   const lines = useMemo(() => {
     return [...events]
@@ -47,54 +104,3 @@ export const LogModal = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  wrap: {
-    width: "100%",
-    maxHeight: 420,
-    gap: 8,
-    marginTop: 8,
-  },
-  warn: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#580000",
-    fontWeight: "300",
-  },
-  hr: {
-    height: 1,
-    backgroundColor: "#580000",
-    width: "100%",
-  },
-  scroll: {
-    width: "100%",
-  },
-  scrollContent: {
-    gap: 12,
-    paddingBottom: 8,
-  },
-  empty: {
-    fontFamily: "inter",
-    fontSize: 12,
-    color: "#58000099",
-    fontStyle: "italic",
-  },
-  block: {
-    gap: 4,
-  },
-  meta: {
-    fontFamily: "inter",
-    fontSize: 10,
-    color: "#580000b0",
-  },
-  json: {
-    fontFamily: "monospace",
-    fontSize: 10,
-    color: "#1a1a1a",
-    backgroundColor: "#fff8f0",
-    borderWidth: 1,
-    borderColor: "#58000033",
-    borderRadius: 6,
-    padding: 8,
-  },
-});

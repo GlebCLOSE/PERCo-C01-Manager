@@ -1,12 +1,40 @@
 import { View, Text, StyleSheet } from "react-native"
 import { Button } from "../ui/elements/buttons/Button"
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useControllerConfig } from "../../hooks/useControllerConfig";
 import ModalText from "../ui/status/ModalText";
+import { useTheme } from "../../providers/ThemeContext";
+import type { AppPalette } from "../../constants/theme";
+
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    container: {
+      width: '100%',
+      gap: 7,
+    },
+    smallText: {
+      fontFamily: 'inter',
+      fontSize: 12,
+      color: p.modalWarnBody,
+      fontWeight: '300',
+    },
+    bold: {
+      fontWeight: '800',
+    },
+    hr: {
+      height: 1,
+      backgroundColor: p.modalWarnRule,
+    },
+  });
+}
+
 export const FactoryModal = () => {
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [resultMessage, setResultMessage] = useState('');
+
+    const { palette } = useTheme();
+    const styles = useMemo(() => createStyles(palette), [palette]);
 
     const { setDefaultNetwork } = useControllerConfig();
 
@@ -45,23 +73,3 @@ export const FactoryModal = () => {
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    container: { 
-        width: '100%',
-        gap: 7 
-    },
-    smallText: {
-        fontFamily: 'inter',
-        fontSize: 12,
-        color: '#580000',
-        fontWeight: '300'
-    },
-    bold: {
-        fontWeight: '800'
-    },
-    hr: {
-        height: 1,
-        backgroundColor: '#580000'
-    }
-})
