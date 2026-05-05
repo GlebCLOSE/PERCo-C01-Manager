@@ -97,7 +97,7 @@ export default function ConnectForm() {
       };
 
       if (connectionResult.success && connectionResult.socket) {
-        setGlobalSocket(connectionResult.socket);
+        setGlobalSocket(connectionResult.socket, password);
       }
 
       if (!connectionResult.success) {

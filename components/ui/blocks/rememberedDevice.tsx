@@ -72,7 +72,7 @@ export const RememberedDevice: React.FC<RememberedDeviceProps> = ({
           };
 
           if (connectionResult.success && connectionResult.socket) {
-            setGlobalSocket(connectionResult.socket);
+            setGlobalSocket(connectionResult.socket, password);
           }
 
       if (!connectionResult.success) {

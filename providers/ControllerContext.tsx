@@ -3,6 +3,12 @@ import { parseIncomingFrames } from '../utils/controller/parseIncoming';
 import type { PercoEvent } from '../types/events';
 import { RequestManager, type MessageMatcher } from '../utils/controller/requestManager';
 import { clearEventsDb, getRecentEventsFromDb, initEventsDb, insertEventToDb } from '../utils/controller/eventsDb';
+import { attemptConnection } from '../utils/attemptConnection';
+import { getDevices } from '../storage/deviceStorage';
+
+export type ReconnectResult =
+  | { ok: true }
+  | { ok: false; message: string; needManualConnect?: boolean };
 
 // Описываем интерфейс состояния контекста
 interface ControllerContextType {
@@ -11,7 +17,8 @@ interface ControllerContextType {
   ipAddress: string | null;
   configRevision: number;
   touchConfig: () => void;
-  setGlobalSocket: (ws: WebSocket) => void;
+  setGlobalSocket: (ws: WebSocket, sessionPassword?: string | null) => void;
+  reconnectToController: () => Promise<ReconnectResult>;
   disconnect: () => void;
   events: Array<{ event: PercoEvent; receivedAt: number }>;
   clearEvents: () => void;
@@ -26,6 +33,11 @@ interface ControllerContextType {
 // Создаем контекст с начальным значением null
 const ControllerContext = createContext<ControllerContextType | undefined>(undefined);
 
+/** Период опроса контроллера: при отключении питания TCP может долго оставаться «живым». */
+const CONNECTION_PROBE_INTERVAL_MS = 10_000;
+/** Если ответ на лёгкий get state не пришёл — считаем связь потерянной. */
+const CONNECTION_PROBE_TIMEOUT_MS = 4_000;
+
 interface Props {
   children: ReactNode;
 }
@@ -38,6 +50,13 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
   const [events, setEvents] = useState<Array<{ event: PercoEvent; receivedAt: number }>>([]);
   const requestManagerRef = useRef(new RequestManager());
   const recentEventKeysRef = useRef<Map<string, number>>(new Map());
+  const sessionPasswordRef = useRef<string | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const connectionProbeInFlightRef = useRef(false);
+
+  useEffect(() => {
+    socketRef.current = socket;
+  }, [socket]);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,14 +83,15 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     };
   }, [socket]);
 
-  const disconnect = () => {
+  const disconnect = useCallback(() => {
+    sessionPasswordRef.current = null;
     if (socket) {
       socket.close();
     }
     setSocket(null);
     setIsConnected(false);
     requestManagerRef.current.reset();
-  };
+  }, [socket]);
 
   const clearEvents = useCallback(() => {
     setEvents([]);
@@ -106,7 +126,63 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     [socket]
   );
 
-  const setGlobalSocket = (ws: WebSocket) => {
+  /** Обнаружение «тихой» потери связи (нет RST/FIN, например снятие питания с контроллера). */
+  useEffect(() => {
+    if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    const stateAnswerMatcher = (msg: unknown): msg is { answer: { state: unknown } } =>
+      Boolean(
+        msg &&
+          typeof msg === 'object' &&
+          'answer' in msg &&
+          typeof (msg as { answer?: unknown }).answer === 'object' &&
+          (msg as { answer: { state?: unknown } }).answer &&
+          'state' in (msg as { answer: { state?: unknown } }).answer
+      );
+
+    const runProbe = async () => {
+      if (connectionProbeInFlightRef.current) return;
+      const ws = socketRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+      connectionProbeInFlightRef.current = true;
+      try {
+        await sendAndWaitFor({ get: 'state' }, stateAnswerMatcher, CONNECTION_PROBE_TIMEOUT_MS);
+      } catch {
+        console.warn('PERCo-C01: connection probe failed, treating as disconnected');
+        try {
+          ws.close();
+        } catch {
+          /* ignore */
+        }
+        requestManagerRef.current.reset();
+        setIsConnected(false);
+        setSocket(null);
+      } finally {
+        connectionProbeInFlightRef.current = false;
+      }
+    };
+
+    const intervalId = setInterval(() => {
+      void runProbe();
+    }, CONNECTION_PROBE_INTERVAL_MS);
+
+    const kickoffId = setTimeout(() => {
+      void runProbe();
+    }, 5_000);
+
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(kickoffId);
+    };
+  }, [isConnected, socket, sendAndWaitFor]);
+
+  const setGlobalSocket = useCallback((ws: WebSocket, sessionPassword?: string | null) => {
+    if (typeof sessionPassword === 'string') {
+      sessionPasswordRef.current = sessionPassword;
+    }
 
     try {
       const host = new URL(ws.url).hostname;
@@ -116,6 +192,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     }
     // Типизируем обработчики событий сокета
     ws.onclose = () => {
+      requestManagerRef.current.reset();
       setIsConnected(false);
       setSocket(null);
       console.log('PERCo-C01: Connection closed');
@@ -123,6 +200,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
 
     ws.onerror = (e: Event) => {
       console.error('PERCo-C01: Socket error', e);
+      requestManagerRef.current.reset();
       setIsConnected(false);
     };
 
@@ -172,7 +250,49 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
 
     setSocket(ws);
     setIsConnected(true);
-  };
+  }, []);
+
+  const reconnectToController = useCallback(async (): Promise<ReconnectResult> => {
+    const ip = ipAddress;
+    if (!ip) {
+      return { ok: false, message: 'IP контроллера неизвестен', needManualConnect: true };
+    }
+    let pwd = sessionPasswordRef.current;
+    if (!pwd) {
+      try {
+        const devices = await getDevices();
+        const match = devices.find((d) => d.ip === ip);
+        pwd = match?.password ?? null;
+      } catch (e) {
+        console.error('Failed to read saved devices', e);
+      }
+    }
+    if (!pwd) {
+      return {
+        ok: false,
+        message: 'Нет сохранённого пароля для переподключения.',
+        needManualConnect: true,
+      };
+    }
+
+    try {
+      const connectionResult = (await attemptConnection(ip, pwd)) as {
+        success: boolean;
+        socket?: WebSocket;
+        message?: string;
+      };
+      if (connectionResult.success && connectionResult.socket) {
+        setGlobalSocket(connectionResult.socket, pwd);
+        return { ok: true };
+      }
+      return {
+        ok: false,
+        message: connectionResult.message ?? 'Не удалось переподключиться к контроллеру',
+      };
+    } catch {
+      return { ok: false, message: 'Произошла ошибка при переподключении' };
+    }
+  }, [ipAddress, setGlobalSocket]);
 
   const touchConfig = () => setConfigRevision((v) => v + 1);
 
@@ -183,6 +303,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     configRevision,
     touchConfig,
     setGlobalSocket,
+    reconnectToController,
     disconnect,
     events,
     clearEvents,
