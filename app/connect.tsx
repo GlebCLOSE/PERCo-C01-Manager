@@ -60,7 +60,7 @@ export default function ConnectForm() {
   const [errorMessage, setErrorMessage] = useState('');
   const [isChecked, setChecked] = useState(false);
   const router = useRouter();
-  const { setGlobalSocket } = useController();
+  const { setGlobalSocket, appendTransportLogEntry } = useController();
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
 
@@ -90,7 +90,9 @@ export default function ConnectForm() {
     }
 
     try {
-      const connectionResult = (await attemptConnection(ip, password)) as {
+      const connectionResult = (await attemptConnection(ip, password, {
+        onTransportLog: appendTransportLogEntry,
+      })) as {
         success: boolean;
         socket?: WebSocket;
         message?: string;

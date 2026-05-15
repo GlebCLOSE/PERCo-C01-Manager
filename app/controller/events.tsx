@@ -1,4 +1,4 @@
-import { ScrollView, Text, View, StyleSheet } from "react-native";
+import { ScrollView, Text, View, StyleSheet, Platform, Switch } from "react-native";
 import { EventLine } from "../../components/ui/blocks/eventLine";
 import { useController } from "../../providers/ControllerContext";
 import { ButtonSquare } from "../../components/ui/elements/buttons/buttonSquare";
@@ -112,7 +112,7 @@ export default function EventsScreen() {
         }
     };
 
-    const { events, clearEvents } = useController();
+    const { events, clearEvents, androidBgReceiveEnabled, setAndroidBgReceiveEnabled } = useController();
 
     const visibleEvents = useMemo(
         () => events.filter((e) => enabledEventTypes.has(e.event.event)),
@@ -129,6 +129,14 @@ export default function EventsScreen() {
                 <ButtonSquare title='Фильтр событий' onPress={()=>{setModalType('FILTER')}} icon={filterIcon} />
                 <ButtonSquare title='Лог для разработчика' onPress={()=>{setModalType('LOG')}} icon={logIcon} isYellow={true} />
             </View>
+            {Platform.OS === 'android' && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, width: '100%', paddingHorizontal: 4 }}>
+                    <Switch value={androidBgReceiveEnabled} onValueChange={setAndroidBgReceiveEnabled} />
+                    <Text style={{ flex: 1, fontFamily: 'inter', fontSize: 13, color: palette.screenMutedText, fontWeight: '400' }}>
+                        Фоновый приём: постоянное уведомление Android, чтобы ОС реже останавливала приложение при активном соединении (нужен dev-client / prebuild с native-модулями).
+                    </Text>
+                </View>
+            )}
             <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
                 {visibleEvents.slice().reverse().map((e, idx) => (
                     <EventLine

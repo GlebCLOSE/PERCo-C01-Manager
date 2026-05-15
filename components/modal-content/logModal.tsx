@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { useMemo } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { useMemo, useState } from "react";
 import { useController } from "../../providers/ControllerContext";
 import { useTheme } from "../../providers/ThemeContext";
 import type { AppPalette } from "../../constants/theme";
@@ -56,15 +56,60 @@ function createStyles(p: AppPalette) {
       borderRadius: 6,
       padding: 8,
     },
+    modeRow: {
+      flexDirection: "row",
+      gap: 8,
+      flexWrap: "wrap",
+      alignItems: "center",
+    },
+    modeChip: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: p.modalWarnRule,
+      backgroundColor: p.modalWarnCodeBg,
+    },
+    modeChipActive: {
+      borderColor: p.modalActionBlue,
+      backgroundColor: p.modalGlass,
+    },
+    modeChipText: {
+      fontFamily: "inter",
+      fontSize: 11,
+      color: p.modalWarnBody,
+    },
+    clearBtn: {
+      marginLeft: "auto",
+      paddingVertical: 6,
+      paddingHorizontal: 8,
+    },
+    clearBtnText: {
+      fontFamily: "inter",
+      fontSize: 11,
+      color: p.modalActionBlue,
+      textDecorationLine: "underline",
+    },
+    dirIn: {
+      fontWeight: "700",
+      color: p.modalWarnBody,
+    },
+    dirOut: {
+      fontWeight: "700",
+      color: p.modalWarnBodyMuted,
+    },
   });
 }
 
+type LogMode = "events" | "transport";
+
 export const LogModal = () => {
-  const { events } = useController();
+  const { events, transportLog, clearTransportLog } = useController();
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const [mode, setMode] = useState<LogMode>("transport");
 
-  const lines = useMemo(() => {
+  const eventLines = useMemo(() => {
     return [...events]
       .reverse()
       .slice(0, PREVIEW_LIMIT)
@@ -80,20 +125,73 @@ export const LogModal = () => {
       });
   }, [events]);
 
+  const transportLines = useMemo(() => {
+    return [...transportLog].reverse().slice(0, PREVIEW_LIMIT).map((entry, idx) => {
+      let raw: string;
+      try {
+        raw = JSON.stringify(entry.body, null, 2);
+      } catch {
+        raw = String(entry.body);
+      }
+      const at = new Date(entry.ts).toISOString();
+      const dir = entry.direction === "in" ? "IN" : "OUT";
+      return { idx, at, raw, dir, direction: entry.direction };
+    });
+  }, [transportLog]);
+
   return (
     <View style={styles.wrap}>
       <Text style={styles.warn}>
-        Сырые полезные нагрузки последних событий (до {PREVIEW_LIMIT} записей, новые сверху). Не
-        передавайте лог третьим лицам — в данных могут быть идентификаторы карт.
+        Лог для отладки. Режим «Транспорт WS» — все входящие и исходящие JSON-кадры после подключения (и
+        запись рукопожатия при входе с этого устройства). «Push-события» — только сообщения с полем{" "}
+        <Text style={{ fontFamily: "monospace" }}>event</Text>. Не передавайте данные третьим лицам.
       </Text>
+
+      <View style={styles.modeRow}>
+        <TouchableOpacity
+          style={[styles.modeChip, mode === "transport" && styles.modeChipActive]}
+          onPress={() => setMode("transport")}
+        >
+          <Text style={styles.modeChipText}>Транспорт WS</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.modeChip, mode === "events" && styles.modeChipActive]}
+          onPress={() => setMode("events")}
+        >
+          <Text style={styles.modeChipText}>Push-события</Text>
+        </TouchableOpacity>
+        {mode === "transport" ? (
+          <TouchableOpacity style={styles.clearBtn} onPress={clearTransportLog}>
+            <Text style={styles.clearBtnText}>Очистить транспорт</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
       <View style={styles.hr} />
+
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {lines.length === 0 ? (
-          <Text style={styles.empty}>Событий пока нет.</Text>
+        {mode === "events" ? (
+          eventLines.length === 0 ? (
+            <Text style={styles.empty}>Событий пока нет.</Text>
+          ) : (
+            eventLines.map(({ idx, at, raw }) => (
+              <View key={`ev-${at}-${idx}`} style={styles.block}>
+                <Text style={styles.meta}>{at}</Text>
+                <Text style={styles.json} selectable>
+                  {raw}
+                </Text>
+              </View>
+            ))
+          )
+        ) : transportLines.length === 0 ? (
+          <Text style={styles.empty}>Записей транспорта пока нет.</Text>
         ) : (
-          lines.map(({ idx, at, raw }) => (
-            <View key={`${at}-${idx}`} style={styles.block}>
-              <Text style={styles.meta}>{at}</Text>
+          transportLines.map(({ idx, at, raw, dir, direction }) => (
+            <View key={`tr-${at}-${idx}`} style={styles.block}>
+              <Text style={styles.meta}>
+                <Text style={direction === "in" ? styles.dirIn : styles.dirOut}>{dir}</Text>
+                {` · ${at}`}
+              </Text>
               <Text style={styles.json} selectable>
                 {raw}
               </Text>

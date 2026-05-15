@@ -17,7 +17,7 @@ interface NetworkC01Params {
 
 
 export const useControllerCommands = () => {
-  const { socket, isConnected, sendAndWaitFor } = useController();
+  const { socket, isConnected, sendAndWaitFor, sendPayloadFireAndForget } = useController();
 
   // Отправка команды set, для установки конфигурационных параметров(разных setType, например readers или exdev)
 const sendSetCommand = async (setType: string, payload: object) => {
@@ -226,8 +226,8 @@ const sendSetCommand = async (setType: string, payload: object) => {
    * Ответ придет в WebSocket.onmessage в контексте
    */
   const requestDeviceState = () => {
-    if (isConnected && socket) {
-        socket.send(JSON.stringify({ "get": "state" }));
+    if (isConnected && socket?.readyState === WebSocket.OPEN) {
+      sendPayloadFireAndForget({ get: 'state' });
     }
   };
 

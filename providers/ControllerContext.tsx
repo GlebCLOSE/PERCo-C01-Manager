@@ -1,16 +1,27 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode, useRef, useCallback } from 'react';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { parseIncomingFrames } from '../utils/controller/parseIncoming';
 import type { PercoEvent } from '../types/events';
+import type { WsTransportLogEntry } from '../types/wsTransportLog';
 import { RequestManager, type MessageMatcher } from '../utils/controller/requestManager';
 import { clearEventsDb, getRecentEventsFromDb, initEventsDb, insertEventToDb } from '../utils/controller/eventsDb';
 import { attemptConnection } from '../utils/attemptConnection';
 import { getDevices } from '../storage/deviceStorage';
+import {
+  BG_RECEIVE_PREF_KEY,
+  startAndroidReceiveKeepAlive,
+  stopAndroidReceiveKeepAlive,
+} from '../utils/controller/androidReceiveKeepAlive';
+
+export type { WsTransportLogEntry } from '../types/wsTransportLog';
 
 export type ReconnectResult =
   | { ok: true }
   | { ok: false; message: string; needManualConnect?: boolean };
 
-// Описываем интерфейс состояния контекста
+const TRANSPORT_LOG_CAP = 1500;
+
 interface ControllerContextType {
   socket: WebSocket | null;
   isConnected: boolean;
@@ -22,6 +33,13 @@ interface ControllerContextType {
   disconnect: () => void;
   events: Array<{ event: PercoEvent; receivedAt: number }>;
   clearEvents: () => void;
+  transportLog: WsTransportLogEntry[];
+  clearTransportLog: () => void;
+  appendTransportLogEntry: (entry: WsTransportLogEntry) => void;
+  sendPayloadFireAndForget: (payload: unknown) => void;
+  /** Только Android: удержание процесса через foreground-уведомление при активном соединении */
+  androidBgReceiveEnabled: boolean;
+  setAndroidBgReceiveEnabled: (value: boolean) => void;
   sendAndWaitFor<T>(payload: unknown, match: MessageMatcher<T>, timeoutMs?: number): Promise<T>;
   sendAndCollect<T>(
     payload: unknown,
@@ -30,7 +48,6 @@ interface ControllerContextType {
   ): Promise<T[]>;
 }
 
-// Создаем контекст с начальным значением null
 const ControllerContext = createContext<ControllerContextType | undefined>(undefined);
 
 /** Период опроса контроллера: при отключении питания TCP может долго оставаться «живым». */
@@ -48,6 +65,8 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
   const [ipAddress, setIpAddress] = useState<string | null>(null);
   const [configRevision, setConfigRevision] = useState<number>(0);
   const [events, setEvents] = useState<Array<{ event: PercoEvent; receivedAt: number }>>([]);
+  const [transportLog, setTransportLog] = useState<WsTransportLogEntry[]>([]);
+  const [androidBgReceiveEnabled, setAndroidBgReceiveEnabled] = useState(false);
   const requestManagerRef = useRef(new RequestManager());
   const recentEventKeysRef = useRef<Map<string, number>>(new Map());
   const sessionPasswordRef = useRef<string | null>(null);
@@ -57,6 +76,42 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
   useEffect(() => {
     socketRef.current = socket;
   }, [socket]);
+
+  const appendTransportLogEntry = useCallback((entry: WsTransportLogEntry) => {
+    setTransportLog((prev) => {
+      const next = [...prev, entry];
+      return next.length > TRANSPORT_LOG_CAP ? next.slice(-TRANSPORT_LOG_CAP) : next;
+    });
+  }, []);
+
+  const clearTransportLog = useCallback(() => setTransportLog([]), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    AsyncStorage.getItem(BG_RECEIVE_PREF_KEY)
+      .then((v) => {
+        if (!cancelled && v === '1') setAndroidBgReceiveEnabled(true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    void AsyncStorage.setItem(BG_RECEIVE_PREF_KEY, androidBgReceiveEnabled ? '1' : '0');
+  }, [androidBgReceiveEnabled]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    if (androidBgReceiveEnabled && isConnected) {
+      void startAndroidReceiveKeepAlive();
+      return () => {
+        void stopAndroidReceiveKeepAlive();
+      };
+    }
+    void stopAndroidReceiveKeepAlive();
+  }, [androidBgReceiveEnabled, isConnected]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,7 +129,6 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     };
   }, []);
 
-  // Очистка при размонтировании
   useEffect(() => {
     return () => {
       if (socket) {
@@ -98,16 +152,27 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     void clearEventsDb().catch((e) => console.error('Failed to clear events DB', e));
   }, []);
 
+  const sendPayloadFireAndForget = useCallback(
+    (payload: unknown) => {
+      const ws = socketRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      appendTransportLogEntry({ direction: 'out', ts: Date.now(), body: payload });
+      ws.send(JSON.stringify(payload));
+    },
+    [appendTransportLogEntry]
+  );
+
   const sendAndWaitFor = useCallback(
     async <T,>(payload: unknown, match: MessageMatcher<T>, timeoutMs = 5000): Promise<T> => {
       if (!socket || socket.readyState !== WebSocket.OPEN) {
         throw new Error('Нет подключения к контроллеру');
       }
       const p = requestManagerRef.current.waitForOne(match, timeoutMs);
+      appendTransportLogEntry({ direction: 'out', ts: Date.now(), body: payload });
       socket.send(JSON.stringify(payload));
       return await p;
     },
-    [socket]
+    [socket, appendTransportLogEntry]
   );
 
   const sendAndCollect = useCallback(
@@ -120,10 +185,11 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
         throw new Error('Нет подключения к контроллеру');
       }
       const p = requestManagerRef.current.collect(match, opts);
+      appendTransportLogEntry({ direction: 'out', ts: Date.now(), body: payload });
       socket.send(JSON.stringify(payload));
       return await p;
     },
-    [socket]
+    [socket, appendTransportLogEntry]
   );
 
   /** Обнаружение «тихой» потери связи (нет RST/FIN, например снятие питания с контроллера). */
@@ -179,78 +245,78 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     };
   }, [isConnected, socket, sendAndWaitFor]);
 
-  const setGlobalSocket = useCallback((ws: WebSocket, sessionPassword?: string | null) => {
-    if (typeof sessionPassword === 'string') {
-      sessionPasswordRef.current = sessionPassword;
-    }
-
-    try {
-      const host = new URL(ws.url).hostname;
-      setIpAddress(host);
-    } catch (e) {
-      console.error("Invalid WS URL", e);
-    }
-    // Типизируем обработчики событий сокета
-    ws.onclose = () => {
-      requestManagerRef.current.reset();
-      setIsConnected(false);
-      setSocket(null);
-      console.log('PERCo-C01: Connection closed');
-    };
-
-    ws.onerror = (e: Event) => {
-      console.error('PERCo-C01: Socket error', e);
-      requestManagerRef.current.reset();
-      setIsConnected(false);
-    };
-
-    ws.onmessage = (e: MessageEvent) => {
-      const frames = parseIncomingFrames(e.data);
-      for (const msg of frames) {
-        requestManagerRef.current.handleMessage(msg);
-
-        if (msg && typeof msg === 'object' && typeof msg.event === 'string') {
-          // События контроллера (PercoEvent). Runtime-валидация минимальная; типизация обеспечивается источником.
-          const receivedAt = Date.now();
-          const key = (() => {
-            try {
-              return JSON.stringify(msg);
-            } catch {
-              return String(msg?.event ?? 'event');
-            }
-          })();
-
-          const lastAt = recentEventKeysRef.current.get(key);
-          // Дедупликация одинаковых событий в пределах 1 секунды
-          if (typeof lastAt === 'number' && receivedAt - lastAt < 1000) {
-            continue;
-          }
-          recentEventKeysRef.current.set(key, receivedAt);
-          // ограничим размер map
-          if (recentEventKeysRef.current.size > 1000) {
-            const entries = [...recentEventKeysRef.current.entries()].sort((a, b) => a[1] - b[1]);
-            for (let i = 0; i < entries.length - 500; i++) {
-              recentEventKeysRef.current.delete(entries[i][0]);
-            }
-          }
-
-          setEvents((prev) => {
-            const next = [...prev, { event: msg as PercoEvent, receivedAt }];
-            // ограничим рост памяти
-            if (next.length > 500) return next.slice(next.length - 500);
-            return next;
-          });
-
-          void insertEventToDb(msg as PercoEvent, receivedAt).catch((err) =>
-            console.error('Failed to persist event', err)
-          );
-        }
+  const setGlobalSocket = useCallback(
+    (ws: WebSocket, sessionPassword?: string | null) => {
+      if (typeof sessionPassword === 'string') {
+        sessionPasswordRef.current = sessionPassword;
       }
-    };
 
-    setSocket(ws);
-    setIsConnected(true);
-  }, []);
+      try {
+        const host = new URL(ws.url).hostname;
+        setIpAddress(host);
+      } catch (e) {
+        console.error('Invalid WS URL', e);
+      }
+
+      ws.onclose = () => {
+        requestManagerRef.current.reset();
+        setIsConnected(false);
+        setSocket(null);
+        console.log('PERCo-C01: Connection closed');
+      };
+
+      ws.onerror = (e: Event) => {
+        console.error('PERCo-C01: Socket error', e);
+        requestManagerRef.current.reset();
+        setIsConnected(false);
+      };
+
+      ws.onmessage = (e: MessageEvent) => {
+        const frames = parseIncomingFrames(e.data);
+        for (const msg of frames) {
+          appendTransportLogEntry({ direction: 'in', ts: Date.now(), body: msg });
+          requestManagerRef.current.handleMessage(msg);
+
+          if (msg && typeof msg === 'object' && typeof msg.event === 'string') {
+            const receivedAt = Date.now();
+            const key = (() => {
+              try {
+                return JSON.stringify(msg);
+              } catch {
+                return String(msg?.event ?? 'event');
+              }
+            })();
+
+            const lastAt = recentEventKeysRef.current.get(key);
+            if (typeof lastAt === 'number' && receivedAt - lastAt < 1000) {
+              continue;
+            }
+            recentEventKeysRef.current.set(key, receivedAt);
+            if (recentEventKeysRef.current.size > 1000) {
+              const entries = [...recentEventKeysRef.current.entries()].sort((a, b) => a[1] - b[1]);
+              for (let i = 0; i < entries.length - 500; i++) {
+                recentEventKeysRef.current.delete(entries[i][0]);
+              }
+            }
+
+            setEvents((prev) => {
+              const next = [...prev, { event: msg as PercoEvent, receivedAt }];
+              if (next.length > 500) return next.slice(next.length - 500);
+              return next;
+            });
+
+            void insertEventToDb(msg as PercoEvent, receivedAt).catch((err) =>
+              console.error('Failed to persist event', err)
+            );
+          }
+        }
+      };
+
+      setSocket(ws);
+      setIsConnected(true);
+    },
+    [appendTransportLogEntry]
+  );
 
   const reconnectToController = useCallback(async (): Promise<ReconnectResult> => {
     const ip = ipAddress;
@@ -276,7 +342,9 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     }
 
     try {
-      const connectionResult = (await attemptConnection(ip, pwd)) as {
+      const connectionResult = (await attemptConnection(ip, pwd, {
+        onTransportLog: appendTransportLogEntry,
+      })) as {
         success: boolean;
         socket?: WebSocket;
         message?: string;
@@ -292,7 +360,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     } catch {
       return { ok: false, message: 'Произошла ошибка при переподключении' };
     }
-  }, [ipAddress, setGlobalSocket]);
+  }, [ipAddress, setGlobalSocket, appendTransportLogEntry]);
 
   const touchConfig = () => setConfigRevision((v) => v + 1);
 
@@ -307,18 +375,19 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     disconnect,
     events,
     clearEvents,
+    transportLog,
+    clearTransportLog,
+    appendTransportLogEntry,
+    sendPayloadFireAndForget,
+    androidBgReceiveEnabled,
+    setAndroidBgReceiveEnabled,
     sendAndWaitFor,
     sendAndCollect,
   };
 
-  return (
-    <ControllerContext.Provider value={value}>
-      {children}
-    </ControllerContext.Provider>
-  );
+  return <ControllerContext.Provider value={value}>{children}</ControllerContext.Provider>;
 };
 
-// Типизированный хук с проверкой на наличие провайдера
 export const useController = (): ControllerContextType => {
   const context = useContext(ControllerContext);
   if (context === undefined) {
