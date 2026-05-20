@@ -1,8 +1,11 @@
 import type { LocalAccessUser } from '../../types/accessUser';
+import { parseUint24Identifier } from '../accessUserIdentifierQr';
 import { getPercoDatabase } from './eventsDb';
 
 /** Trimmed identifiers, synced from DB via `refreshAllowedIdentifiersFromDb`. */
 const allowedIdentifiersCache = new Set<string>();
+/** Числовые uint24 из записей, где идентификатор — только цифры в диапазоне 0..16777215. */
+const allowedUint24Cache = new Set<number>();
 
 function isUniqueConstraintError(e: unknown): boolean {
   const msg =
@@ -16,15 +19,28 @@ export function isTrimmedIdentifierAllowed(trimmedId: string): boolean {
   return trimmedId.length > 0 && allowedIdentifiersCache.has(trimmedId);
 }
 
+/** Точное совпадение строки или то же uint24 (для QR с ведущими нулями и «короткой» записи в БД). */
+export function isAllowedForAutoUnlock(trimmedCardId: string): boolean {
+  if (!trimmedCardId) return false;
+  if (allowedIdentifiersCache.has(trimmedCardId)) return true;
+  const n = parseUint24Identifier(trimmedCardId);
+  return n !== null && allowedUint24Cache.has(n);
+}
+
 export async function refreshAllowedIdentifiersFromDb(): Promise<void> {
   const db = await getPercoDatabase();
   const rows = await db.getAllAsync<{ identifier: string }>(
     `SELECT identifier FROM local_access_users`,
   );
   allowedIdentifiersCache.clear();
+  allowedUint24Cache.clear();
   for (const r of rows) {
     const t = String(r.identifier).trim();
-    if (t) allowedIdentifiersCache.add(t);
+    if (t) {
+      allowedIdentifiersCache.add(t);
+      const n = parseUint24Identifier(t);
+      if (n !== null) allowedUint24Cache.add(n);
+    }
   }
 }
 

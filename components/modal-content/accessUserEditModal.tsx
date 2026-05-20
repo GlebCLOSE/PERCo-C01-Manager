@@ -6,11 +6,13 @@ import ModalText from '../ui/status/ModalText';
 import { useTheme } from '../../providers/ThemeContext';
 import type { AppPalette } from '../../constants/theme';
 import type { LocalAccessUser } from '../../types/accessUser';
+import { formatIdentifierForQr, parseUint24Identifier } from '../../utils/accessUserIdentifierQr';
 import {
   deleteLocalAccessUser,
   insertLocalAccessUser,
   updateLocalAccessUser,
 } from '../../utils/controller/localAccessUsersDb';
+import QRCode from 'react-native-qrcode-svg';
 
 interface AccessUserEditModalProps {
   mode: 'create' | 'edit';
@@ -48,6 +50,32 @@ function createStyles(p: AppPalette) {
       fontSize: 14,
       color: p.modalFormInk,
     },
+    qrBlock: {
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 4,
+    },
+    qrCaption: {
+      fontFamily: 'inter',
+      fontSize: 12,
+      color: p.modalFormInk,
+      fontWeight: '300',
+      textAlign: 'center',
+    },
+    qrWrap: {
+      padding: 10,
+      borderRadius: 8,
+      backgroundColor: p.modalSurface,
+      borderWidth: 1,
+      borderColor: p.modalFormRule,
+    },
+    qrHintMuted: {
+      fontFamily: 'inter',
+      fontSize: 12,
+      color: p.modalFormInk,
+      fontWeight: '300',
+      fontStyle: 'italic',
+    },
   });
 }
 
@@ -77,6 +105,15 @@ export function AccessUserEditModal({
     }
     setPendingDelete(false);
   }, [mode, user]);
+
+  const qrPayload = useMemo(() => {
+    const t = identifier.trim();
+    const n = parseUint24Identifier(t);
+    if (n === null) return null;
+    return formatIdentifierForQr(n, 10);
+  }, [identifier]);
+
+  const showQrInvalidHint = identifier.trim().length > 0 && qrPayload === null;
 
   const showInfo = (title: string, message: string) => {
     setInfoTitle(title);
@@ -128,8 +165,27 @@ export function AccessUserEditModal({
         label="Идентификатор"
         value={identifier}
         onChangeText={setIdentifier}
-        placeholder="Номер карты / кода"
+        placeholder="Номер карты / кода (для QR: только цифры 0–16777215)"
       />
+
+      {qrPayload ? (
+        <View style={styles.qrBlock}>
+          <Text style={styles.qrCaption}>QR-код кодирует 10 цифр (uint24 с ведущими нулями): {qrPayload}</Text>
+          <View style={styles.qrWrap}>
+            <QRCode
+              value={qrPayload}
+              size={180}
+              color={palette.textPrimary}
+              backgroundColor={palette.modalSurface}
+            />
+          </View>
+        </View>
+      ) : null}
+      {showQrInvalidHint ? (
+        <Text style={styles.qrHintMuted}>
+          Для отображения QR укажите число от 0 до 16777215, только цифры (ведущие нули допускаются).
+        </Text>
+      ) : null}
 
       <View style={styles.row}>
         <Button title="Сохранить" onPress={() => void handleSave()} size="M" />

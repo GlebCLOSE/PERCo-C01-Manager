@@ -7,7 +7,7 @@ import type { WsTransportLogEntry } from '../types/wsTransportLog';
 import { RequestManager, type MessageMatcher } from '../utils/controller/requestManager';
 import { clearEventsDb, getRecentEventsFromDb, initEventsDb, insertEventToDb } from '../utils/controller/eventsDb';
 import {
-  isTrimmedIdentifierAllowed,
+  isAllowedForAutoUnlock,
   refreshAllowedIdentifiersFromDb,
 } from '../utils/controller/localAccessUsersDb';
 import { attemptConnection } from '../utils/attemptConnection';
@@ -307,7 +307,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
             if (msg.event === 'card' && typeof msg === 'object' && msg !== null && 'card' in msg) {
               const card = (msg as { card: { id?: unknown; number: number; direction: number } }).card;
               const tid = String(card?.id ?? '').trim();
-              if (tid && isTrimmedIdentifierAllowed(tid)) {
+              if (tid && isAllowedForAutoUnlock(tid)) {
                 sendPayloadFireAndForget({
                   control: 'exdev',
                   exdev: {
