@@ -30,6 +30,31 @@ export const mapPadTypes = new Map([
     ['remote control output', 'Выход индикации ПДУ'],
 ])
 
+export const mapCrossSource = new Map<string, string>([
+    ['activating input', 'Активизация входа'],
+    ['unlocking exdev', 'Разблокировка ИУ'],
+    ['opening exdev', 'Открывание ИУ'],
+    ['get card', 'Предъявление идентификатора'],
+    ['command', 'Команда от сервера'],
+    ['breaking exdev', 'Несанкционированная разблокировка ИУ'],
+    ['long time opening exdev', 'Недопустимо долгое открытие ИУ'],
+    ['cover on', 'Датчик вскрытия корпуса'],
+    ['activating fire alarm input', 'Активизация входа FireAlarm'],
+    ['normalizing fire alarm input', 'Нормализация входа FireAlarm'],
+])
+
+export const mapCrossDestination = new Map<string, string>([
+    ['mask input', 'Маскируемый вход'],
+    ['activated output', 'Активизируемый выход'],
+    ['normalized output', 'Нормализуемый выход'],
+])
+
+export const mapCrossTimeCriteria = new Map<string, string>([
+    ['work time', 'Время срабатывания'],
+    ['absolute time', 'Абсолютное время'],
+    ['after work time', 'Время после срабатывания'],
+])
+
 export const mapExdevNames = new Map([
     ['lock', 'Односторонний замок'],
     ['double lock', 'Двухсторонний замок'],

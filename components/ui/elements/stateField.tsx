@@ -1,40 +1,48 @@
-import { View, Text, StyleSheet } from "react-native"
+import { View, Text, StyleSheet } from 'react-native';
+import { useMemo } from 'react';
+import { useTheme } from '../../../providers/ThemeContext';
+import type { AppPalette } from '../../../constants/theme';
 
 export interface StateFieldProps {
-    title: string,
-    value: string
+  title: string;
+  value: string;
+}
+
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: p.cardTint,
+      borderWidth: 1,
+      borderColor: p.inputBorder,
+      width: '100%',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      flexDirection: 'row',
+      padding: 5,
+      borderRadius: 5,
+      gap: 15,
+    },
+    textDark: {
+      color: p.textSecondary,
+      fontSize: 10,
+      fontWeight: '200',
+    },
+    textLight: {
+      color: p.textPrimary,
+      fontSize: 10,
+      fontWeight: '600',
+    },
+  });
 }
 
 export const StateField: React.FC<StateFieldProps> = ({ title, value }) => {
-    return (
-        <View style={styles.container}>
-            <Text style={styles.textDark}>{title}</Text>
-            <Text style={styles.textLight}>{value}</Text>
-        </View>
-    )
-}
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
-const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#adc4ff31',
-        borderWidth: 1,
-        borderColor: '#00047060',
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        flexDirection: 'row',
-        padding: 5,
-        borderRadius: 5,
-        gap: 15
-    },
-    textDark: {
-        color: '#000670a8',
-        fontSize: 10,
-        fontWeight: '200'
-    },
-    textLight: {
-        color: '#000670d2',
-        fontSize: 10,
-        fontWeight: '600'
-    }
-})
+  return (
+    <View style={styles.container}>
+      <Text style={styles.textDark}>{title}</Text>
+      <Text style={styles.textLight}>{value}</Text>
+    </View>
+  );
+};

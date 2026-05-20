@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useController } from '../providers/ControllerContext';
 
 export interface NetworkParams {
@@ -42,169 +43,109 @@ export interface PadParams {
 }
 
 export interface CrossParams {
-    "number"?: number,  //От 0 до 999
-    "source"?: "activating input" | "unlocking exdev" | "opening exdev" | "get card" | "command" | "breaking exdev" | "long time opening exdev" |  "cover on" | "activating fire alarm input" | "normalizing fire alarm input"
+    "number"?: number,
+    "source"?: "activating input" | "unlocking exdev" | "opening exdev" | "get card" | "command" | "breaking exdev" | "long time opening exdev" | "cover on" | "activating fire alarm input" | "normalizing fire alarm input",
     "source_number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6,
     "source_direction"?: 0 | 1,
-    "destination"?: "activated output" | "mask input" | "normalized output",
+    "destination"?: "mask input" | "activated output" | "normalized output",
     "destination_number"?: 0 | 1 | 2 | 3 | 4 | 5 | 6,
     "destination_direction"?: 0 | 1,
     "time_criteria"?: "work time" | "absolute time" | "after work time",
-    "time_reaction"?: 0 // От 0 до 1000000 миллисекунд
+    "time_reaction"?: number
 }
 
 type GetType = 'reader' | 'exdev' | 'pad' | 'cross';
 
 export const useControllerConfig = () => {
-    const { socket, isConnected } = useController();
+    const { isConnected, touchConfig, sendAndWaitFor, sendAndCollect } = useController();
 
     // Команда на установку конфигурационных параметров(Set)
-    const sendSetCommand = async (setType: string, payload: object) => {
+    const sendSetCommand = useCallback(async (setType: string, payload: object) => {
 
-    // 1. Проверка подключения
+        // 1. Проверка подключения
 
-    if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
-        throw new Error("Нет подключения к контроллеру");
-    }
-
-    const commandPayload = {
-        "set": setType,
-        [setType]: payload
-    };
-
-    // 2. Возвращаем Promise, который разрешится при получении ответа
-    return new Promise((resolve, reject) => {
-
-        // Тайм-аут: если контроллер не ответит за 5 секунд
-        const timeout = setTimeout(() => {
-        socket.removeEventListener('message', handleResponse);
-        reject(new Error(`Превышено время ожидания ответа для: ${setType}`));
-        }, 5000);
-
-        // Функция-обработчик входящих сообщений
-        const handleResponse = (event) => {
-            try {
-            const data = JSON.parse(event.data);
-
-            // Проверяем, есть ли в ответе подтверждение для нашей команды
-            if (data.answer && data.answer[setType]) {
-                clearTimeout(timeout); // Отменяем тайм-аут
-                socket.removeEventListener('message', handleResponse); // Удаляем слушателя
-
-                if (data.answer[setType] === "ok") {
-                console.log(`Команда ${setType} выполнена успешно`);
-                resolve(data); // Возвращаем полные данные ответа (включая обновленные параметры)
-                } else {
-                reject(new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer[setType]}`));
-                }
-            } else {
-                // Это пинг или другое событие. Просто логируем и пропускаем.
-                console.log("Получено стороннее событие или пинг, продолжаем ждать...");
-            }
-            } catch (err) {
-            console.error("Ошибка парсинга JSON:", err);
-            }
-        };
-
-        // Подписываемся на сообщения
-        socket.addEventListener('message', handleResponse);
-
-        // Отправляем команду
-        socket.send(JSON.stringify(commandPayload));
-        });
-    };
-
-    //---------------------------------------------------------------------------------------------------------------
-
-    const getDataFromController = async (getType: string, payload: object, collectAll = false) => {
-        if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
+        if (!isConnected) {
             throw new Error("Нет подключения к контроллеру");
         }
 
-        let commandPayload = (getType === 'state') ? { 'get': 'state' } : { "get": getType, [getType]: payload };
-
-        return new Promise((resolve, reject) => {
-            const results: any[] = [];
-            let totalTimeout: NodeJS.Timeout;
-            let silenceTimeout: NodeJS.Timeout;
-
-            const cleanup = () => {
-                clearTimeout(totalTimeout);
-                clearTimeout(silenceTimeout);
-                socket.removeEventListener('message', handleResponse);
-            };
-
-        const handleResponse = (event) => {
-            try {
-                const rawData = event.data;
-                
-                // Разделяем склеенные JSON-объекты. 
-                // Ищем границу между } и { и вставляем разделитель
-                const jsonStrings = rawData
-                    .replace(/}\s*{/g, '}|--|{')
-                    .split('|--|');
-
-                jsonStrings.forEach(str => {
-                    const data = JSON.parse(str); // Теперь парсим каждый объект отдельно
-
-                    if (data.answer && data.answer[getType] === 'ok') {
-                        if (!collectAll) {
-                            cleanup();
-                            resolve(data);
-                        } else {
-                            results.push(data);
-                            
-                            // Сбрасываем таймаут тишины
-                            clearTimeout(silenceTimeout);
-                            silenceTimeout = setTimeout(() => {
-                                cleanup();
-                                resolve(results);
-                            }, 500);
-                        }
-                    }
-                });
-            } catch (err) {
-                console.error("Критическая ошибка парсинга:", err, "Raw data:", event.data);
-            }
+        const commandPayload = {
+            "set": setType,
+            [setType]: payload
         };
 
-            // Общий таймаут (если контроллер вообще не ответил)
-            totalTimeout = setTimeout(() => {
-                cleanup();
-                if (collectAll && results.length > 0) {
-                    resolve(results); // Если хоть что-то успели собрать
-                } else {
-                    reject(new Error(`Превышено время ожидания ответа для: ${getType}`));
-                }
-            }, 5000);
+        const data = await sendAndWaitFor<any>(
+            commandPayload,
+            (msg: any): msg is any => Boolean(msg?.answer && msg.answer[setType]),
+            5000
+        );
 
-            socket.addEventListener('message', handleResponse);
-            socket.send(JSON.stringify(commandPayload));
-        });
-    };
+        if (data.answer?.[setType] === "ok") {
+            console.log(`Команда ${setType} выполнена успешно`);
+            touchConfig();
+            return data;
+        }
+        throw new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer?.[setType]}`);
+    }, [isConnected, sendAndWaitFor, touchConfig]);
+
+    //---------------------------------------------------------------------------------------------------------------
+
+    const getDataFromController = useCallback(async (getType: string, payload: object, collectAll = false) => {
+        if (!isConnected) {
+            throw new Error("Нет подключения к контроллеру");
+        }
+
+        let commandPayload: Record<string, unknown>;
+        if (getType === 'state') {
+            commandPayload = { get: 'state' };
+        } else if (getType === 'cross') {
+            const n = (payload as { number?: number }).number;
+            if (!collectAll && typeof n === 'number') {
+                commandPayload = { get: 'cross', number: n };
+            } else {
+                commandPayload = { get: 'cross', cross: payload };
+            }
+        } else {
+            commandPayload = { get: getType, [getType]: payload };
+        }
+
+        if (!collectAll) {
+            const data = await sendAndWaitFor<any>(
+                commandPayload,
+                (msg: any): msg is any => Boolean(msg?.answer && msg.answer[getType]),
+                5000
+            );
+            if (data.answer?.[getType] === 'ok') return data;
+            throw new Error(`Контроллер вернул ошибку для ${getType}: ${data.answer?.[getType]}`);
+        }
+
+        const results = await sendAndCollect<any>(
+            commandPayload,
+            (msg: any): msg is any => Boolean(msg?.answer && msg.answer[getType] === 'ok'),
+            { totalTimeoutMs: 5000, silenceMs: 500 }
+        );
+        return results;
+    }, [isConnected, sendAndCollect, sendAndWaitFor]);
 
     //----------------------------------------------------------------------------------------------------------------
 
 
     //Получаем данные о состоянии контроллера
-    const getState = async () => {
-        return await getDataFromController('state', {})
-    }
+    const getState = useCallback(async () => await getDataFromController('state', {}), [getDataFromController]);
 
 
 
     //Получаем данные о считывателях, ИУ, физ. контактах, внутр. реакциях
-    const getInfo = async (type: GetType, number: 'all' | number) => {
+    const getInfo = useCallback(async (type: GetType, number: 'all' | number) => {
         const isAll = number === 'all';
         const params = isAll ? {} : { "number": number };
         
         // Передаем true в третий аргумент, если запрашиваем 'all'
         return await getDataFromController(type, params, isAll);
-    };
+    }, [getDataFromController]);
 
 
         //Функция отправки сетевых настроек на контроллер
-    const setNetworkSettings = async (netParams: NetworkParams) => {
+    const setNetworkSettings = useCallback(async (netParams: NetworkParams) => {
         // Создаем объект только из тех полей, которые были переданы (не undefined)
         const payload: NetworkParams = {};
         
@@ -221,9 +162,9 @@ export const useControllerConfig = () => {
         }
 
         return await sendSetCommand('net', payload);
-    };
+    }, [sendSetCommand]);
 
-    const setExdevConfig = async (exdevParams: Partial<ExdevParams>) => {
+    const setExdevConfig = useCallback(async (exdevParams: Partial<ExdevParams>) => {
     
         const payload = Object.fromEntries(
             Object.entries(exdevParams).filter(([_, v]) => v !== undefined)
@@ -235,9 +176,9 @@ export const useControllerConfig = () => {
         }
 
         return await sendSetCommand('exdev', payload);
-    };
+    }, [sendSetCommand]);
 
-    const setPadConfig = async (padParams: Partial<PadParams>) => {
+    const setPadConfig = useCallback(async (padParams: Partial<PadParams>) => {
 
         const payload = Object.fromEntries(
             Object.entries(padParams).filter(([_, v]) => v !== undefined)
@@ -249,13 +190,13 @@ export const useControllerConfig = () => {
         }
 
         return await sendSetCommand('pad', payload);
-    }
+    }, [sendSetCommand]);
 
 
     // Установка заводских сетевых настроек
-    const setDefaultNetwork = async () => await sendSetCommand('net', {})
+    const setDefaultNetwork = useCallback(async () => await sendSetCommand('net', {}), [sendSetCommand]);
 
-    const setReaderConfig = async (readerParams: Partial<ReaderParams>) => {
+    const setReaderConfig = useCallback(async (readerParams: Partial<ReaderParams>) => {
         const payload = Object.fromEntries(
             Object.entries(readerParams).filter(([_, v]) => v !== undefined)
         );
@@ -264,9 +205,9 @@ export const useControllerConfig = () => {
             return;
         }
         return await sendSetCommand('reader', payload);
-    }
+    }, [sendSetCommand]);
 
-    const setCrossConfig = async (crossParams: Partial<CrossParams>) => {
+    const setCrossConfig = useCallback(async (crossParams: Partial<CrossParams>) => {
         const payload = Object.fromEntries(
             Object.entries(crossParams).filter(([_, v]) => v !== undefined)
         );
@@ -275,7 +216,7 @@ export const useControllerConfig = () => {
             return;
         }
         return await sendSetCommand('cross', payload);
-    }
+    }, [sendSetCommand]);
 
     return {
         setDefaultNetwork,

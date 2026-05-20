@@ -1,104 +1,123 @@
-import { View, Image, StyleSheet, Text } from "react-native"
-import { useState } from "react"
-import { useRouter } from "expo-router"
+import { View, Image, StyleSheet, Text } from 'react-native';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
 
-import { Button } from "../elements/buttons/Button"
-import { attemptConnection } from "../../../utils/attemptConnection"
-import { useController } from "../../../providers/ControllerContext"
-import ErrorModal from "../status/ErrorModal"
-import { removeDevice } from "../../../storage/deviceStorage"
+import { Button } from '../elements/buttons/Button';
+import { attemptConnection } from '../../../utils/attemptConnection';
+import { useController } from '../../../providers/ControllerContext';
+import ErrorModal from '../status/ErrorModal';
+import { removeDevice } from '../../../storage/deviceStorage';
+import { useTheme } from '../../../providers/ThemeContext';
+import type { AppPalette } from '../../../constants/theme';
 
 export interface RememberedDeviceProps {
-  name: string,
-  ip: string,
-  password: string,
-  small?: boolean,
-  onDelete?: () => Promise<void>
+  name: string;
+  ip: string;
+  password: string;
+  small?: boolean;
+  onDelete?: () => Promise<void>;
 }
 
-export const RememberedDevice: React.FC<RememberedDeviceProps> = ({name, ip, password, small, onDelete}) => {
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    container: {
+      width: '100%',
+      flexDirection: 'row',
+      alignSelf: 'stretch',
+      justifyContent: 'space-between',
+      padding: 7,
+      backgroundColor: p.cardTint,
+      borderWidth: 1,
+      borderColor: p.cardBorder,
+      boxShadow: p.cardShadowSoft,
+      borderRadius: 5,
+    },
+    block: {
+      gap: 5,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    nameIp: {
+      flexDirection: 'column',
+      gap: 5,
+    },
+    text: {
+      color: p.textSecondary,
+      fontSize: 12,
+      fontWeight: 'light',
+    },
+  });
+}
 
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const router = useRouter()
-    const { setGlobalSocket, isConnected } = useController();
-    
+export const RememberedDevice: React.FC<RememberedDeviceProps> = ({
+  name,
+  ip,
+  password,
+  small,
+  onDelete,
+}) => {
+  const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const router = useRouter();
+  const { setGlobalSocket } = useController();
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
-    const handleConnect = async () => {
-
+  const handleConnect = async () => {
         try {
-          
-          const connectionResult = await attemptConnection(ip, password);
-    
-          if(connectionResult.success) {
-            setGlobalSocket(connectionResult.socket)
-          }
-    
-          if (!connectionResult.success) {
-            // Показываем модальное окно с ошибкой
-            setErrorMessage(connectionResult.message || 'Не удалось подключиться к контроллеру C01');
-            setIsErrorModalVisible(true);
-            return;
-          }
-    
-          // Успешное подключение — переход на экран управления
-          router.push('/controller');
-        } catch (error) {
-          // Обработка сетевых ошибок и других исключений
-          setErrorMessage('Произошла непредвиденная ошибка при подключении');
-          setIsErrorModalVisible(true);
-        }
-    };
+          const connectionResult = (await attemptConnection(ip, password)) as {
+            success: boolean;
+            socket?: WebSocket;
+            message?: string;
+          };
 
-    return (
-      <>
-        <View style={styles.container}>
-          <View style={styles.block}>
-            <Image source={require('../../../assets/icons/controller.png')} />
-            <View style={styles.nameIp}>
-              <Text style={styles.text}>Имя: {name}</Text>
-              <Text style={styles.text}>IP: {ip}</Text>
-            </View>
+          if (connectionResult.success && connectionResult.socket) {
+            setGlobalSocket(connectionResult.socket, password);
+          }
+
+      if (!connectionResult.success) {
+        setErrorMessage(
+          connectionResult.message ||
+            'Не удалось подключиться к контроллеру C01',
+        );
+        setIsErrorModalVisible(true);
+        return;
+      }
+
+      router.push('/controller');
+    } catch {
+      setErrorMessage('Произошла непредвиденная ошибка при подключении');
+      setIsErrorModalVisible(true);
+    }
+  };
+
+  return (
+    <>
+      <View style={styles.container}>
+        <View style={styles.block}>
+          <Image source={require('../../../assets/icons/controller.png')} />
+          <View style={styles.nameIp}>
+            <Text style={styles.text}>Имя: {name}</Text>
+            <Text style={styles.text}>IP: {ip}</Text>
           </View>
-          <View style={styles.block}>
-            {!small && <Button title='X' onPress={onDelete} size='S' customStyles={{backgroundColor: '#f82828'}}/>}
-            <Button title='Подключить' onPress={handleConnect} size='S'/>
-            </View>
         </View>
-        <ErrorModal
-          visible={isErrorModalVisible}
-          message={errorMessage}
-          onClose={() => setIsErrorModalVisible(false)}
-        />
-      </>
-    )
-}
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    flexDirection: 'row',
-    alignSelf: 'stretch',
-    justifyContent: 'space-between',
-    padding: 7,
-    backgroundColor: '#adc4ff31',
-    borderWidth: 1,
-    borderColor: '#00067057',
-    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.1)',
-    borderRadius: 5
-  },
-  block: {
-    gap: 5,
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  nameIp: {
-    flexDirection: 'column',
-    gap: 5
-  },
-  text: {
-    color: '#00067057',
-    fontSize: 12,
-    fontWeight: 'light',
-  },
-});
+        <View style={styles.block}>
+          {!small && (
+            <Button
+              title="X"
+              onPress={() => void onDelete?.()}
+              size="S"
+              customStyles={{ backgroundColor: palette.primaryButtonDanger }}
+            />
+          )}
+          <Button title="Подключить" onPress={handleConnect} size="S" />
+        </View>
+      </View>
+      <ErrorModal
+        visible={isErrorModalVisible}
+        message={errorMessage}
+        onClose={() => setIsErrorModalVisible(false)}
+      />
+    </>
+  );
+};

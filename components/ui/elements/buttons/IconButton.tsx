@@ -1,5 +1,7 @@
-import React from 'react';
-import { Image, Text, TouchableOpacity, StyleSheet, ImageSourcePropType } from 'react-native';
+import React, { useMemo } from 'react';
+import { Image, TouchableOpacity, StyleSheet, ImageSourcePropType } from 'react-native';
+import { useTheme } from '../../../../providers/ThemeContext';
+import type { AppPalette } from '../../../../constants/theme';
 
 interface IconButtonProps {
   size: string;
@@ -8,34 +10,36 @@ interface IconButtonProps {
   icon: ImageSourcePropType;
 }
 
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    button: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      alignSelf: 'center',
+    },
+    icon: {
+      width: 20,
+      height: 20
+    },
+    border: {
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: p.iconButtonBorder,
+      boxShadow: p.panelShadow,
+    }
+  });
+}
 
 export const IconButton: React.FC<IconButtonProps> = ({ size, hasBorder, onPress, icon }) => {
-
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
 
   return (
     <TouchableOpacity
-    style={[styles.button, hasBorder && styles.border]}
-    onPress={onPress}
+      style={[styles.button, hasBorder && styles.border]}
+      onPress={onPress}
     >
-        <Image style={styles.icon} source={icon}/>
+      <Image style={styles.icon} source={icon} />
     </TouchableOpacity>
   );
-}
-
-const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
-  },
-  icon: {
-    width: 20,
-    height: 20
-  },
-  border: {
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#00067057',
-    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.12)',
-  }
-});
+};

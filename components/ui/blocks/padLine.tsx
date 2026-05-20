@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { mapPadNames, mapPadTypes } from "../../../types/maps"
+import { semanticLineColors as c } from "../../../constants/theme"
 
 export interface PadLineProps {
     number: number,
@@ -58,9 +59,9 @@ export const PadLine: React.FC<PadLineProps> = ({ number = 0, type = 'Сигна
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#adc4ff31',
+        backgroundColor: c.padDefaultBg,
         borderWidth: 1,
-        borderColor: '#00047060',
+        borderColor: c.padDefaultBorder,
         width: '100%',
         alignItems: 'flex-start',
         justifyContent: 'flex-start',
@@ -69,52 +70,52 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         borderRadius: 5,
         gap: 20,
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25), inset -3px -3px 15px rgba(0, 0, 0, 0.25)'
+        boxShadow: c.padDefaultShadow,
     },
     containerYellow: {
-        borderColor: '#ab7500c0',
-        backgroundColor: '#fff7b29d'
+        borderColor: c.yellowBorder,
+        backgroundColor: c.yellowBg,
     },
     textYellow: {
-        color: '#ab7500c0'
+        color: c.yellowText,
     },
     containerGreen: {
-        borderColor: '#254426a6',
-        backgroundColor: '#a3eca7a8'
+        borderColor: c.greenBorder,
+        backgroundColor: c.greenBg,
     },
     textGreen: {
-        color: '#254426c2'
+        color: c.greenText,
     },
     containerOrange: {
-        borderColor: '#ab7500c0',
-        backgroundColor: '#ffcd82ad'
+        borderColor: c.orangeBorder,
+        backgroundColor: c.orangeBg,
     },
     textOrange: {
-        color: '#ab7500da'
+        color: c.orangeText,
     },
     containerRed: {
-        borderColor: '#a70707bd',
-        backgroundColor: '#ff3f3f8e'
+        borderColor: c.redBorder,
+        backgroundColor: c.redBg,
     },
     textRed: {
-        color: '#7c0707d2'
+        color: c.redText,
     },
     containerBlue: {
-        borderColor: '#32117Ac0',
-        backgroundColor: '#82DCFF9d'
+        borderColor: c.blueBorder,
+        backgroundColor: c.blueBg,
     },
     textBlue: {
-        color: '#32117Ac0'
+        color: c.blueText,
     },
     containerLime: {
-        borderColor: '#457A11c0',
-        backgroundColor: '#85f1a7ab'
+        borderColor: c.limeBorder,
+        backgroundColor: c.limeBg,
     },
     textLime: {
-        color: '#457A11c0'
+        color: c.limeText,
     },
     text: {
-        color: '#000670a8',
+        color: c.defaultTextMuted,
         fontSize: 14,
         fontWeight: '400'
     },

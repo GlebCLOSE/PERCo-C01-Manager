@@ -1,22 +1,66 @@
-import { Text, StyleSheet, ScrollView, View, FlatList, ActivityIndicator } from "react-native";
+import { Text, StyleSheet, View, FlatList } from "react-native";
+import { InlineLoading } from "../../../components/ui/status/InlineLoading";
 import { WarningText } from "../../../components/ui/blocks/warningText";
 import { PadLine } from "../../../components/ui/blocks/padLine";
 import { PadDetails } from "../../../components/modal-content/padDetails";
 import { ModalChildren } from "../../../components/ui/status/ModalChildren";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useFocusEffect } from 'expo-router';
 import { useControllerConfig } from "../../../hooks/useControllerConfig";
 import { PadParams } from "../../../hooks/useControllerConfig";
 import { IconButton } from "../../../components/ui/elements/buttons/IconButton";
+import { useController } from "../../../providers/ControllerContext";
+import { useTheme } from "../../../providers/ThemeContext";
+import type { AppPalette } from "../../../constants/theme";
+import { themedIcon } from "../../../constants/themedIcons";
+
+function createStyles(p: AppPalette) {
+    return StyleSheet.create({
+        headerBlock: {
+            gap: 10,
+            marginBottom: 10,
+        },
+        listContent: {
+            flexGrow: 1,
+            paddingBottom: 16,
+        },
+        titleBlock: {
+            flexDirection: 'row',
+            width: '100%',
+            justifyContent: 'space-between'
+        },
+        title: {
+            fontFamily: 'inter',
+            fontSize: 24,
+            fontWeight: '400',
+            color: p.sectionHeading,
+        },
+        blockButtons: {
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+        },
+        loadingOverlay: {
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: p.loadingOverlayBg,
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+        },
+    });
+}
 
 export default function PadsScreen() {
 
     const { getInfo } = useControllerConfig()
-    const [activePad, setActivePad] = useState('');
+    const { palette, scheme } = useTheme();
+    const styles = useMemo(() => createStyles(palette), [palette]);
+    const { configRevision } = useController();
+    const lastRevisionRef = useRef<number>(configRevision);
+    const [activePad, setActivePad] = useState<PadParams | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [padList, setPadList] = useState([])
+    const [padList, setPadList] = useState<PadParams[]>([])
     
-    const refreshIcon = require("../../../assets/icons/refresh.png")
+    const refreshIcon = useMemo(() => themedIcon('refresh', scheme), [scheme]);
 
     const handleGetPadInfo = useCallback(async () => {
         setIsLoading(true);
@@ -30,7 +74,7 @@ export default function PadsScreen() {
                 .filter((pad: any) => pad !== undefined);
 
             // Сортируем по номеру
-            padArray.sort((a, b) => a.number - b.number);
+            padArray.sort((a: PadParams, b: PadParams) => (a.number ?? 0) - (b.number ?? 0));
 
             setPadList(padArray);
         } catch (error) {
@@ -38,80 +82,76 @@ export default function PadsScreen() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [getInfo]);
 
     useFocusEffect(
         useCallback(() => {
-            handleGetPadInfo();
+            const isConfigJustChanged = lastRevisionRef.current !== configRevision;
+            lastRevisionRef.current = configRevision;
 
-            return () => {};
-        }, [handleGetPadInfo])
+            // Контроллер может применить конфигурацию не мгновенно:
+            // делаем небольшой "пост-коммит" refetch при изменении конфигурации.
+            const timeout = setTimeout(() => {
+                handleGetPadInfo();
+            }, isConfigJustChanged ? 250 : 0);
+
+            return () => {
+                clearTimeout(timeout);
+            };
+        }, [handleGetPadInfo, configRevision])
     );
 
     const closeModal = () => {
-        setActivePad('')
+        setActivePad(null)
     }
 
     const ItemSeparator = () => (
-        <View style={{ height: 10, backgroundColor: 'transparent' }} /> // Adjust height for vertical gap
+        <View style={{ height: 10, backgroundColor: 'transparent' }} />
     );
 
+    const listHeader = (
+        <View style={styles.headerBlock}>
+            <View style={styles.titleBlock}>
+                <Text style={styles.title}>Физические контакты</Text>
+                <IconButton
+                    onPress={handleGetPadInfo}
+                    icon={refreshIcon}
+                    hasBorder={false}
+                    size="M"
+                />
+            </View>
+            <WarningText text="Необдуманные действия в этом разделе могут привести к некорректной работе контроллера" />
+        </View>
+    );
 
     return (
-        <>
-            <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 10 }}>
-                <View style={styles.titleBlock}>
-                    <Text style={styles.title}>Физические контакты</Text>
-                    <IconButton 
-                        onPress={handleGetPadInfo}
-                        icon={refreshIcon}
-                        hasBorder={false}
+        <View style={{ flex: 1 }}>
+            <FlatList
+                data={padList}
+                keyExtractor={(item, index) =>
+                    item.number !== undefined ? `pad-${item.number}` : `pad-i-${index}`
+                }
+                ListHeaderComponent={listHeader}
+                contentContainerStyle={styles.listContent}
+                renderItem={({ item }) => (
+                    <PadLine
+                        number={item.number ?? 0}
+                        type={item.function ?? ''}
+                        onPress={() => {
+                            setActivePad(item);
+                        }}
                     />
-                </View>
-                <WarningText text="Необдуманные действия в этом разделе могут привести к некорректной работе контроллера"/>
-                <View>
-                    <FlatList
-                        data={padList}
-                        style={{gap: 10}}
-                        renderItem={({item})=><PadLine number={item.number} type={item.function}  onPress={()=>{setActivePad(item)}}/>}
-                        ItemSeparatorComponent={ItemSeparator}
-                    /> 
-                </View>
-                <ModalChildren title={'Вход'} visible={activePad !== ''} onClose={closeModal}>
-                    <PadDetails data={activePad}/>
-                </ModalChildren>
-                {isLoading && (
-                    <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="large" color="#0000ff" />
-                        <Text style={{ marginTop: 10, color: '#fff' }}>Загрузка данных...</Text>
-                    </View>
                 )}
-            </ScrollView>
-        </>
+                ItemSeparatorComponent={ItemSeparator}
+            />
+            <ModalChildren title={'Вход'} visible={activePad !== null} onClose={closeModal}>
+                {activePad ? <PadDetails data={activePad} /> : null}
+            </ModalChildren>
+            {isLoading && (
+                <View style={styles.loadingOverlay}>
+                    <InlineLoading />
+                </View>
+            )}
+        </View>
     );
 };
-
-const styles = StyleSheet.create({
-    titleBlock: {
-        flexDirection: 'row',
-        width: '100%',
-        justifyContent: 'space-between'
-    },
-    title: {
-        fontFamily: 'inter',
-        fontSize: 24,
-        fontWeight: '400',
-        color: '#1A2253'
-    },
-    blockButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    },
-    loadingOverlay: {
-        ...StyleSheet.absoluteFillObject, // Растягивает на весь экран
-        backgroundColor: 'rgba(255, 255, 255, 0.21)', // Полупрозрачный фон
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000, // Чтобы быть поверх всех элементов
-    },
-})

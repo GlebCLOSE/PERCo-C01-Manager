@@ -17,7 +17,7 @@ interface NetworkC01Params {
 
 
 export const useControllerCommands = () => {
-  const { socket, isConnected } = useController();
+  const { socket, isConnected, sendAndWaitFor, sendPayloadFireAndForget } = useController();
 
   // Отправка команды set, для установки конфигурационных параметров(разных setType, например readers или exdev)
 const sendSetCommand = async (setType: string, payload: object) => {
@@ -32,45 +32,13 @@ const sendSetCommand = async (setType: string, payload: object) => {
     [setType]: payload
   };
 
-  // 2. Возвращаем Promise, который разрешится при получении ответа
-  return new Promise((resolve, reject) => {
-    // Тайм-аут: если контроллер не ответит за 5 секунд
-    const timeout = setTimeout(() => {
-      socket.removeEventListener('message', handleResponse);
-      reject(new Error(`Превышено время ожидания ответа для: ${setType}`));
-    }, 5000);
-
-    // Функция-обработчик входящих сообщений
-    const handleResponse = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-
-          // Проверяем, есть ли в ответе подтверждение для нашей команды
-          if (data.answer && data.answer[setType]) {
-            clearTimeout(timeout); // Отменяем тайм-аут
-            socket.removeEventListener('message', handleResponse); // Удаляем слушателя
-
-            if (data.answer[setType] === "ok") {
-              console.log(`Команда ${setType} выполнена успешно`);
-              resolve(data); // Возвращаем полные данные ответа (включая обновленные параметры)
-            } else {
-              reject(new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer[setType]}`));
-            }
-          } else {
-            // Это пинг или другое событие. Просто логируем и пропускаем.
-            console.log("Получено стороннее событие или пинг, продолжаем ждать...");
-          }
-        } catch (err) {
-          console.error("Ошибка парсинга JSON:", err);
-        }
-      };
-
-      // Подписываемся на сообщения
-      socket.addEventListener('message', handleResponse);
-
-      // Отправляем команду
-      socket.send(JSON.stringify(commandPayload));
-    });
+  const data = await sendAndWaitFor<any>(
+    commandPayload,
+    (msg: any): msg is any => Boolean(msg?.answer && msg.answer[setType]),
+    5000
+  );
+  if (data.answer?.[setType] === "ok") return data;
+  throw new Error(`Контроллер вернул ошибку для ${setType}: ${data.answer?.[setType]}`);
   };
 
   // Функция получения данных с контроллера
@@ -89,46 +57,13 @@ const sendSetCommand = async (setType: string, payload: object) => {
       commandPayload = {'get': 'state'}
     }
 
-    return new Promise((resolve, reject) => {
-
-      // Таймаут подключения 
-      const timeout = setTimeout(() => {
-        socket.removeEventListener('message', handleResponse);
-        reject(new Error(`Превышено время ожидания ответа для: ${getType}`));
-      }, 5000);
-
-      const handleResponse = (event) => {
-        try {
-          console.log(event.data)
-          const data = JSON.parse(event.data)
-
-          if(data.answer && data.answer[getType]){
-
-            clearTimeout(timeout); // Отменяем тайм-аут
-            socket.removeEventListener('message', handleResponse); // Удаляем слушателя
-
-            if(data.answer[getType]==='ok'){
-              console.log('Данные состояния получены')
-              resolve(data)
-            }
-            else {
-              reject(new Error(`Контроллер вернул ошибку для ${getType}: ${data.answer[getType]}`));
-            }
-          }
-        } catch (err) {
-          console.error("Ошибка парсинга JSON:", err);
-        }
-
-      }
-
-
-      // Подписываемся на сообщения
-      socket.addEventListener('message', handleResponse);
-
-      // Отправляем команду
-      socket.send(JSON.stringify(commandPayload));
-
-    });
+    const data = await sendAndWaitFor<any>(
+      commandPayload,
+      (msg: any): msg is any => Boolean(msg?.answer && msg.answer[getType]),
+      5000
+    );
+    if (data.answer?.[getType] === 'ok') return data;
+    throw new Error(`Контроллер вернул ошибку для ${getType}: ${data.answer?.[getType]}`);
 
   }
 
@@ -179,47 +114,21 @@ const sendSetCommand = async (setType: string, payload: object) => {
 
 
   // Вспомогательная функция для отправки JSON-команд управления
-  const sendControlCommand = (controlType: string, payload: object): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    if (isConnected && socket) {
-      const commandPayload = {
-        "control": controlType,
-        [controlType]: payload
-      };
-
-      // Обработчик входящих сообщений
-      const handleMessage = (event: MessageEvent) => {
-        try {
-          const response = JSON.parse(event.data);
-          // Проверяем, что ответ относится к нашей команде (есть ключ controlType)
-
-          if (response.result && response.result[controlType]) {
-            socket.removeEventListener('message', handleMessage);
-            clearTimeout(timeoutId); // Очищаем таймер при успехе
-            resolve(response);
-          } else {
-            // Это пинг или другое событие. Просто логируем и пропускаем.
-            console.log("Получено стороннее событие или пинг, продолжаем ждать...");
-          }
-        } catch (e) {
-          console.error("Ошибка парсинга ответа:", e);
-        }
-      };
-
-      socket.addEventListener('message', handleMessage);
-      socket.send(JSON.stringify(commandPayload));
-
-      // Таймаут, чтобы не ждать вечно
-      const timeoutId = setTimeout(() => {
-        socket.removeEventListener('message', handleMessage);
-        reject(new Error("Превышено время ожидания ответа от контроллера"));
-      }, 5000);
-
-    } else {
-      reject(new Error("Попытка отправить команду без подключения"));
+  const sendControlCommand = async (controlType: string, payload: object): Promise<any> => {
+    if (!isConnected || !socket || socket.readyState !== WebSocket.OPEN) {
+      throw new Error("Попытка отправить команду без подключения");
     }
-  });
-};
+    const commandPayload = {
+      "control": controlType,
+      [controlType]: payload
+    };
+    const response = await sendAndWaitFor<any>(
+      commandPayload,
+      (msg: any): msg is any => Boolean(msg?.result && msg.result[controlType]),
+      5000
+    );
+    return response;
+  };
 
   /**
    * 4.1. Установить РКД (Режим Контроля Доступа)
@@ -317,8 +226,8 @@ const sendSetCommand = async (setType: string, payload: object) => {
    * Ответ придет в WebSocket.onmessage в контексте
    */
   const requestDeviceState = () => {
-    if (isConnected && socket) {
-        socket.send(JSON.stringify({ "get": "state" }));
+    if (isConnected && socket?.readyState === WebSocket.OPEN) {
+      sendPayloadFireAndForget({ get: 'state' });
     }
   };
 

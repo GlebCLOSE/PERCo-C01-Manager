@@ -1,37 +1,43 @@
-import React, { ReactNode } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { ReactNode, useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../../providers/ThemeContext';
+import type { AppPalette } from '../../../constants/theme';
 
 interface MyComponentProps {
-  children: ReactNode; // поддерживает текст, элементы, массивы и т. д.
+  children: ReactNode;
+}
+
+function createStyles(p: AppPalette) {
+  return StyleSheet.create({
+    background: {
+      flex: 1,
+      paddingTop: 20,
+      paddingBottom: 20,
+      paddingHorizontal: 20,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: p.panelBg,
+      borderRadius: 15,
+      borderWidth: 1,
+      borderColor: p.panelBorder,
+      boxShadow: p.panelShadow,
+      padding: 15,
+    },
+  });
 }
 
 export const Main: React.FC<MyComponentProps> = ({ children }) => {
+  const { palette } = useTheme();
+  const styles = useMemo(() => createStyles(palette), [palette]);
+
   return (
     <LinearGradient
-      colors={['#DDE3F2', '#F6F9FF', '#CFD8EE']}
+      colors={[...palette.mainGradient]}
       style={styles.background}
     >
-      <View style={styles.container}>
-        {children}
-      </View>
+      <View style={styles.container}>{children}</View>
     </LinearGradient>
   );
-}
-
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    paddingTop: 20,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff33',
-    borderRadius: 15,
-    borderColor: '#000670d0',
-    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.1)',
-    padding: 15,
-  },
-});
+};
