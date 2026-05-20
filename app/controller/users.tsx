@@ -45,7 +45,7 @@ type ModalState = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; user
 export default function UsersScreen() {
   const { palette, scheme } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
-  const addIcon = useMemo(() => themedIcon('addReader', scheme), [scheme]);
+  const addIcon = useMemo(() => themedIcon('addUser', scheme), [scheme]);
 
   const [modal, setModal] = useState<ModalState>({ kind: 'closed' });
   const [isLoading, setIsLoading] = useState(false);

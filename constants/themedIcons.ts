@@ -10,6 +10,10 @@ const ICONS = {
     light: require('../assets/icons/addReader.png'),
     dark: require('../assets/icons/dark-theme/addReader-white.png'),
   },
+  addUser: {
+    light: require('../assets/icons/addUser.png'),
+    dark: require('../assets/icons/dark-theme/addUser-white.png'),
+  },
   arrowDropdown: {
     light: require('../assets/icons/arrow-dropdown-blue.png'),
     dark: require('../assets/icons/dark-theme/arrow-dropdown-white.png'),
