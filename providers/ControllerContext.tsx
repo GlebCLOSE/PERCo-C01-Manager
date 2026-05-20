@@ -6,6 +6,10 @@ import type { PercoEvent } from '../types/events';
 import type { WsTransportLogEntry } from '../types/wsTransportLog';
 import { RequestManager, type MessageMatcher } from '../utils/controller/requestManager';
 import { clearEventsDb, getRecentEventsFromDb, initEventsDb, insertEventToDb } from '../utils/controller/eventsDb';
+import {
+  isTrimmedIdentifierAllowed,
+  refreshAllowedIdentifiersFromDb,
+} from '../utils/controller/localAccessUsersDb';
 import { attemptConnection } from '../utils/attemptConnection';
 import { getDevices } from '../storage/deviceStorage';
 import {
@@ -118,6 +122,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     (async () => {
       try {
         await initEventsDb();
+        await refreshAllowedIdentifiersFromDb();
         const loaded = await getRecentEventsFromDb(500);
         if (!cancelled && loaded.length) setEvents(loaded);
       } catch (e) {
@@ -299,6 +304,23 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
               }
             }
 
+            if (msg.event === 'card' && typeof msg === 'object' && msg !== null && 'card' in msg) {
+              const card = (msg as { card: { id?: unknown; number: number; direction: number } }).card;
+              const tid = String(card?.id ?? '').trim();
+              if (tid && isTrimmedIdentifierAllowed(tid)) {
+                sendPayloadFireAndForget({
+                  control: 'exdev',
+                  exdev: {
+                    number: card.number,
+                    direction: card.direction,
+                    action: 'open',
+                    open_time: 1000,
+                    open_type: 'open once',
+                  },
+                });
+              }
+            }
+
             setEvents((prev) => {
               const next = [...prev, { event: msg as PercoEvent, receivedAt }];
               if (next.length > 500) return next.slice(next.length - 500);
@@ -315,7 +337,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
       setSocket(ws);
       setIsConnected(true);
     },
-    [appendTransportLogEntry]
+    [appendTransportLogEntry, sendPayloadFireAndForget]
   );
 
   const reconnectToController = useCallback(async (): Promise<ReconnectResult> => {

@@ -9,13 +9,14 @@ export type StoredEventRow = {
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
-async function getDb() {
+/** Единая БД приложения (события + локальные пользователи для авторазблокировки). */
+export async function getPercoDatabase() {
   if (!dbPromise) dbPromise = SQLite.openDatabaseAsync('perco_events.db');
   return dbPromise;
 }
 
 export async function initEventsDb() {
-  const db = await getDb();
+  const db = await getPercoDatabase();
   await db.execAsync(`
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS events (
@@ -24,11 +25,17 @@ export async function initEventsDb() {
       payloadJson TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_events_receivedAt ON events(receivedAt);
+    CREATE TABLE IF NOT EXISTS local_access_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      full_name TEXT NOT NULL,
+      identifier TEXT NOT NULL UNIQUE
+    );
+    CREATE INDEX IF NOT EXISTS idx_local_access_users_identifier ON local_access_users(identifier);
   `);
 }
 
 export async function insertEventToDb(event: PercoEvent, receivedAt: number) {
-  const db = await getDb();
+  const db = await getPercoDatabase();
   await db.runAsync(
     `INSERT INTO events (receivedAt, payloadJson) VALUES (?, ?)`,
     [receivedAt, JSON.stringify(event)]
@@ -36,7 +43,7 @@ export async function insertEventToDb(event: PercoEvent, receivedAt: number) {
 }
 
 export async function getRecentEventsFromDb(limit = 500): Promise<Array<{ event: PercoEvent; receivedAt: number }>> {
-  const db = await getDb();
+  const db = await getPercoDatabase();
   const rows = await db.getAllAsync<StoredEventRow>(
     `SELECT id, receivedAt, payloadJson FROM events ORDER BY receivedAt DESC LIMIT ?`,
     [limit]
@@ -55,7 +62,7 @@ export async function getRecentEventsFromDb(limit = 500): Promise<Array<{ event:
 }
 
 export async function clearEventsDb() {
-  const db = await getDb();
+  const db = await getPercoDatabase();
   await db.runAsync(`DELETE FROM events`);
 }
 
