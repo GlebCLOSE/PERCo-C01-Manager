@@ -1,10 +1,20 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from "react-native";
 import { useMemo, useState } from "react";
 import { useController } from "../../providers/ControllerContext";
 import { useTheme } from "../../providers/ThemeContext";
 import type { AppPalette } from "../../constants/theme";
 
 const PREVIEW_LIMIT = 80;
+
+/** Кадры периодического/ручного опроса state — для фильтра в логе транспорта. */
+function isStatePollFrame(body: unknown): boolean {
+  if (!body || typeof body !== "object") return false;
+  const o = body as Record<string, unknown>;
+  if (o.get === "state") return true;
+  const ans = o.answer;
+  if (ans && typeof ans === "object" && ans !== null && "state" in ans) return true;
+  return false;
+}
 
 function createStyles(p: AppPalette) {
   return StyleSheet.create({
@@ -98,6 +108,20 @@ function createStyles(p: AppPalette) {
       fontWeight: "700",
       color: p.modalWarnBodyMuted,
     },
+    toggleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      width: "100%",
+      paddingHorizontal: 2,
+    },
+    toggleLabel: {
+      flex: 1,
+      fontFamily: "inter",
+      fontSize: 12,
+      color: p.modalWarnBodyMuted,
+      fontWeight: "400",
+    },
   });
 }
 
@@ -108,6 +132,7 @@ export const LogModal = () => {
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
   const [mode, setMode] = useState<LogMode>("transport");
+  const [hideStatePoll, setHideStatePoll] = useState(true);
 
   const eventLines = useMemo(() => {
     return [...events]
@@ -126,7 +151,9 @@ export const LogModal = () => {
   }, [events]);
 
   const transportLines = useMemo(() => {
-    return [...transportLog].reverse().slice(0, PREVIEW_LIMIT).map((entry, idx) => {
+    const source =
+      hideStatePoll ? transportLog.filter((e) => !isStatePollFrame(e.body)) : transportLog;
+    return [...source].reverse().slice(0, PREVIEW_LIMIT).map((entry, idx) => {
       let raw: string;
       try {
         raw = JSON.stringify(entry.body, null, 2);
@@ -137,7 +164,7 @@ export const LogModal = () => {
       const dir = entry.direction === "in" ? "IN" : "OUT";
       return { idx, at, raw, dir, direction: entry.direction };
     });
-  }, [transportLog]);
+  }, [transportLog, hideStatePoll]);
 
   return (
     <View style={styles.wrap}>
@@ -166,6 +193,13 @@ export const LogModal = () => {
           </TouchableOpacity>
         ) : null}
       </View>
+
+      {mode === "transport" ? (
+        <View style={styles.toggleRow}>
+          <Switch value={hideStatePoll} onValueChange={setHideStatePoll} />
+          <Text style={styles.toggleLabel}>Скрыть get/answer state (опрос связи)</Text>
+        </View>
+      ) : null}
 
       <View style={styles.hr} />
 

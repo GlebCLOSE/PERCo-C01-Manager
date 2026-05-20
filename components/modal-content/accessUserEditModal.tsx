@@ -165,7 +165,7 @@ export function AccessUserEditModal({
         label="Идентификатор"
         value={identifier}
         onChangeText={setIdentifier}
-        placeholder="Номер карты / кода (для QR: только цифры 0–16777215)"
+        placeholder="Номер карты"
       />
 
       {qrPayload ? (
