@@ -124,6 +124,41 @@ export const semanticLineColors = {
   defaultTextMuted: '#000670a8',
 } as const;
 
+export type SemanticLineColors = {
+  [K in keyof typeof semanticLineColors]: string;
+};
+
+/** Семантика строк списка физ. контактов и событий — тёмная тема (светлый контрастный текст). */
+export const semanticLineColorsDark: SemanticLineColors = {
+  padDefaultBg: 'rgba(100, 140, 255, 0.22)',
+  padDefaultBorder: 'rgba(140, 170, 255, 0.48)',
+  padDefaultShadow:
+    '0px 2px 6px rgba(0, 0, 0, 0.45), inset -3px -3px 15px rgba(0, 0, 0, 0.35)',
+  yellowBorder: 'rgba(255, 190, 100, 0.7)',
+  yellowBg: 'rgba(72, 48, 18, 0.72)',
+  yellowText: '#ffe8b8',
+  greenBorder: 'rgba(130, 230, 150, 0.6)',
+  greenBg: 'rgba(28, 68, 38, 0.72)',
+  greenText: '#c8f5d0',
+  orangeBorder: 'rgba(255, 170, 90, 0.7)',
+  orangeBg: 'rgba(72, 44, 14, 0.72)',
+  orangeText: '#ffd8a8',
+  redBorder: 'rgba(255, 110, 110, 0.7)',
+  redBg: 'rgba(72, 22, 22, 0.72)',
+  redText: '#ffc8c8',
+  blueBorder: 'rgba(110, 150, 255, 0.6)',
+  blueBg: 'rgba(28, 48, 88, 0.72)',
+  blueText: '#c4dcff',
+  limeBorder: 'rgba(160, 235, 130, 0.6)',
+  limeBg: 'rgba(36, 68, 22, 0.72)',
+  limeText: '#d4f5b8',
+  defaultTextMuted: '#eef2fc',
+};
+
+export function getSemanticLineColors(scheme: SchemeName): SemanticLineColors {
+  return scheme === 'dark' ? semanticLineColorsDark : semanticLineColors;
+}
+
 export function createLightPalette(): AppPalette {
   return {
     scheme: 'light',

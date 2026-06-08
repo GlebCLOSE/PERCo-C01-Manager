@@ -13,6 +13,8 @@ import type { AppPalette } from '../../constants/theme';
 
 interface CrossDetailsProps {
   data: CrossParams;
+  mode?: 'create' | 'edit';
+  onSaved?: () => void;
 }
 
 const SOURCE_ITEMS: { value: NonNullable<CrossParams['source']>; label: string }[] =
@@ -102,10 +104,16 @@ function createStyles(p: AppPalette) {
   });
 }
 
-export const CrossDetails: React.FC<CrossDetailsProps> = ({ data }) => {
+export const CrossDetails: React.FC<CrossDetailsProps> = ({
+  data,
+  mode = 'edit',
+  onSaved,
+}) => {
   const { setCrossConfig } = useControllerConfig();
   const { palette } = useTheme();
   const styles = useMemo(() => createStyles(palette), [palette]);
+  const isCreate = mode === 'create';
+  const reactionNumber = data.number ?? 0;
 
   const [source, setSource] = useState<NonNullable<CrossParams['source']>>(
     data.source ?? 'activating input',
@@ -151,7 +159,7 @@ export const CrossDetails: React.FC<CrossDetailsProps> = ({ data }) => {
     tr = Math.min(1_000_000, Math.max(0, tr));
 
     const payload: CrossParams = {
-      number: data.number,
+      number: reactionNumber,
       source,
       source_number: sourceNumber,
       source_direction: sourceDirection,
@@ -168,10 +176,11 @@ export const CrossDetails: React.FC<CrossDetailsProps> = ({ data }) => {
         result &&
         typeof result === 'object' &&
         result !== null &&
-        (result as { answer?: { cross?: string } }).answer?.cross === 'ok';
+        (result as { answer?: { cref?: string } }).answer?.cref === 'ok';
       setResultMessage(
         isOk ? 'Конфигурация успешно установлена' : 'Ошибка при передаче данных',
       );
+      if (isOk) onSaved?.();
     } catch {
       setResultMessage('Сетевая ошибка');
     }
@@ -181,7 +190,9 @@ export const CrossDetails: React.FC<CrossDetailsProps> = ({ data }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.smallText}>
-        Внутренняя реакция, номер {data.number ?? 0} (0–999)
+        {isCreate
+          ? `Новая внутренняя реакция, номер ${reactionNumber} (назначен автоматически)`
+          : `Внутренняя реакция, номер ${reactionNumber} (0–999)`}
       </Text>
       <View style={styles.hr} />
       <DropdownInput

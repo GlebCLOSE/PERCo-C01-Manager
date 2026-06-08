@@ -54,7 +54,7 @@ export interface CrossParams {
     "time_reaction"?: number
 }
 
-type GetType = 'reader' | 'exdev' | 'pad' | 'cross';
+type GetType = 'reader' | 'exdev' | 'pad' | 'cref';
 
 export const useControllerConfig = () => {
     const { isConnected, touchConfig, sendAndWaitFor, sendAndCollect } = useController();
@@ -97,12 +97,12 @@ export const useControllerConfig = () => {
         let commandPayload: Record<string, unknown>;
         if (getType === 'state') {
             commandPayload = { get: 'state' };
-        } else if (getType === 'cross') {
+        } else if (getType === 'cref') {
             const n = (payload as { number?: number }).number;
             if (!collectAll && typeof n === 'number') {
-                commandPayload = { get: 'cross', number: n };
+                commandPayload = { get: 'cref', number: n };
             } else {
-                commandPayload = { get: 'cross', cross: payload };
+                commandPayload = { get: 'cref', cref: payload };
             }
         } else {
             commandPayload = { get: getType, [getType]: payload };
@@ -215,7 +215,7 @@ export const useControllerConfig = () => {
             console.warn("Нет данных для обновления");
             return;
         }
-        return await sendSetCommand('cross', payload);
+        return await sendSetCommand('cref', payload);
     }, [sendSetCommand]);
 
     return {

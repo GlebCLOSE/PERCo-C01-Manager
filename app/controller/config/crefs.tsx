@@ -15,6 +15,40 @@ import { useTheme } from '../../../providers/ThemeContext';
 import type { AppPalette } from '../../../constants/theme';
 import { themedIcon } from '../../../constants/themedIcons';
 
+const EMPTY_CROSS: CrossParams = {
+  source: 'activating input',
+  source_number: 0,
+  source_direction: 0,
+  destination: 'activated output',
+  destination_number: 0,
+  destination_direction: 0,
+  time_criteria: 'work time',
+  time_reaction: 0,
+};
+
+function dedupeCrossByNumber(list: CrossParams[]): CrossParams[] {
+  const byNumber = new Map<number, CrossParams>();
+  for (const item of list) {
+    byNumber.set(item.number ?? 0, item);
+  }
+  return Array.from(byNumber.values()).sort(
+    (a, b) => (a.number ?? 0) - (b.number ?? 0),
+  );
+}
+
+function suggestNextCrossNumber(list: CrossParams[]): number {
+  const used = new Set(list.map((item) => item.number ?? 0));
+  for (let i = 0; i <= 999; i += 1) {
+    if (!used.has(i)) return i;
+  }
+  return 0;
+}
+
+type ModalState =
+  | { kind: 'closed' }
+  | { kind: 'create'; draft: CrossParams }
+  | { kind: 'edit'; cross: CrossParams };
+
 function createStyles(p: AppPalette) {
   return StyleSheet.create({
     container: {
@@ -53,19 +87,19 @@ export default function CrefsScreen() {
 
   const addIcon = useMemo(() => themedIcon('addReader', scheme), [scheme]);
 
-  const [activeCross, setActiveCross] = useState<CrossParams | ''>('');
+  const [modal, setModal] = useState<ModalState>({ kind: 'closed' });
   const [isLoading, setIsLoading] = useState(false);
   const [crossList, setCrossList] = useState<CrossParams[]>([]);
 
   const handleGetCrossList = useCallback(async () => {
     setIsLoading(true);
     try {
-      const responses: unknown = await getInfo('cross', 'all');
-      const crossArray = (responses as { cross?: CrossParams }[])
-        .map((item) => item.cross)
-        .filter((c): c is CrossParams => c !== undefined);
-
-      crossArray.sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+      const responses: unknown = await getInfo('cref', 'all');
+      const crossArray = dedupeCrossByNumber(
+        (responses as { cref?: CrossParams }[])
+          .map((item) => item.cref)
+          .filter((c): c is CrossParams => c !== undefined),
+      );
 
       setCrossList(crossArray);
     } catch (error) {
@@ -89,8 +123,25 @@ export default function CrefsScreen() {
   );
 
   const closeModal = () => {
-    setActiveCross('');
+    setModal({ kind: 'closed' });
   };
+
+  const openCreateModal = () => {
+    setModal({
+      kind: 'create',
+      draft: {
+        ...EMPTY_CROSS,
+        number: suggestNextCrossNumber(crossList),
+      },
+    });
+  };
+
+  const modalTitle =
+    modal.kind === 'create'
+      ? 'Новая реакция'
+      : modal.kind === 'edit'
+        ? 'Внутренняя реакция'
+        : '';
 
   const ItemSeparator = () => (
     <View style={{ height: 10, backgroundColor: 'transparent' }} />
@@ -105,15 +156,13 @@ export default function CrefsScreen() {
           data={crossList}
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: 16 }}
-          keyExtractor={(item, index) =>
-            item.number !== undefined ? `cross-${item.number}` : `cross-i-${index}`
-          }
+          keyExtractor={(item, index) => `cross-${item.number ?? index}-${index}`}
           renderItem={({ item }) => (
             <CrossLine
               number={item.number ?? 0}
               source={item.source ?? 'activating input'}
               destination={item.destination ?? 'activated output'}
-              onPress={() => setActiveCross(item)}
+              onPress={() => setModal({ kind: 'edit', cross: item })}
             />
           )}
           ItemSeparatorComponent={ItemSeparator}
@@ -128,17 +177,30 @@ export default function CrefsScreen() {
         >
           <ButtonSquare
             title="Добавить реакцию"
-            onPress={() => {}}
+            onPress={openCreateModal}
             icon={addIcon}
           />
         </View>
       </View>
       <ModalChildren
-        title="Внутренняя реакция"
-        visible={activeCross !== ''}
+        title={modalTitle}
+        visible={modal.kind !== 'closed'}
         onClose={closeModal}
       >
-        {activeCross !== '' ? <CrossDetails data={activeCross} /> : null}
+        {modal.kind === 'create' ? (
+          <CrossDetails
+            data={modal.draft}
+            mode="create"
+            onSaved={() => void handleGetCrossList()}
+          />
+        ) : null}
+        {modal.kind === 'edit' ? (
+          <CrossDetails
+            data={modal.cross}
+            mode="edit"
+            onSaved={() => void handleGetCrossList()}
+          />
+        ) : null}
       </ModalChildren>
       {isLoading ? (
         <View style={styles.loadingOverlay}>

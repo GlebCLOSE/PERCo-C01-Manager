@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# local APK/AAB output (optional copy from offline build)
+/build-outputs
