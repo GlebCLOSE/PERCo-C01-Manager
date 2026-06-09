@@ -15,6 +15,7 @@ import { shortEventLabel, type PercoEvent } from "../../types/events";
 import { useTheme } from "../../providers/ThemeContext";
 import type { AppPalette } from "../../constants/theme";
 import { themedIcon } from "../../constants/themedIcons";
+import ErrorModal from "../../components/ui/status/ErrorModal";
 
 function createStyles(p: AppPalette) {
     return StyleSheet.create({
@@ -60,6 +61,8 @@ export default function EventsScreen() {
     } | null>(null);
 
     const [modalType, setModalType] = useState(''); // 'STATS' | 'FILTER' | 'LOG' | ''
+    const [bgReceiveError, setBgReceiveError] = useState('');
+    const [isBgReceiveErrorVisible, setIsBgReceiveErrorVisible] = useState(false);
 
     const allTypesSet = useMemo(
         () => new Set<PercoEvent["event"]>(EVENT_TYPE_KEYS),
@@ -112,7 +115,15 @@ export default function EventsScreen() {
         }
     };
 
-    const { events, clearEvents, androidBgReceiveEnabled, setAndroidBgReceiveEnabled } = useController();
+    const { events, clearEvents, androidBgReceiveEnabled, trySetAndroidBgReceiveEnabled } = useController();
+
+    const handleBgReceiveToggle = async (value: boolean) => {
+        const result = await trySetAndroidBgReceiveEnabled(value);
+        if (!result.ok) {
+            setBgReceiveError(result.message);
+            setIsBgReceiveErrorVisible(true);
+        }
+    };
 
     const visibleEvents = useMemo(
         () => events.filter((e) => enabledEventTypes.has(e.event.event)),
@@ -131,9 +142,9 @@ export default function EventsScreen() {
             </View>
             {Platform.OS === 'android' && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, width: '100%', paddingHorizontal: 4 }}>
-                    <Switch value={androidBgReceiveEnabled} onValueChange={setAndroidBgReceiveEnabled} />
+                    <Switch value={androidBgReceiveEnabled} onValueChange={handleBgReceiveToggle} />
                     <Text style={{ flex: 1, fontFamily: 'inter', fontSize: 13, color: palette.screenMutedText, fontWeight: '400' }}>
-                        Фоновый приём: постоянное уведомление Android, чтобы ОС реже останавливала приложение при активном соединении (нужен dev-client / prebuild с native-модулями).
+                        Фоновый приём: постоянное уведомление Android, чтобы ОС реже останавливала приложение при активном соединении.
                     </Text>
                 </View>
             )}
@@ -171,6 +182,11 @@ export default function EventsScreen() {
             <ModalChildren title={modalTitle} visible={modalType !== ''} onClose={closeModal} isWarn={isWarn}>
                 {renderModalContent()}
             </ModalChildren>
+            <ErrorModal
+                visible={isBgReceiveErrorVisible}
+                message={bgReceiveError}
+                onClose={() => setIsBgReceiveErrorVisible(false)}
+            />
         </View>
     );
 }

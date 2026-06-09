@@ -14,9 +14,14 @@ import { attemptConnection } from '../utils/attemptConnection';
 import { getDevices } from '../storage/deviceStorage';
 import {
   BG_RECEIVE_PREF_KEY,
+  ensureAndroidBgPermissions,
   startAndroidReceiveKeepAlive,
   stopAndroidReceiveKeepAlive,
 } from '../utils/controller/androidReceiveKeepAlive';
+
+export type AndroidBgReceiveToggleResult =
+  | { ok: true }
+  | { ok: false; message: string };
 
 export type { WsTransportLogEntry } from '../types/wsTransportLog';
 
@@ -43,7 +48,7 @@ interface ControllerContextType {
   sendPayloadFireAndForget: (payload: unknown) => void;
   /** Только Android: удержание процесса через foreground-уведомление при активном соединении */
   androidBgReceiveEnabled: boolean;
-  setAndroidBgReceiveEnabled: (value: boolean) => void;
+  trySetAndroidBgReceiveEnabled: (value: boolean) => Promise<AndroidBgReceiveToggleResult>;
   sendAndWaitFor<T>(payload: unknown, match: MessageMatcher<T>, timeoutMs?: number): Promise<T>;
   sendAndCollect<T>(
     payload: unknown,
@@ -106,16 +111,68 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     void AsyncStorage.setItem(BG_RECEIVE_PREF_KEY, androidBgReceiveEnabled ? '1' : '0');
   }, [androidBgReceiveEnabled]);
 
+  const resetAndroidBgReceive = useCallback(() => {
+    setAndroidBgReceiveEnabled(false);
+    void AsyncStorage.setItem(BG_RECEIVE_PREF_KEY, '0');
+  }, []);
+
+  const trySetAndroidBgReceiveEnabled = useCallback(
+    async (value: boolean): Promise<AndroidBgReceiveToggleResult> => {
+      if (Platform.OS !== 'android') {
+        return { ok: false, message: 'Фоновый приём доступен только на Android.' };
+      }
+
+      if (!value) {
+        setAndroidBgReceiveEnabled(false);
+        await stopAndroidReceiveKeepAlive();
+        return { ok: true };
+      }
+
+      const permissionsOk = await ensureAndroidBgPermissions();
+      if (!permissionsOk) {
+        return {
+          ok: false,
+          message:
+            'Без разрешения на уведомления Android не позволяет удерживать приложение в фоне. Разрешите уведомления в настройках.',
+        };
+      }
+
+      setAndroidBgReceiveEnabled(true);
+
+      if (isConnected) {
+        const started = await startAndroidReceiveKeepAlive();
+        if (!started) {
+          resetAndroidBgReceive();
+          return {
+            ok: false,
+            message:
+              'Не удалось включить фоновый приём. Убедитесь, что установлена сборка APK с native-модулями (не Expo Go).',
+          };
+        }
+      }
+
+      return { ok: true };
+    },
+    [isConnected, resetAndroidBgReceive]
+  );
+
   useEffect(() => {
     if (Platform.OS !== 'android') return;
     if (androidBgReceiveEnabled && isConnected) {
-      void startAndroidReceiveKeepAlive();
+      let cancelled = false;
+      void (async () => {
+        const started = await startAndroidReceiveKeepAlive();
+        if (!cancelled && !started) {
+          resetAndroidBgReceive();
+        }
+      })();
       return () => {
+        cancelled = true;
         void stopAndroidReceiveKeepAlive();
       };
     }
     void stopAndroidReceiveKeepAlive();
-  }, [androidBgReceiveEnabled, isConnected]);
+  }, [androidBgReceiveEnabled, isConnected, resetAndroidBgReceive]);
 
   useEffect(() => {
     let cancelled = false;
@@ -402,7 +459,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     appendTransportLogEntry,
     sendPayloadFireAndForget,
     androidBgReceiveEnabled,
-    setAndroidBgReceiveEnabled,
+    trySetAndroidBgReceiveEnabled,
     sendAndWaitFor,
     sendAndCollect,
   };
