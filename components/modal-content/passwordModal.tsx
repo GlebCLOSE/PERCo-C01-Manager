@@ -39,7 +39,7 @@ export const PasswordModal = () => {
     const { palette } = useTheme()
     const styles = useMemo(() => createStyles(palette), [palette])
 
-    const { socket, setGlobalSocket, ipAddress } = useController()
+    const { updateSessionPassword, ipAddress } = useController()
     const { setNetworkSettings } = useControllerConfig()
 
     const validateForm = () => {
@@ -64,9 +64,7 @@ export const PasswordModal = () => {
         try {
             const result = await setNetworkSettings({ password: newPassword })
             if (result?.answer?.net === 'ok') {
-                if (socket) {
-                    setGlobalSocket(socket, newPassword)
-                }
+                updateSessionPassword(newPassword)
                 if (ipAddress) {
                     await updateDevicePasswordByIp(ipAddress, newPassword)
                 }

@@ -11,6 +11,7 @@ import {
   refreshAllowedIdentifiersFromDb,
 } from '../utils/controller/localAccessUsersDb';
 import { attemptConnection } from '../utils/attemptConnection';
+import md5 from 'md5';
 import { getDevices } from '../storage/deviceStorage';
 import {
   BG_RECEIVE_PREF_KEY,
@@ -38,6 +39,7 @@ interface ControllerContextType {
   configRevision: number;
   touchConfig: () => void;
   setGlobalSocket: (ws: WebSocket, sessionPassword?: string | null) => void;
+  updateSessionPassword: (password: string) => void;
   reconnectToController: () => Promise<ReconnectResult>;
   disconnect: () => void;
   events: Array<{ event: PercoEvent; receivedAt: number }>;
@@ -339,6 +341,17 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
           appendTransportLogEntry({ direction: 'in', ts: Date.now(), body: msg });
           requestManagerRef.current.handleMessage(msg);
 
+          if (msg && typeof msg === 'object' && msg.event === 'need_auth') {
+            const pwd = sessionPasswordRef.current;
+            const salt = (msg as { need_auth?: { salt?: unknown } }).need_auth?.salt;
+            if (pwd != null && typeof salt === 'string' && ws.readyState === WebSocket.OPEN) {
+              const hash = md5(salt + pwd);
+              const authPayload = { set: 'auth', auth: { hash } };
+              appendTransportLogEntry({ direction: 'out', ts: Date.now(), body: authPayload });
+              ws.send(JSON.stringify(authPayload));
+            }
+          }
+
           if (msg && typeof msg === 'object' && typeof msg.event === 'string') {
             const receivedAt = Date.now();
             const key = (() => {
@@ -397,13 +410,17 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     [appendTransportLogEntry, sendPayloadFireAndForget]
   );
 
+  const updateSessionPassword = useCallback((password: string) => {
+    sessionPasswordRef.current = password;
+  }, []);
+
   const reconnectToController = useCallback(async (): Promise<ReconnectResult> => {
     const ip = ipAddress;
     if (!ip) {
       return { ok: false, message: 'IP контроллера неизвестен', needManualConnect: true };
     }
-    let pwd = sessionPasswordRef.current;
-    if (!pwd) {
+    let pwd: string | null = sessionPasswordRef.current;
+    if (pwd == null) {
       try {
         const devices = await getDevices();
         const match = devices.find((d) => d.ip === ip);
@@ -412,16 +429,9 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
         console.error('Failed to read saved devices', e);
       }
     }
-    if (!pwd) {
-      return {
-        ok: false,
-        message: 'Нет сохранённого пароля для переподключения.',
-        needManualConnect: true,
-      };
-    }
 
     try {
-      const connectionResult = (await attemptConnection(ip, pwd, {
+      const connectionResult = (await attemptConnection(ip, pwd ?? '', {
         onTransportLog: appendTransportLogEntry,
       })) as {
         success: boolean;
@@ -429,7 +439,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
         message?: string;
       };
       if (connectionResult.success && connectionResult.socket) {
-        setGlobalSocket(connectionResult.socket, pwd);
+        setGlobalSocket(connectionResult.socket, pwd ?? '');
         return { ok: true };
       }
       return {
@@ -450,6 +460,7 @@ export const ControllerProvider: React.FC<Props> = ({ children }) => {
     configRevision,
     touchConfig,
     setGlobalSocket,
+    updateSessionPassword,
     reconnectToController,
     disconnect,
     events,
