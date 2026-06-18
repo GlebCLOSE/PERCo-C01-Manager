@@ -41,7 +41,7 @@ export const FactoryModal = () => {
     const handleSetDefaultNetwork = async () => {
         try {
             const result = await setDefaultNetwork();
-            if(result?.answer?.network==='ok') {    
+            if(result?.answer?.net==='ok') {    
                 setResultMessage('Сброс успешно выполнен')
                 setIsModalVisible(true)
             } else {

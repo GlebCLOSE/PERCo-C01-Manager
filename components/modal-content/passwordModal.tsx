@@ -2,7 +2,12 @@ import { View, Text, StyleSheet } from "react-native"
 import { useState, useMemo } from "react"
 import { Button } from "../ui/elements/buttons/Button"
 import InputField from "../ui/elements/input/InputField"
+import ModalText from "../ui/status/ModalText"
 import { useTheme } from "../../providers/ThemeContext"
+import { useController } from "../../providers/ControllerContext"
+import { useControllerConfig } from "../../hooks/useControllerConfig"
+import { validatePassword } from "../../utils/validation/validatePassword"
+import { updateDevicePasswordByIp } from "../../storage/deviceStorage"
 import type { AppPalette } from "../../constants/theme"
 
 function createStyles(p: AppPalette) {
@@ -26,13 +31,65 @@ function createStyles(p: AppPalette) {
 
 export const PasswordModal = () => {
     const [password, setPassword] = useState('')
-    const [passwordС, setPasswordС] = useState('')
+    const [passwordConfirm, setPasswordConfirm] = useState('')
+    const [errors, setErrors] = useState<{ password?: string; passwordConfirm?: string }>({})
+    const [isModalVisible, setIsModalVisible] = useState(false)
+    const [resultMessage, setResultMessage] = useState('')
+
     const { palette } = useTheme()
     const styles = useMemo(() => createStyles(palette), [palette])
 
+    const { socket, setGlobalSocket, ipAddress } = useController()
+    const { setNetworkSettings } = useControllerConfig()
+
+    const validateForm = () => {
+        const next: { password?: string; passwordConfirm?: string } = {}
+
+        const passwordError = validatePassword(password)
+        if (passwordError) next.password = passwordError
+
+        if (password !== passwordConfirm) {
+            next.passwordConfirm = 'Пароли не совпадают'
+        }
+
+        setErrors(next)
+        return Object.keys(next).length === 0
+    }
+
+    const handleSave = async () => {
+        if (!validateForm()) return
+
+        const newPassword = password.trim()
+
+        try {
+            const result = await setNetworkSettings({ password: newPassword })
+            if (result?.answer?.net === 'ok') {
+                if (socket) {
+                    setGlobalSocket(socket, newPassword)
+                }
+                if (ipAddress) {
+                    await updateDevicePasswordByIp(ipAddress, newPassword)
+                }
+                setPassword('')
+                setPasswordConfirm('')
+                setErrors({})
+                setResultMessage('Пароль успешно установлен')
+            } else {
+                setResultMessage('Ошибка при передаче данных')
+            }
+            setIsModalVisible(true)
+        } catch (e) {
+            const message = e instanceof Error ? e.message : 'Сетевая ошибка'
+            setResultMessage(message)
+            setIsModalVisible(true)
+        }
+    }
+
     return (
         <View style={styles.container}>
-            <Text style={styles.smallText}>Укажите IP-адрес сервера, для настройки обратного подключения от контроллера к серверу.</Text>
+            <Text style={styles.smallText}>
+                Укажите новый пароль доступа к контроллеру. Для снятия пароля оставьте поля пустыми.
+            </Text>
             <View style={styles.hr}></View>
             <InputField
                 label='Новый пароль'
@@ -41,19 +98,27 @@ export const PasswordModal = () => {
                 placeholder="0000"
                 value={password}
                 onChangeText={setPassword}
+                error={errors.password}
             />
             <InputField
                 label='Повторить пароль'
                 size='s'
                 secureTextEntry={true}
                 placeholder="0000"
-                value={passwordС}
-                onChangeText={setPasswordС}
+                value={passwordConfirm}
+                onChangeText={setPasswordConfirm}
+                error={errors.passwordConfirm}
             />
             <Button
                 title='Сохранить'
-                onPress={() => { }}
+                onPress={handleSave}
                 size="M"
+            />
+            <ModalText
+                title="Ответ"
+                message={resultMessage}
+                visible={isModalVisible}
+                onClose={() => setIsModalVisible(false)}
             />
         </View>
     )

@@ -100,7 +100,7 @@ export default function NetworkScreen() {
 
         try {
             const result = await setNetworkSettings({ ip: ip, mask: mask, gateway: gateway });
-            const isOk = result?.answer?.network === 'ok';
+            const isOk = result?.answer?.net === 'ok';
             if (isOk) {
                 setErrorMessage('Сетевые настройки успешно установлены');
                 setIsErrorModalVisible(true);

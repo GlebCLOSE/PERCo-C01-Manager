@@ -91,6 +91,28 @@ interface RemoveCriteria {
   name?: string;
 }
 
+export const updateDevicePasswordByIp = async (
+  ip: string,
+  password: string
+): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const currentDevices = await getDevices();
+    const index = currentDevices.findIndex((device) => device.ip === ip);
+    if (index === -1) {
+      return { success: false, message: 'Устройство не найдено' };
+    }
+
+    const updatedDevices = [...currentDevices];
+    updatedDevices[index] = { ...updatedDevices[index], password };
+
+    await SecureStore.setItemAsync('saved_devices', JSON.stringify(updatedDevices));
+    return { success: true };
+  } catch (error) {
+    console.error('Ошибка обновления пароля устройства:', error);
+    return { success: false, message: 'Внутренняя ошибка' };
+  }
+};
+
 export const removeDevice = async (criteria: RemoveCriteria): Promise<{ success: boolean; message?: string }> => {
   try {
     const currentDevices = await getDevices();
